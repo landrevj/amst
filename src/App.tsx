@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
 import { Hello } from './components/Hello';
 
-export default function App() {
+export default function App()
+{
   return (
     <Router>
       <Switch>
