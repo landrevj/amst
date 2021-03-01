@@ -1,11 +1,9 @@
 import React from 'react';
 import { Connection, getConnection, getRepository } from 'typeorm';
 import { RouteComponentProps } from 'react-router';
-// import { Input } from './ui/Input';
 import User from '../entity/User';
 
 import '../App.global.scss';
-import Input from './ui/Input';
 
 interface HomeState
 {
@@ -49,14 +47,14 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
     // else console.log("Home.tsx: Failed to load User repository.");
   }
 
-  onFirstNameChange(name: string)
+  onFirstNameChange({target: {value}})
   {
-    this.setState({newFirstName: name});
+    this.setState({newFirstName: value});
   }
 
-  onLastNameChange(name: string)
+  onLastNameChange({target: {value}})
   {
-    this.setState({newLastName: name});
+    this.setState({newLastName: value});
   }
 
   async onClickAddToDB()
@@ -73,6 +71,8 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
 
     this.setState(prevState => ({
       users: [...prevState.users, user],
+      newFirstName: '',
+      newLastName: '',
     }));
   }
 
@@ -84,6 +84,8 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
 
     this.setState({
       users: [],
+      newFirstName: '',
+      newLastName: '',
     });
   }
 
@@ -93,8 +95,8 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
     return (
       <>
         <h2>Hello... {newFirstName} {newLastName}</h2>
-        <Input type="text" onChange={this.onFirstNameChange}/>
-        <Input type="text" onChange={this.onLastNameChange}/>
+        <input type="text" value={newFirstName} onChange={this.onFirstNameChange}/>
+        <input type="text" value={newLastName} onChange={this.onLastNameChange}/>
         <button type="button" onClick={this.onClickAddToDB}>add</button>
         <button type="button" onClick={this.onClickResetDB}>reset</button>
         <ul>
