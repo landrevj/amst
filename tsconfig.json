@@ -20,7 +20,10 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-    "allowJs": true
+    "allowJs": true,
+    // TYPEORM
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true
   },
   "exclude": [
     "test",

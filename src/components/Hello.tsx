@@ -1,9 +1,13 @@
 import React from 'react';
+import { getRepository } from "typeorm";
+import User from '../entity/User';
+
 import icon from '../../assets/icon.svg';
 import '../App.global.scss';
 
 // eslint-disable-next-line import/prefer-default-export
 export const Hello = () => {
+  // const entity = await getRepository(User).findOne({ id: props.name });
   return (
     <div>
       <div className="Hello">
