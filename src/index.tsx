@@ -1,22 +1,17 @@
 import "reflect-metadata";
 import React from 'react';
 import { render } from 'react-dom';
-import {createConnection, ConnectionOptions} from "typeorm";
+import { createConnection } from "typeorm";
 import App from './App';
-import User from "./entity/User";
 
-const connectionOptions: ConnectionOptions = {
-  type: "sqlite",
-  synchronize: true,
-  database: "src/database.sqlite",
-  entities: [User],
-};
+import config from './ormconfig';
 
 // eslint-disable-next-line promise/always-return
-createConnection(connectionOptions).then(() => {
-
+createConnection(config).then(async () => {
+  console.log('gotConnection');
   render(<App />, document.getElementById('root'));
 
-}).catch(() => {
-  // console.log(error)
+}).catch((error) => {
+  console.log('connection error');
+  console.log(error)
 });

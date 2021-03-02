@@ -1,7 +1,7 @@
 import React from 'react';
 import { Connection, getConnection, getRepository } from 'typeorm';
 import { RouteComponentProps } from 'react-router';
-import User from '../entity/User';
+import User from '../entities/User';
 
 import '../App.global.scss';
 
