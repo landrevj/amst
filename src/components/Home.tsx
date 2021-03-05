@@ -1,5 +1,6 @@
 import React from 'react';
 import { RouteComponentProps } from 'react-router';
+import log from 'electron-log';
 
 import DB from '../utils/DB';
 import User from '../entities/User';
@@ -35,14 +36,14 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
 
   async componentDidMount()
   {
-    const allUsers = await DB.em.find(User, {});// await getRepository(User).find();
+    const allUsers = await DB.em.find(User, {});
     if (allUsers)
     {
       this.setState({
         users: allUsers,
       });
     }
-    // else console.log("Home.tsx: Failed to load User repository.");
+    else log.error(`Home.tsx: Failed to load Users.`);
   }
 
   onFirstNameChange({target: {value}})
@@ -76,7 +77,7 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
   async onClickResetDB()
   {
     const { users } = this.state;
-    DB.em.removeAndFlush(users);
+    await DB.em.removeAndFlush(users);
 
     this.setState({
       users: [],

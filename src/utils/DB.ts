@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/lines-between-class-members */
 import { EntityManager, MikroORM } from "@mikro-orm/core";
+import log from 'electron-log';
 import config from '../mikro-orm.config';
 
 class Database
@@ -22,12 +23,14 @@ class Database
     // eslint-disable-next-line promise/always-return
     await MikroORM.init(config).then((orm) => {
       // console.log('DB.ts: connected');
+      log.info('DB.ts: Database connected');
+      log.debug(config);
 
       this.private_orm = orm;
       this.private_em  = this.orm.em;
 
     // }).catch(console.log);
-    }).catch(() => {});
+    }).catch(log.catchErrors);
   }
 
   get orm(): MikroORM      | undefined { return this.private_orm }
