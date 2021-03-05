@@ -1,6 +1,7 @@
 import React from 'react';
-import { Connection, getConnection, getRepository } from 'typeorm';
 import { RouteComponentProps } from 'react-router';
+
+import DB from '../utils/DB';
 import User from '../entities/User';
 
 import '../App.global.scss';
@@ -15,13 +16,10 @@ interface HomeState
 // eslint-disable-next-line import/prefer-default-export
 export class Home extends React.Component<RouteComponentProps, HomeState>
 {
-  private connection: Connection;
 
   constructor(props: RouteComponentProps)
   {
     super(props);
-
-    this.connection = getConnection();
 
     this.state = {
       users: [],
@@ -37,7 +35,7 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
 
   async componentDidMount()
   {
-    const allUsers = await getRepository(User).find();
+    const allUsers = await DB.em.find(User, {});// await getRepository(User).find();
     if (allUsers)
     {
       this.setState({
@@ -66,8 +64,7 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
     user.lastName  = newLastName;
     user.age = 25;
 
-
-    await this.connection.manager.save(user);
+    await DB.em.persistAndFlush([user]);
 
     this.setState(prevState => ({
       users: [...prevState.users, user],
@@ -78,9 +75,8 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
 
   async onClickResetDB()
   {
-    const repo = await getRepository(User);
     const { users } = this.state;
-    repo.remove(users);
+    DB.em.removeAndFlush(users);
 
     this.setState({
       users: [],
@@ -96,7 +92,7 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
       <>
         <h2>Hello... {newFirstName} {newLastName}</h2>
         <input type="text" value={newFirstName} onChange={this.onFirstNameChange}/>
-        <input type="text" value={newLastName} onChange={this.onLastNameChange}/>
+        <input type="text" value={newLastName}  onChange={this.onLastNameChange}/>
         <button type="button" onClick={this.onClickAddToDB}>add</button>
         <button type="button" onClick={this.onClickResetDB}>reset</button>
         <ul>

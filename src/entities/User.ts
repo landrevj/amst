@@ -1,18 +1,18 @@
-import {Entity, PrimaryGeneratedColumn, Column} from "typeorm";
+import {Entity, PrimaryKey, Property} from '@mikro-orm/core'
 
 @Entity()
 export default class User {
 
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryKey({ type: 'number' })
+    id!: number;
 
-    @Column('varchar')
+    @Property({ type: 'string' })
     firstName: string;
 
-    @Column('varchar')
+    @Property({ type: 'string' })
     lastName: string;
 
-    @Column('int')
+    @Property({ type: 'number' })
     age: number;
 
 }

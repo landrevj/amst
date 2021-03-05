@@ -21,9 +21,10 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "allowJs": true,
-    // TYPEORM
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true
+    // mikro-orm
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+    // "esModuleInterop": true, // already included above
   },
   "exclude": [
     "test",

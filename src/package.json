@@ -11,14 +11,23 @@
   },
   "scripts": {
     "electron-rebuild": "node -r ../.erb/scripts/BabelRegister.js ../.erb/scripts/ElectronRebuild.js",
-    "postinstall": "yarn electron-rebuild",
-    "typeorm": "node --require ts-node/register ./node_modules/typeorm/cli.js"
+    "postinstall": "yarn electron-rebuild"
   },
   "license": "MIT",
   "dependencies": {
-    "reflect-metadata": "^0.1.13",
-    "sqlite3": "^5.0.2",
-    "typeorm": "^0.2.31"
+    "@mikro-orm/core": "^4.4.4",
+    "@mikro-orm/sqlite": "^4.4.4",
+    "reflect-metadata": "^0.1.13"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@mikro-orm/cli": "^4.4.4"
+  },
+  "mikro-orm": {
+    "useTsNode": true,
+    "tsConfigPath": "../tsconfig.json",
+    "configPaths": [
+      "./mikro-orm.config.ts",
+      "./dist/mikro-orm.config.js"
+    ]
+  }
 }

@@ -1,17 +1,11 @@
-import "reflect-metadata";
+import 'reflect-metadata';
+
 import React from 'react';
 import { render } from 'react-dom';
-import { createConnection } from "typeorm";
 import App from './App';
-
-import config from './ormconfig';
+import DB from './utils/DB';
 
 // eslint-disable-next-line promise/always-return
-createConnection(config).then(async () => {
-  console.log('gotConnection');
+DB.init().then(() => {
   render(<App />, document.getElementById('root'));
-
-}).catch((error) => {
-  console.log('connection error');
-  console.log(error)
-});
+}).catch(() => {});
