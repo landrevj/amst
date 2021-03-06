@@ -1,10 +1,32 @@
+/* eslint-disable prefer-destructuring */
 import { Options } from '@mikro-orm/core';
-import { join } from 'path';
+import { join, basename } from 'path';
 import User from './entities/User';
+
+const isDev  = process.env.NODE_ENV === 'development';
+const dbPath = isDev ? join(__dirname, 'database.sqlite') : 'database.sqlite';
+
+// ///////////////////////////////////////////
+// static importing all migrations for webpack
+const migrations = {};
+
+function importAll(r: __WebpackModuleApi.RequireContext)
+{
+  // eslint-disable-next-line no-return-assign
+  r.keys().forEach((key) => (migrations[basename(key)] = Object.values(r(key))[0]));
+}
+
+importAll(require.context('./migrations', false, /\.ts$/));
+
+const migrationsList = Object.keys(migrations).map((migrationName) => ({
+  name: migrationName,
+  class: migrations[migrationName],
+}));
+// ///////////////////////////////////////////
 
 const options: Options = {
   type: 'sqlite',
-  dbName: join(__dirname, 'database.sqlite'),
+  dbName: dbPath,
   entities: [User],
   discovery: { disableDynamicFileAccess: true },
   migrations: {
@@ -17,6 +39,7 @@ const options: Options = {
     dropTables: false, // allow to disable table dropping
     safe: true, // allow to disable table and column dropping
     emit: 'ts', // migration generation mode
+    migrationsList,
   }
 };
 

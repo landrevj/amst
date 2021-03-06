@@ -16,6 +16,7 @@
   "license": "MIT",
   "dependencies": {
     "@mikro-orm/core": "^4.4.4",
+    "@mikro-orm/migrations": "^4.4.4",
     "@mikro-orm/sqlite": "^4.4.4",
     "reflect-metadata": "^0.1.13"
   },
