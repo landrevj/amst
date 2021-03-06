@@ -16,6 +16,8 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 
+import main from './main/main';
+
 export default class AppUpdater {
   constructor() {
     log.transports.file.level = 'info';
@@ -123,7 +125,9 @@ app.on('window-all-closed', () => {
   }
 });
 
-app.whenReady().then(createWindow).catch(console.log);
+app.whenReady().then(createWindow).then(() => {
+  return main();
+}).catch(console.log);
 
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
