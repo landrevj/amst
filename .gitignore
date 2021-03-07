@@ -53,3 +53,4 @@ npm-debug.log.*
 ###
 database.sqlite
 dev_database.sqlite
+assets/icon-assets
