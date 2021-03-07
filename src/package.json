@@ -1,7 +1,7 @@
 {
   "name": "amst",
   "productName": "amst",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "description": "A file database and tagging system.",
   "main": "./main.prod.js",
   "author": {
