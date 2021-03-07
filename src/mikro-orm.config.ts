@@ -2,7 +2,7 @@
 import { ipcRenderer } from 'electron';
 import { Options } from '@mikro-orm/core';
 import { join, basename } from 'path';
-import User from './entities/User';
+import Workspace from './entities/Workspace';
 
 const isDev  = process.env.NODE_ENV !== 'production';
 const dbPath = isDev ?
@@ -31,7 +31,7 @@ const migrationsList = Object.keys(migrations).map((migrationName) => ({
 const options: Options = {
   type: 'sqlite',
   dbName: dbPath,
-  entities: [User],
+  entities: [Workspace],
   discovery: { disableDynamicFileAccess: true },
   migrations: {
     tableName: 'mikro_orm_migrations', // name of database table with log of executed transactions

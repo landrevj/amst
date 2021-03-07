@@ -3,15 +3,14 @@ import { RouteComponentProps } from 'react-router';
 import log from 'electron-log';
 
 import DB from '../utils/DB';
-import User from '../entities/User';
+import Workspace from '../entities/Workspace';
 
 import '../App.global.scss';
 
 interface HomeState
 {
-  users: User[],
-  newFirstName: string,
-  newLastName: string,
+  workspaces: Workspace[],
+  newName: string,
 }
 
 // eslint-disable-next-line import/prefer-default-export
@@ -23,83 +22,70 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
     super(props);
 
     this.state = {
-      users: [],
-      newFirstName: '',
-      newLastName: '',
+      workspaces: [],
+      newName: '',
     };
 
-    this.onFirstNameChange = this.onFirstNameChange.bind(this);
-    this.onLastNameChange  = this.onLastNameChange.bind(this);
-    this.onClickAddToDB    = this.onClickAddToDB.bind(this);
-    this.onClickResetDB    = this.onClickResetDB.bind(this);
+    this.onNameChange   = this.onNameChange.bind(this);
+    this.onClickAddToDB = this.onClickAddToDB.bind(this);
+    this.onClickResetDB = this.onClickResetDB.bind(this);
   }
 
   async componentDidMount()
   {
-    const allUsers = await DB.em.find(User, {});
-    if (allUsers)
+    const allWorkspaces = await DB.em.find(Workspace, {});
+    if (allWorkspaces)
     {
       this.setState({
-        users: allUsers,
+        workspaces: allWorkspaces,
       });
     }
-    else log.error(`Home.tsx: Failed to load Users.`);
+    else log.error(`Home.tsx: Failed to load Workspaces.`);
   }
 
-  onFirstNameChange({target: {value}})
+  onNameChange({target: {value}})
   {
-    this.setState({newFirstName: value});
-  }
-
-  onLastNameChange({target: {value}})
-  {
-    this.setState({newLastName: value});
+    this.setState({newName: value});
   }
 
   async onClickAddToDB()
   {
-    const { newFirstName, newLastName } = this.state;
+    const { newName } = this.state;
 
-    const user = new User();
-    user.firstName = newFirstName;
-    user.lastName  = newLastName;
-    user.age = 25;
+    const workspace = new Workspace(newName);
 
-    await DB.em.persistAndFlush([user]);
+    await DB.em.persistAndFlush([workspace]);
 
     this.setState(prevState => ({
-      users: [...prevState.users, user],
-      newFirstName: '',
-      newLastName: '',
+      workspaces: [...prevState.workspaces, workspace],
+      newName: '',
     }));
   }
 
   async onClickResetDB()
   {
-    const { users } = this.state;
-    await DB.em.removeAndFlush(users);
+    const { workspaces } = this.state;
+    await DB.em.removeAndFlush(workspaces);
 
     this.setState({
-      users: [],
-      newFirstName: '',
-      newLastName: '',
+      workspaces: [],
+      newName: '',
     });
   }
 
   render()
   {
-    const {users, newFirstName, newLastName} = this.state;
+    const {workspaces, newName} = this.state;
     return (
       <>
-        <h2>Hello... {newFirstName} {newLastName}</h2>
-        <input type="text" value={newFirstName} onChange={this.onFirstNameChange}/>
-        <input type="text" value={newLastName}  onChange={this.onLastNameChange}/>
+        <h2>New workspace... {newName}</h2>
+        <input type="text" value={newName} onChange={this.onNameChange}/>
         <button type="button" onClick={this.onClickAddToDB}>add</button>
         <button type="button" onClick={this.onClickResetDB}>reset</button>
         <ul>
-          {users.map((user) =>
-          <li key={user.id}>
-            {user.firstName} {user.lastName}
+          {workspaces.map((workspace) =>
+          <li key={workspace.id}>
+            {workspace.name}
           </li>)}
         </ul>
       </>
