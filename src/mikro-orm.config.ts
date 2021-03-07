@@ -4,7 +4,7 @@ import { Options } from '@mikro-orm/core';
 import { join, basename } from 'path';
 import User from './entities/User';
 
-const isDev  = process.env.NODE_ENV === 'development';
+const isDev  = process.env.NODE_ENV !== 'production';
 const dbPath = isDev ?
                join(__dirname, 'dev_database.sqlite') :
                join(ipcRenderer.sendSync('get-app-path', 'userData'), 'database.sqlite');
@@ -20,7 +20,7 @@ function importAll(r: __WebpackModuleApi.RequireContext)
   r.keys().forEach((key) => (migrations[basename(key)] = Object.values(r(key))[0]));
 }
 
-importAll(require.context('./migrations', false, /\.ts$/));
+if (process.env.NODE_ENV) importAll(require.context('./migrations', false, /\.ts$/));
 
 const migrationsList = Object.keys(migrations).map((migrationName) => ({
   name: migrationName,
