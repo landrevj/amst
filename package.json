@@ -13,7 +13,7 @@
     "start": "node -r @babel/register ./.erb/scripts/CheckPortInUse.js && cross-env yarn start:renderer",
     "start:main": "cross-env NODE_ENV=development electron -r ./.erb/scripts/BabelRegister ./src/main.dev.ts",
     "start:renderer": "cross-env NODE_ENV=development webpack serve --config ./.erb/configs/webpack.config.renderer.dev.babel.js",
-    "test": "jest",
+    "test": "cross-env NODE_ENV=test jest",
     "release:debug:win": "./release/win-unpacked/amst.exe --remote-debugging-port=8315"
   },
   "lint-staged": {
@@ -134,7 +134,8 @@
       "src/node_modules"
     ],
     "setupFiles": [
-      "./.erb/scripts/CheckBuildsExist.js"
+      "./.erb/scripts/CheckBuildsExist.js",
+      "./.jest/register-context.js"
     ]
   },
   "devDependencies": {
@@ -182,6 +183,7 @@
     "babel-jest": "^26.1.0",
     "babel-loader": "^8.2.2",
     "babel-plugin-dev-expression": "^0.2.2",
+    "babel-plugin-require-context-hook": "^1.0.0",
     "babel-plugin-transform-react-remove-prop-types": "^0.4.24",
     "browserslist-config-erb": "^0.0.1",
     "chalk": "^4.1.0",
