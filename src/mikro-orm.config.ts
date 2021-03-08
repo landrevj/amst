@@ -1,7 +1,9 @@
 /* eslint-disable prefer-destructuring */
 import { ipcRenderer } from 'electron';
-import { Options } from '@mikro-orm/core';
+import { Constructor, Options } from '@mikro-orm/core';
+import { Migration } from '@mikro-orm/migrations';
 import { join, basename } from 'path';
+
 import Workspace from './entities/Workspace';
 
 const isDev  = process.env.NODE_ENV !== 'production';
@@ -12,12 +14,18 @@ const dbPath = isDev ?
 
 // ///////////////////////////////////////////
 // static importing all migrations for webpack
-const migrations = {};
+interface Migrations
+{
+  [key: string]: Constructor<Migration>;
+}
+
+const migrations: Migrations = {};
 
 function importAll(r: __WebpackModuleApi.RequireContext)
 {
-  // eslint-disable-next-line no-return-assign
-  r.keys().forEach((key) => (migrations[basename(key)] = Object.values(r(key))[0]));
+  r.keys().forEach((key) => {
+    migrations[basename(key)] = Object.values(r(key))[0] as Constructor<Migration>;
+  });
 }
 
 if (process.env.NODE_ENV) importAll(require.context('./migrations', false, /\.ts$/));

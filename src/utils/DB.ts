@@ -27,7 +27,7 @@ class Database
       log.debug(config);
 
       this.private_orm = orm;
-      this.private_em  = this.orm.em;
+      this.private_em  = orm.em;
 
     // }).catch(console.log);
     }).catch(log.catchErrors);

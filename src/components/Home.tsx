@@ -33,7 +33,7 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
 
   async componentDidMount()
   {
-    const allWorkspaces = await DB.em.find(Workspace, {});
+    const allWorkspaces = await DB.em?.find(Workspace, {});
     if (allWorkspaces)
     {
       this.setState({
@@ -43,7 +43,7 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
     else log.error(`Home.tsx: Failed to load Workspaces.`);
   }
 
-  onNameChange({ target: { value } })
+  onNameChange({ target: { value } }: React.ChangeEvent<HTMLInputElement>)
   {
     this.setState({ newName: value });
   }
@@ -51,25 +51,28 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
   async onClickAddToDB()
   {
     const { newName } = this.state;
-
     const workspace = new Workspace(newName);
 
-    await DB.em.persistAndFlush([workspace]);
+    DB.em?.persistAndFlush([workspace]).then(() => {
 
-    this.setState(prevState => ({
-      workspaces: [...prevState.workspaces, workspace],
-      newName: '',
-    }));
+      return this.setState(prevState => ({
+        workspaces: [...prevState.workspaces, workspace],
+        newName: '',
+      }));
+
+    });
   }
 
   async onClickResetDB()
   {
     const { workspaces } = this.state;
-    await DB.em.removeAndFlush(workspaces);
+    DB.em?.removeAndFlush(workspaces).then(() => {
 
-    this.setState({
-      workspaces: [],
-      newName: '',
+      return this.setState({
+        workspaces: [],
+        newName: '',
+      });
+
     });
   }
 
