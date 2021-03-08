@@ -250,6 +250,9 @@
     "regenerator-runtime": "^0.13.5",
     "source-map-support": "^0.5.19"
   },
+  "resolutions": {
+    "@types/react": "^17.0.3"
+  },
   "devEngines": {
     "node": ">=10.x",
     "npm": ">=6.x",
