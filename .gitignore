@@ -53,4 +53,4 @@ npm-debug.log.*
 ###
 database.sqlite
 dev_database.sqlite
-.photoshop
+.photoshop/icon-assets

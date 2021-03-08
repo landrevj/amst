@@ -43,9 +43,9 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
     else log.error(`Home.tsx: Failed to load Workspaces.`);
   }
 
-  onNameChange({target: {value}})
+  onNameChange({ target: { value } })
   {
-    this.setState({newName: value});
+    this.setState({ newName: value });
   }
 
   async onClickAddToDB()
@@ -75,7 +75,7 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
 
   render()
   {
-    const {workspaces, newName} = this.state;
+    const { workspaces, newName } = this.state;
     return (
       <>
         <h2>New workspace... {newName}</h2>
