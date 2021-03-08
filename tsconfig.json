@@ -20,7 +20,11 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-    "allowJs": true
+    "allowJs": true,
+    // mikro-orm
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+    // "esModuleInterop": true, // already included above
   },
   "exclude": [
     "test",

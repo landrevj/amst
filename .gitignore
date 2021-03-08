@@ -48,3 +48,9 @@ npm-debug.log.*
 *.css.d.ts
 *.sass.d.ts
 *.scss.d.ts
+
+
+###
+database.sqlite
+dev_database.sqlite
+.photoshop/icon-assets
