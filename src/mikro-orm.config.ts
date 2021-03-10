@@ -3,15 +3,7 @@ import { Constructor, Options } from '@mikro-orm/core';
 import { Migration } from '@mikro-orm/migrations';
 import { join, basename } from 'path';
 
-import { IpcService } from './utils/ipc';
 import { Workspace, File } from './entities';
-
-const ipc = new IpcService();
-
-const isDev  = process.env.NODE_ENV !== 'production';
-const dbPath = isDev ?
-               join(__dirname, 'dev_database.sqlite') :
-               join(ipc.sendSync<string>('app-path', { params: ['userData'] }), 'database.sqlite');
 
 // ///////////////////////////////////////////
 // static importing all migrations for webpack
@@ -39,7 +31,7 @@ const migrationsList = Object.keys(migrations).map((migrationName) => ({
 
 const options: Options = {
   type: 'sqlite',
-  dbName: dbPath,
+  dbName: join(__dirname, 'dev_database.sqlite'),
   entities: [Workspace, File], // order can matter here: https://mikro-orm.io/docs/installation#possible-issues-with-circular-dependencies
   discovery: { disableDynamicFileAccess: true },
   migrations: {

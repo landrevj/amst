@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/lines-between-class-members */
-import { EntityManager, MikroORM } from "@mikro-orm/core";
+import { EntityManager, MikroORM, Options } from "@mikro-orm/core";
+import { join } from 'path';
 import log from 'electron-log';
 import config from '../mikro-orm.config';
+import { IpcService } from './ipc';
 
 class Database
 {
@@ -20,11 +22,16 @@ class Database
 
   public async init()
   {
+    const ipc           = new IpcService();
+    const prodDBPath    = process.env.NODE_ENV === 'production' && join(await ipc.send<string>('app-path', { params: ['userData'] }), 'database.sqlite');
+    const conf: Options = { ...config };
+    if (prodDBPath) conf.dbName = prodDBPath;
+
     // eslint-disable-next-line promise/always-return
-    await MikroORM.init(config).then((orm) => {
+    await MikroORM.init(conf).then((orm) => {
       // console.log('DB.ts: connected');
       log.info('DB.ts: Database connected');
-      log.debug(config);
+      log.debug(conf);
 
       this.private_orm = orm;
       this.private_em  = orm.em;

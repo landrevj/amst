@@ -24,16 +24,6 @@ export default class IpcService {
     });
   }
 
-  public sendSync<T>(channel: string, request: IpcRequest): T
-  {
-    if (!this.ipcRenderer) this.initializeIpcRenderer();
-
-    const { ipcRenderer } = this;
-    if (!ipcRenderer) throw new Error('IpcService.ts: ipcRenderer was not truthy.');
-
-    return ipcRenderer.sendSync(channel, request);
-  }
-
   private initializeIpcRenderer()
   {
     if (!window || !window.process || !window.require)

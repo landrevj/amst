@@ -104,7 +104,6 @@ export class MultiplePathPicker extends React.Component<MultiplePathPickerProps,
     this.setState({
       newPaths,
     });
-
   }
 
   render()
