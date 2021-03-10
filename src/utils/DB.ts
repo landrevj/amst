@@ -27,17 +27,9 @@ class Database
     const conf: Options = { ...config };
     if (prodDBPath) conf.dbName = prodDBPath;
 
-    // eslint-disable-next-line promise/always-return
-    await MikroORM.init(conf).then((orm) => {
-      // console.log('DB.ts: connected');
-      log.info('DB.ts: Database connected');
-      log.debug(conf);
-
-      this.private_orm = orm;
-      this.private_em  = orm.em;
-
-    // }).catch(console.log);
-    }).catch(log.catchErrors);
+    const orm = await MikroORM.init(conf);
+    this.private_orm = orm;
+    this.private_em  = orm.em;
   }
 
   get orm(): MikroORM      | undefined { return this.private_orm }
