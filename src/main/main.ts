@@ -1,5 +1,6 @@
 import log from 'electron-log';
-import setupIPCEmitters from './ipc';
+import { IpcChannelInterface, registerIpcChannels } from '../utils/ipc';
+import { AppPathChannel, DialogChannel } from '../utils/ipc/channels';
 
 if (process.env.NODE_ENV === 'development')
 {
@@ -9,5 +10,9 @@ if (process.env.NODE_ENV === 'development')
 
 export default function main()
 {
-  setupIPCEmitters();
+  const ipcChannels: IpcChannelInterface[] = [
+    new AppPathChannel(),
+    new DialogChannel(),
+  ];
+  registerIpcChannels(ipcChannels);
 }

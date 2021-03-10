@@ -1,16 +1,17 @@
 /* eslint-disable prefer-destructuring */
-import { ipcRenderer } from 'electron';
 import { Constructor, Options } from '@mikro-orm/core';
 import { Migration } from '@mikro-orm/migrations';
 import { join, basename } from 'path';
 
+import { IpcService } from './utils/ipc';
 import { Workspace, File } from './entities';
+
+const ipc = new IpcService();
 
 const isDev  = process.env.NODE_ENV !== 'production';
 const dbPath = isDev ?
                join(__dirname, 'dev_database.sqlite') :
-               join(ipcRenderer.sendSync('get-app-path', 'userData'), 'database.sqlite');
-
+               join(ipc.sendSync<string>('app-path', { params: ['userData'] }), 'database.sqlite');
 
 // ///////////////////////////////////////////
 // static importing all migrations for webpack
