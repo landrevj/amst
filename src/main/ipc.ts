@@ -1,4 +1,4 @@
-import { app, ipcMain } from 'electron';
+import { app, ipcMain, dialog } from 'electron';
 import log from 'electron-log';
 
 export default function setupIPCEmitters()
@@ -9,4 +9,13 @@ export default function setupIPCEmitters()
     event.returnValue = app.getPath(arg);
   });
 
+
+  ipcMain.on('open-dialog', async (event, arg) => {
+    log.debug(`ipcMain:open-dialog: called with: "${arg}"`);
+    const val = await dialog.showOpenDialog({
+      properties: [arg],
+    });
+
+    event.reply('open-dialog-return', val);
+  });
 }

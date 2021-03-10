@@ -3,15 +3,18 @@ import 'reflect-metadata';
 import React from 'react';
 import { render } from 'react-dom';
 import log from 'electron-log';
+
 import App from './App';
 import DB from './utils/DB';
 
+// set logging level based on NODE_ENV.
 if (process.env.NODE_ENV === 'development')
 {
-  log.transports.console.level = 'debug';
+  log.transports.console.level = 'debug'; // this doesnt seem to do anything which is neat
   log.info(`index.tsx: Console logging transport set to: ${log.transports.console.level}`)
 }
 
+// init the database before mounting the application
 DB.init()
   .then(() => {
 

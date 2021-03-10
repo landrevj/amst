@@ -4,7 +4,7 @@ import { Constructor, Options } from '@mikro-orm/core';
 import { Migration } from '@mikro-orm/migrations';
 import { join, basename } from 'path';
 
-import Workspace from './entities/Workspace';
+import { Workspace, File } from './entities';
 
 const isDev  = process.env.NODE_ENV !== 'production';
 const dbPath = isDev ?
@@ -39,7 +39,7 @@ const migrationsList = Object.keys(migrations).map((migrationName) => ({
 const options: Options = {
   type: 'sqlite',
   dbName: dbPath,
-  entities: [Workspace],
+  entities: [Workspace, File], // order can matter here: https://mikro-orm.io/docs/installation#possible-issues-with-circular-dependencies
   discovery: { disableDynamicFileAccess: true },
   migrations: {
     tableName: 'mikro_orm_migrations', // name of database table with log of executed transactions
