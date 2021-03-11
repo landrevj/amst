@@ -9,25 +9,17 @@ const ipc = new IpcService();
 
 interface MultiplePathPickerProps
 {
+  pathArray: string[];
   onChange: (paths: string[]) => void;
 }
 
-interface MultiplePathPickerState
-{
-  newPaths: string[];
-}
-
 // eslint-disable-next-line import/prefer-default-export
-export class MultiplePathPicker extends React.Component<MultiplePathPickerProps, MultiplePathPickerState>
+export class MultiplePathPicker extends React.Component<MultiplePathPickerProps>
 {
 
   constructor(props: MultiplePathPickerProps)
   {
     super(props);
-
-    this.state = {
-      newPaths: [''],
-    };
 
     this.onClickIncrementPath = this.onClickIncrementPath.bind(this);
     this.onPathChange         = this.onPathChange.bind(this);
@@ -37,10 +29,8 @@ export class MultiplePathPicker extends React.Component<MultiplePathPickerProps,
 
   onClickIncrementPath()
   {
-    const { newPaths } = this.state;
-    this.setState({
-      newPaths: [...newPaths, ''],
-    })
+    const { pathArray, onChange } = this.props;
+    onChange([...pathArray, '']);
   }
 
   onClickRemovePath({ currentTarget: { dataset: { index } } }: React.MouseEvent<HTMLButtonElement>)
@@ -51,15 +41,11 @@ export class MultiplePathPicker extends React.Component<MultiplePathPickerProps,
       return;
     }
 
-    const { newPaths } = this.state;
-    if (newPaths.length > 1)
-    {
-      newPaths.splice(parseInt(index, 10), 1)
-      this.setState({
-        newPaths,
-      });
-    }
-    // log.info(this.state.newPaths);
+    const { pathArray, onChange } = this.props;
+    if (pathArray.length <= 1) return;
+
+    pathArray.splice(parseInt(index, 10), 1);
+    onChange(pathArray);
   }
 
   onPathChange({ target: { value, dataset: { index } } }: React.ChangeEvent<HTMLInputElement>)
@@ -69,16 +55,10 @@ export class MultiplePathPicker extends React.Component<MultiplePathPickerProps,
       log.error('Home.tsx: onPathChange called but no data-index was set on the target input.');
       return;
     }
+    const { pathArray, onChange } = this.props;
 
-    const { newPaths } = this.state;
-    newPaths[parseInt(index, 10)] = value;
-    this.setState({
-      newPaths,
-    })
-
-    const { onChange } = this.props;
-    onChange(newPaths);
-    // log.info(this.state.newPaths);
+    pathArray[parseInt(index, 10)] = value;
+    onChange(pathArray);
   }
 
   async onClickBrowseForPath({ currentTarget: { dataset: { index } } }: React.MouseEvent<HTMLButtonElement>)
@@ -97,23 +77,21 @@ export class MultiplePathPicker extends React.Component<MultiplePathPickerProps,
       return;
     }
 
-    const { newPaths } = this.state;
+    const { pathArray, onChange } = this.props;
     const [ path ] = arg.filePaths; // only asking for one path so this is fine for now at least
 
-    newPaths[parseInt(index, 10)] = path;
-    this.setState({
-      newPaths,
-    });
+    pathArray[parseInt(index, 10)] = path;
+    onChange(pathArray);
   }
 
   render()
   {
-    const { newPaths } = this.state;
+    const { pathArray } = this.props;
     return (
       <>
         <div>
           <button type="button" onClick={this.onClickIncrementPath}>add path</button>
-          {newPaths.map((path, i) =>
+          {pathArray.map((path, i) =>
           // eslint-disable-next-line react/no-array-index-key
           <div className="path-list-item" key={`path-${i}`}>
             <input type="text" value={path} onChange={this.onPathChange} data-index={i}/>

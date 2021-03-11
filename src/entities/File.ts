@@ -1,16 +1,16 @@
 /* eslint-disable import/prefer-default-export */
-import { Entity, ManyToMany, PrimaryKey, Property, Collection } from '@mikro-orm/core'
+import { Entity, ManyToMany, Property, Collection, Unique } from '@mikro-orm/core'
 
-// @see https://mikro-orm.io/docs/installation#possible-issues-with-circular-dependencies
 // eslint-disable-next-line import/no-cycle
-import { Workspace } from './Workspace';
+import { Workspace } from './index';
+import { BaseEntity } from './BaseEntity';
 
 @Entity()
-export class File
+export class File extends BaseEntity
 {
 
-  @PrimaryKey({ type: 'number' })
-  id!: number;
+  // @PrimaryKey({ type: 'number' })
+  // id!: number;
 
   @Property({ type: 'string' })
   name!: string;
@@ -19,6 +19,7 @@ export class File
   extension!: string;
 
   @Property({ type: 'string' })
+  @Unique()
   fullPath!: string;
 
   @ManyToMany(() => Workspace, workspace => workspace.files)
@@ -26,6 +27,7 @@ export class File
 
   constructor(name: string, extension: string, fullPath: string)
   {
+    super();
     this.name      = name;
     this.extension = extension;
     this.fullPath  = fullPath;

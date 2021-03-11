@@ -15,7 +15,8 @@ export default function WorkspaceList({ workspaces }: WorkspaceListProps)
       {workspaces.map((workspace) =>
       <li key={workspace.id}>
         <WorkspaceWidget workspace={workspace}/>
-      </li>)}
+      </li>
+      )}
     </ul>
   );
 }

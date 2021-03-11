@@ -1,10 +1,9 @@
-/* eslint-disable react/no-unused-state */ // TODO: remove
 import React from 'react';
 import { RouteComponentProps } from 'react-router';
 import log from 'electron-log';
 
 import DB from '../../utils/DB';
-import { Workspace } from '../../entities';
+import { Workspace, Folder } from '../../entities';
 import { MultiplePathPicker } from '../../components/UI/MultiplePathPicker/MultiplePathPicker';
 import WorkspaceList from '../../components/Workspace/List';
 
@@ -57,18 +56,41 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
 
   async onClickAddToDB()
   {
-    const { newName } = this.state;
-    const workspace = new Workspace(newName);
+    const { newName, newPaths } = this.state;
+    const paths = newPaths.filter((path) => { return path !== '' }) // dont add empty strings
 
-    DB.em?.persistAndFlush([workspace]).then(() => {
+    // TODO: use validations instead
+    if (newName === '') return; // workspaces must have a name
+    if (paths.length < 1) return; // must have at least one path
 
-      return this.setState(prevState => ({
+    // use a transaction in case the user violates uniqueness constraints
+    const workspace = await DB.em?.transactional<Workspace>(em => {
+
+      const newWorkspace = new Workspace(newName);
+
+      paths.forEach((path) => {
+        const folder = new Folder(path);
+        newWorkspace.folders.add(folder);
+      });
+
+      em.persist(newWorkspace);
+
+      return new Promise(resolve => {
+        resolve(newWorkspace);
+      });
+
+    });
+
+    // if we got a workspace back from the transaction then we can add it to the state
+    if (workspace)
+    {
+      this.setState(prevState => ({
         workspaces: [...prevState.workspaces, workspace],
         newName: '',
         newPaths: [''],
       }));
+    }
 
-    });
   }
 
   async onClickResetDB()
@@ -89,21 +111,21 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
     this.setState({
       newPaths,
     });
-
-    log.info(newPaths);
+    // log.info(newPaths);
   }
 
   render()
   {
-    const { workspaces, newName } = this.state;
+    const { workspaces, newName, newPaths } = this.state;
     return (
       <>
         <h2>New workspace... {newName}</h2>
         <input type="text" value={newName} onChange={this.onNameChange}/>
         <button type="button" onClick={this.onClickAddToDB}>add</button>
         <button type="button" onClick={this.onClickResetDB}>reset</button>
-
-        <MultiplePathPicker onChange={this.onPathsChange}/>
+        <hr/>
+        <MultiplePathPicker pathArray={newPaths} onChange={this.onPathsChange}/>
+        <hr/>
         <WorkspaceList workspaces={workspaces}/>
       </>
     );
