@@ -1,5 +1,5 @@
 import { dialog, IpcMainEvent } from 'electron';
-import { IpcChannelInterface, IpcRequest} from "../IpcChannel";
+import { IpcChannelInterface, IpcRequest } from "../IpcChannel";
 
 export type DialogPropertiesOptions =
   Array<'openFile' | 'openDirectory' | 'multiSelections' | 'showHiddenFiles' | 'createDirectory' | 'promptToCreate' | 'noResolveAliases' | 'treatPackageAsDirectory' | 'dontAddToRecent'>;
