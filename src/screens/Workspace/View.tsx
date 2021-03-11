@@ -40,7 +40,7 @@ export class WorkspaceView extends React.Component<WorkspaceViewProps, Workspace
     this.loadWorkspace(parseInt(id, 10));
   }
 
-  async componentDidUpdate(prevProps: WorkspaceViewProps, prevState: WorkspaceViewState)
+  async componentDidUpdate(_prevProps: WorkspaceViewProps, prevState: WorkspaceViewState)
   {
     const { id } = this.state;
     if (prevState.id !== id)
