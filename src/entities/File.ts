@@ -9,9 +9,6 @@ import { BaseEntity } from './BaseEntity';
 export class File extends BaseEntity
 {
 
-  // @PrimaryKey({ type: 'number' })
-  // id!: number;
-
   @Property({ type: 'string' })
   name!: string;
 

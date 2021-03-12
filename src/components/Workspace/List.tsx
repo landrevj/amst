@@ -1,3 +1,4 @@
+/* eslint-disable import/prefer-default-export */
 import React from 'react';
 
 import { Workspace } from '../../entities';
@@ -8,7 +9,7 @@ interface WorkspaceListProps
   workspaces: Workspace[];
 }
 
-export default function WorkspaceList({ workspaces }: WorkspaceListProps)
+export function WorkspaceList({ workspaces }: WorkspaceListProps)
 {
   return (
     <ul>

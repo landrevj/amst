@@ -1,11 +1,10 @@
 /* eslint-disable import/prefer-default-export */
 import { Migration } from '@mikro-orm/migrations';
 
-export class Migration20210311014939 extends Migration {
+export class Migration20210311234325 extends Migration {
 
   async up(): Promise<void> {
     this.addSql('create table `folder` (`id` integer not null primary key autoincrement, `path` varchar not null);');
-    this.addSql('create unique index `folder_path_unique` on `folder` (`path`);');
 
     this.addSql('create table `file` (`id` integer not null primary key autoincrement, `name` varchar not null, `extension` varchar not null, `full_path` varchar not null);');
     this.addSql('create unique index `file_full_path_unique` on `file` (`full_path`);');
