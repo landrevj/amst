@@ -4,6 +4,7 @@ module.exports = {
     // A temporary hack related to IDE not resolving correct package.json
     'import/no-extraneous-dependencies': 'off',
     'prettier/prettier': 'off',
+    '@typescript-eslint/lines-between-class-members': ["error", "always", { "exceptAfterSingleLine": true }],
   },
   parserOptions: {
     ecmaVersion: 2020,

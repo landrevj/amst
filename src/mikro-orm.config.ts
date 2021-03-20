@@ -3,7 +3,7 @@ import { Constructor, Options } from '@mikro-orm/core';
 import { Migration } from '@mikro-orm/migrations';
 import { join, basename } from 'path';
 
-import { File, Folder, Workspace, BaseEntity } from './entities';
+import { File, Folder, Workspace, BaseEntity } from './db/entities';
 
 // ///////////////////////////////////////////
 // static importing all migrations for webpack
@@ -21,7 +21,7 @@ function importAll(r: __WebpackModuleApi.RequireContext)
   });
 }
 
-if (process.env.NODE_ENV) importAll(require.context('./migrations', false, /\.ts$/));
+if (process.env.NODE_ENV) importAll(require.context('./db/migrations', false, /\.ts$/));
 
 const migrationsList = Object.keys(migrations).map((migrationName) => ({
   name: migrationName,
@@ -31,12 +31,12 @@ const migrationsList = Object.keys(migrations).map((migrationName) => ({
 
 const options: Options = {
   type: 'sqlite',
-  dbName: join(__dirname, 'dev_database.sqlite'),
+  dbName: join(__dirname, 'db/dev_database.sqlite'),
   entities: [Workspace, File, Folder, BaseEntity], // order can matter here: https://mikro-orm.io/docs/installation#possible-issues-with-circular-dependencies
   discovery: { disableDynamicFileAccess: true },
   migrations: {
     tableName: 'mikro_orm_migrations', // name of database table with log of executed transactions
-    path: join(__dirname, 'migrations'), // path to the folder with migrations
+    path: join(__dirname, 'db/migrations'), // path to the folder with migrations
     pattern: /^[\w-]+\d+\.ts$/, // regex pattern for the migration files
     transactional: true, // wrap each migration in a transaction
     disableForeignKeys: true, // wrap statements with `set foreign_key_checks = 0` or equivalent

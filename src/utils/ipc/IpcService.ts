@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import { IpcRenderer } from 'electron';
 import { IpcRequest } from './IpcChannel';
 
@@ -10,10 +11,10 @@ export default class IpcService {
     if (!this.ipcRenderer) this.initializeIpcRenderer();
 
     // If there's no responseChannel let's auto-generate it
-    if (!request.responseChannel) request.responseChannel = `${channel}_response_${new Date().getTime()}`;
+    if (!request.responseChannel) request.responseChannel = `${channel}_response_${uuid()}`;
 
     const { ipcRenderer } = this;
-    if (!ipcRenderer) throw new Error('IpcService.ts: ipcRenderer was not truthy.');
+    if (!ipcRenderer) throw new Error('IpcService.ts: ipcRenderer was undefined or null.');
 
     ipcRenderer.send(channel, request);
 
