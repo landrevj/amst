@@ -1,15 +1,16 @@
 import React from 'react';
 import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
+import { FilterQuery, FindOptions } from '@mikro-orm/core';
 import log from 'electron-log';
 
+
 import Client from '../../../utils/websocket/SocketClient';
-import { WorkspaceStub, FileStub } from '../../../db/entities';
+import { WorkspaceStub, FileStub, File } from '../../../db/entities';
 import FileList from '../../components/File/List';
 
-import '../../../App.global.scss';
 import { SocketRequestStatus } from '../../../utils/websocket';
-import { isNumberArray } from '../../../utils';
+import '../../../App.global.scss';
 
 interface WorkspaceViewRouteParams
 {
@@ -20,7 +21,9 @@ type WorkspaceViewProps = RouteComponentProps<WorkspaceViewRouteParams>;
 interface WorkspaceViewState
 {
   id: number;
-  stub?: WorkspaceStub;
+  workspace?: WorkspaceStub;
+  files: FileStub[];
+  page: number;
 }
 
 
@@ -35,53 +38,89 @@ export class WorkspaceView extends React.Component<WorkspaceViewProps, Workspace
     const { match: { params: { id } } } = this.props;
     this.state = {
       id: parseInt(id, 10),
+      files: [],
+      page: 0,
     }
 
     this.loadWorkspace(parseInt(id, 10));
+
+    this.onPageChange = this.onPageChange.bind(this);
   }
 
   async componentDidUpdate(_prevProps: WorkspaceViewProps, prevState: WorkspaceViewState)
   {
-    const { id } = this.state;
+    const { id, page } = this.state;
     if (prevState.id !== id)
       this.loadWorkspace(id);
+    else if (prevState.page !== page)
+      this.loadFiles(id);
+  }
+
+  async onPageChange(newPage: number)
+  {
+    this.setState({
+      page: newPage,
+    });
+    log.info('newPage', newPage);
   }
 
   async loadWorkspace(id: number)
   {
-    // const workspace = await DB.em?.findOne(Workspace, { id }, ['files']);
-    const response = await Client.send<WorkspaceStub[]>('Workspace', { action: 'getWorkspaces', params: [{ id }, ['files']] });
-    const success = response.status === SocketRequestStatus.SUCCESS;
-
-    if (success && response.data)
+    const workspaceResponse = await Client.send<WorkspaceStub[]>('Workspace', { action: 'read', params: [id] });
+    const workspaceSuccess = workspaceResponse.status === SocketRequestStatus.SUCCESS;
+    if (!workspaceSuccess || !workspaceResponse.data)
     {
-      const [ stub ] = response.data;
+      log.error(`Failed to get workspace with given id: ${id}`);
+      return;
+    };
 
-      this.setState({
-        stub,
-      });
+    const [ workspace ] = workspaceResponse.data;
+    this.loadFiles(workspace.id);
+
+    this.setState({
+      workspace,
+    });
+  }
+
+  async loadFiles(workspaceID: number)
+  {
+    const { page } = this.state;
+    const itemsPerPage = 20;
+
+    const where: FilterQuery<File> = {
+      workspaces: { id: workspaceID },
+    };
+    const options: FindOptions<File> = {
+      limit: itemsPerPage,
+      offset: page * itemsPerPage,
     }
-    else log.error(`Failed to get files from workspace with given id: ${id}`);
+
+    const fileResponse = await Client.send<FileStub[]>('File', { action: 'read', params: [where, options] });
+    const fileSuccess  = fileResponse.status === SocketRequestStatus.SUCCESS;
+    if (!fileSuccess || !fileResponse.data)
+    {
+      log.error(`Failed to get files for workspace with given id: ${workspaceID}`);
+      return;
+    };
+
+    const files = fileResponse.data;
+    this.setState({
+      files,
+    });
   }
 
   render()
   {
     // const { name }  = this.workspace || "Loading...";
-    const { stub } = this.state;
-    let name = 'Loading...';
-    let files: FileStub[] = [];
+    const { workspace, files, page } = this.state;
 
-    if (stub)
-    {
-      name = stub.name;
-      if (stub.files && !isNumberArray(stub.files))
-        files = stub.files;
-    }
+    let name = 'Loading...';
+    if (workspace) name = workspace.name;
 
     return (
       <>
-        <h3>{name}&apos;s files...</h3>
-        <FileList files={files}/>
+        <h3>{name}&apos;s files...</h3> Page {page}
+        <FileList files={files} paginate page={page} onPageChange={this.onPageChange}/>
         <Link to='/'>Back</Link>
       </>
     );

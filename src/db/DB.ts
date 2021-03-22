@@ -34,6 +34,8 @@ class Database
 
   get orm(): MikroORM      | undefined { return this.private_orm }
   get  em(): EntityManager | undefined { return this.private_em }
+
+  public emFork() { this.private_em = this.em?.fork() }
 }
 
 const DB = Database.getInstance();

@@ -53,7 +53,7 @@ export class WorkspaceForm extends React.Component<WorkspaceFormProps, Workspace
     if (newName === '') return; // workspaces must have a name
     if (paths.length < 1) return; // must have at least one path
 
-    const response = await Client.send<WorkspaceStub>('Workspace', { action: 'createWorkspaces', params: [newName, newPaths] });
+    const response = await Client.send<WorkspaceStub>('Workspace', { action: 'create', params: [newName, newPaths] });
     const success = response.status === SocketRequestStatus.SUCCESS;
 
     // if we got a workspace back from the transaction then we can add it to the state

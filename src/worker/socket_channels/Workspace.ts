@@ -1,140 +1,167 @@
-import { FilterQuery } from '@mikro-orm/core';
+/* eslint-disable import/prefer-default-export */
+import { FilterQuery, FindOptions } from '@mikro-orm/core';
 import log from 'electron-log';
-import { Socket } from 'socket.io';
 
-import DB from '../../db/DB';
-import { Workspace, Folder } from '../../db/entities';
-import { SocketChannelInterface, SocketRequest, SocketRequestStatus, SocketResponse } from '../../utils/websocket';
+import { EntityChannel } from './Entity';
+import { DB } from '../../db';
+import { Workspace, File, Folder } from '../../db/entities';
+import { arrayDifference, filenameExtension, glob } from '../../utils';
+import { SocketRequest, SocketRequestStatus, SocketResponse } from '../../utils/websocket';
 
-export type WorkspaceChannelOptions = 'ping' | 'pong';
-
-export class WorkspaceChannel implements SocketChannelInterface
+export class WorkspaceChannel extends EntityChannel<Workspace>
 {
-  private name = 'Workspace';
-  getName(): string { return this.name; }
-
-  private socket: Socket | undefined;
-  setSocket(socket: Socket) { this.socket = socket; }
-
-  private dbHasEM(request: SocketRequest<unknown>): boolean
+  constructor()
   {
-    if (DB.em) return true;
-
-    this.emitFailure(request);
-    log.error('WorkspaceChannel: DB.em was undefined or null.');
-    return false;
-  }
-
-  private emitFailure(request: SocketRequest<unknown>)
-  {
-    this.socket?.emit(request.responseChannel as string, { status: SocketRequestStatus.FAILURE });
+    super(Workspace);
+    this.setName('Workspace');
   }
 
   // /////////////////////////////////////////////////////////
   // //////////////////////// ACTIONS ////////////////////////
   // /////////////////////////////////////////////////////////
-  async getWorkspaces(request: SocketRequest<[FilterQuery<Workspace>, string[]]>)
+  async createAction(request: SocketRequest<[string, string[]]>)
   {
-    if (!request.params) return; // make sure that we have two params
+    this.handleAction(request, ([name, paths]) => {
+      return this.create([name], newWorkspace => {
 
-    const where = request.params[0];
-    const populate = request.params[1] || [];
+        paths.forEach(path => {
+          const folder = new Folder(path);
+          newWorkspace.folders.add(folder);
+        });
 
-    const workspaces = await DB.em?.find(Workspace, where, populate).catch(error => {
+      });
+    });
+  }
+
+  // /////////////////////////////////////////////////////////
+  // /////////////////////////////////////////////////////////
+  async readAction(request: SocketRequest<[FilterQuery<Workspace>, FindOptions<Workspace>]>)
+  {
+    this.handleAction(request, ([where, options]) => {
+      return this.read(where, options);
+    });
+  }
+
+  // /////////////////////////////////////////////////////////
+  // /////////////////////////////////////////////////////////
+
+
+  // /////////////////////////////////////////////////////////
+  // /////////////////////////////////////////////////////////
+  async destroyAction(request: SocketRequest<number[]>)
+  {
+    this.handleAction(request, (ids) => {
+      return this.destroy(ids);
+    });
+  }
+
+  // /////////////////////////////////////////////////////////
+  // /////////////////////////////////////////////////////////
+  async syncFiles(request: SocketRequest<number>)
+  {
+    /* a: get list of files on the workspace
+     * b: get list of new paths to be added
+     * c: query the db for existing files with paths in 'b'
+     *
+     * d: files in 'c' that arent in 'a'. (files which are already in the database but not on the current workspace, which need to get added to it)
+     * e: paths from 'b' that aren't on files in 'a' or 'd'. (new paths which arent in the db, on or off of the current workspace)
+     *
+     * f => add d to the workspace
+     * g => add e to the workspace as files
+     */
+
+    if (!request.params) return;
+    const id = request.params;
+
+    const workspace = await DB.em?.findOne(Workspace, id, ['files', 'folders']).catch(error => {
       log.error(error);
       this.emitFailure(request);
     });
 
-    if (workspaces)
-    {
-      const response: SocketResponse<Workspace[]> = {
-        status: SocketRequestStatus.SUCCESS,
-        data: workspaces,
-      };
-      this.socket?.emit(request.responseChannel as string, response);
-    }
-  }
-  // /////////////////////////////////////////////////////////
-  // /////////////////////////////////////////////////////////
-
-  async createWorkspaces(request: SocketRequest<[string, string[]]>)
-  {
-    if (!(request.params?.length === 2)) return; // make sure that we have two params
-    const [ name, paths ] = request.params;
-
-    // use a transaction in case the user violates uniqueness constraints
-    const workspace = await DB.em?.transactional<Workspace>(em => {
-
-      const newWorkspace = new Workspace(name);
-
-      paths.forEach((path) => {
-        const folder = new Folder(path);
-        newWorkspace.folders.add(folder);
-      });
-
-      em.persist(newWorkspace);
-
-      return new Promise(resolve => {
-        resolve(newWorkspace);
-      });
-
-    }).catch(log.error);
-
     if (workspace)
     {
-      const response: SocketResponse<Workspace> = {
-        status: SocketRequestStatus.SUCCESS,
-        data: workspace,
-      };
-      this.socket?.emit(request.responseChannel as string, response);
-      return;
-    }
+      // a
+      const existingFilesOnWorkspace = workspace.files.getItems();
+      // b
+      const searchPaths = workspace.folders.getItems().map(folder => folder.path);
+      const matches     = (await Promise.all(glob(searchPaths))).flat();
+      const matchPaths  = matches.map(entry => entry.path);
+      // c
+      const existingFilesFromMatches = await DB.em?.find(File, { fullPath: matchPaths }).catch(error => {
+        log.error(error);
+        this.emitFailure(request);
+      });
+      log.info('onWorkspace/fromMatches', existingFilesOnWorkspace, existingFilesFromMatches);
+      // d
+      let existingFilesNotOnWorkspace: File[] = [];
+      if (existingFilesFromMatches)
+        existingFilesNotOnWorkspace = arrayDifference(existingFilesFromMatches, existingFilesOnWorkspace, (file1, file2) => file1.fullPath === file2.fullPath);
+      log.info('existingFilesNotOnWorkspace', existingFilesNotOnWorkspace);
+      // e
+      const entriesNotOnWorkspace = arrayDifference(matches, existingFilesOnWorkspace, (entry, file) => entry.path === file.fullPath);
+      const entriesNotInDB = arrayDifference(entriesNotOnWorkspace, existingFilesNotOnWorkspace, (entry, file) => entry.path === file.fullPath);
+      log.info('entriesNotInDB', entriesNotInDB);
 
-    this.emitFailure(request);
-  }
-  // /////////////////////////////////////////////////////////
-  // /////////////////////////////////////////////////////////
+      // DB TRANSACTION START //////////////////////////////////////////////
+      const updatedWorkspace = await DB.em?.transactional<Workspace>(em => {
+        // f
+        workspace.files.add(...existingFilesNotOnWorkspace);
+        // g
+        entriesNotInDB.forEach(entry => {
+          workspace.files.add(new File(entry.name, filenameExtension(entry.name), entry.path))
+        });
+        // DONE! Persist to DB...
 
-  async removeWorkspaces(request: SocketRequest<number[]>)
-  {
-    const workspaceIDs = request.params;
-    if (workspaceIDs)
-    {
-      const workspaces = await DB.em?.find(Workspace, workspaceIDs);
-      if (workspaces)
-      {
-        await DB.em?.removeAndFlush(workspaces).catch(error => {
-          log.error(error);
-          this.emitFailure(request);
+        em.persist(workspace);
+
+        return new Promise(resolve => {
+          resolve(workspace);
         });
 
-        this.socket?.emit(request.responseChannel as string, { status: SocketRequestStatus.SUCCESS });
+      }).catch(error => {
+        log.error(error);
+        DB.emFork();
+      });
+      // DB TRANSACTION END ////////////////////////////////////////////////
+
+      if (updatedWorkspace)
+      {
+        const newFileCount = existingFilesNotOnWorkspace.length + entriesNotInDB.length;
+        const response: SocketResponse<string> = {
+          status: SocketRequestStatus.SUCCESS,
+          data: `Added ${newFileCount} files to the workspace!`,
+        };
+        this.getSocket()?.emit(request.responseChannel as string, response);
         return;
       }
     }
 
     this.emitFailure(request);
   }
+
   // /////////////////////////////////////////////////////////
   // /////////////////////////////////////////////////////////
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   handle(request: SocketRequest<any>)
   {
-    if (!this.dbHasEM(request) || !this.socket) return; // check that the DB is initialized and we have a socket
+    if (!this.dbHasEM(request) || !this.getSocket()) return; // check that the DB is initialized and we have a socket
 
     if (!request.responseChannel) request.responseChannel = `${this.getName()}_response`;
 
     switch (request.action)
     {
-      case 'getWorkspaces':
-        this.getWorkspaces(request);
+      case 'create':
+        this.createAction(request);
         break;
-      case 'createWorkspaces':
-        this.createWorkspaces(request);
+      case 'read':
+        this.readAction(request);
         break;
-      case 'removeWorkspaces':
-        this.removeWorkspaces(request);
+      case 'destroy':
+        this.destroyAction(request);
+        break;
+      case 'syncFiles':
+        this.syncFiles(request);
         break;
 
       default:

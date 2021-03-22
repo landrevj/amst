@@ -32,7 +32,7 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
 
   async componentDidMount()
   {
-    const response = await Client.send<WorkspaceStub[]>('Workspace', { action: 'getWorkspaces', params: [{}, ['folders']] });
+    const response = await Client.send<WorkspaceStub[]>('Workspace', { action: 'read', params: [{}, { populate: ['folders'] }] });
     const workspaces = response.data;
     if (response.status === SocketRequestStatus.SUCCESS && workspaces)
     {
@@ -49,7 +49,7 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
     const { workspaces } = this.state;
     const workspaceIDs = workspaces.map(workspace => workspace.id);
 
-    const response = await Client.send('Workspace', { action: 'removeWorkspaces', params: workspaceIDs });
+    const response = await Client.send('Workspace', { action: 'destroy', params: workspaceIDs });
     const removed = response.status === SocketRequestStatus.SUCCESS;
     if (removed) this.setState({
       workspaces: [],
