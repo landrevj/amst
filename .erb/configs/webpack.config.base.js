@@ -29,6 +29,15 @@ export default {
           },
         },
       },
+      {
+        test: /\.worker\.(js|ts)$/i,
+        use: [{
+          loader: 'comlink-loader',
+          options: {
+            singleton: true
+          }
+        }]
+      }
     ],
   },
 

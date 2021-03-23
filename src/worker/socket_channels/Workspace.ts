@@ -8,6 +8,7 @@ import { Workspace, File, Folder } from '../../db/entities';
 import { arrayDifference, filenameExtension, glob } from '../../utils';
 import { SocketRequest, SocketRequestStatus, SocketResponse } from '../../utils/websocket';
 
+
 export class WorkspaceChannel extends EntityChannel<Workspace>
 {
   constructor()
@@ -105,7 +106,9 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
       // DB TRANSACTION START //////////////////////////////////////////////
       const updatedWorkspace = await DB.em?.transactional<Workspace>(em => {
         // f
-        workspace.files.add(...existingFilesNotOnWorkspace);
+        existingFilesNotOnWorkspace.forEach(file => {
+          workspace.files.add(file);
+        });
         // g
         entriesNotInDB.forEach(entry => {
           workspace.files.add(new File(entry.name, filenameExtension(entry.name), entry.path))
