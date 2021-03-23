@@ -86,30 +86,21 @@ export function arrayIntersection<T>(...arrays: T[][])
   return result;
 }
 
-export function arrayDifference<T, U>(arr1: T[], arr2: U[], equals: (a: T, b: U) => boolean): T[]
+export function arrayDifference<T, U>(arrA: T[], arrB: U[], getArrAKey: (a: T) => unknown = (a) => a, getArrBKey: (b: U) => unknown = (b) => b): T[]
 {
-  // might be able to speed this up by building a dictionary/set of arr2 at the start,
-  // and checking if the dictionary contains itemA's key instead of iterating over arr2 for each item.
-  // would have to pass in some function which gets some key from the item which can be compared with ===
-  // instead of an equals function.
+  const set = new Set();
+  for (let i = 0; i < arrB.length; i += 1)
+  {
+    const item = arrB[i];
+    set.add(getArrBKey(item));
+  }
 
   const result: T[] = [];
-  for (let i = 0; i < arr1.length; i += 1)
+  for (let i = 0; i < arrA.length; i += 1)
   {
-    const itemA = arr1[i];
+    const itemA = arrA[i];
 
-    let contained = false;
-    for (let j = 0; j < arr2.length; j += 1)
-    {
-      const itemB = arr2[j];
-      if (equals(itemA, itemB))
-      {
-        contained = true;
-        break;
-      }
-    }
-
-    if (contained) continue;
+    if (set.has(getArrAKey(itemA))) continue;
 
     result[result.length] = itemA;
   }

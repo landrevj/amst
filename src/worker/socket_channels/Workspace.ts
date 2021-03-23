@@ -96,11 +96,11 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
       // d
       let existingFilesNotOnWorkspace: File[] = [];
       if (existingFilesFromMatches)
-        existingFilesNotOnWorkspace = arrayDifference(existingFilesFromMatches, existingFilesOnWorkspace, (file1, file2) => file1.fullPath === file2.fullPath);
+        existingFilesNotOnWorkspace = arrayDifference(existingFilesFromMatches, existingFilesOnWorkspace, file1 => file1.fullPath, file2 => file2.fullPath);
       log.info('existingFilesNotOnWorkspace', existingFilesNotOnWorkspace);
       // e
-      const entriesNotOnWorkspace = arrayDifference(matches, existingFilesOnWorkspace, (entry, file) => entry.path === file.fullPath);
-      const entriesNotInDB = arrayDifference(entriesNotOnWorkspace, existingFilesNotOnWorkspace, (entry, file) => entry.path === file.fullPath);
+      const entriesNotOnWorkspace = arrayDifference(matches, existingFilesOnWorkspace, entry => entry.path, file => file.fullPath);
+      const entriesNotInDB = arrayDifference(entriesNotOnWorkspace, existingFilesNotOnWorkspace, entry => entry.path, file => file.fullPath);
       log.info('entriesNotInDB', entriesNotInDB);
 
       // DB TRANSACTION START //////////////////////////////////////////////
