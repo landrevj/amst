@@ -28,7 +28,7 @@ export default class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
-let workerWindow: BrowserWindow;
+let workerWindow: BrowserWindow | null = null;
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -115,6 +115,12 @@ const createWindow = async () => {
 
   mainWindow.on('closed', () => {
     mainWindow = null;
+    workerWindow?.close();
+  });
+
+  workerWindow.on('closed', () => {
+    workerWindow = null;
+    mainWindow?.close();
   });
 
   const menuBuilder = new MenuBuilder(mainWindow);
