@@ -2,13 +2,35 @@
 /* eslint-disable no-continue */
 import fg, { Entry } from 'fast-glob';
 
+/**
+ * Used to narrow type of a variable which might be an array of numbers.
+ * Probably slow for large arrays.
+ * @param value Variable to check type of.
+ * @returns Whether or not value was an array of numbers.
+ */
 export function isNumberArray(value: unknown): value is number[]
 {
   return Array.isArray(value) && value.every(item => typeof item === "number");
 }
 
+/**
+ * Uses a glob pattern to recursively search the provided path for files.
+ * @param folder The folder to search recursively for files.
+ * @param pattern The glob pattern to use when searching.
+ */
 export function glob(folder: string, pattern?: string): Promise<Entry[]>
+/**
+ * Uses a glob pattern to recursively search each of the provided folders for files.
+ * @param folders Array of folders to search recursively for files.
+ * @param pattern The glob pattern to use when searching.
+ */
 export function glob(folders: string[], pattern?: string): Promise<Entry[]>[]
+/**
+ * Uses a glob pattern to recursively search each of the provided folders for files.
+ * @param folders Array of folders to search recursively for files.
+ * @param pattern The glob pattern to use when searching.
+ * @returns A promise (or array of promises) for the array of entries found in each folder provided.
+ */
 export function glob(folders: string | string[], pattern = '**/*'): Promise<Entry[]> | Promise<Entry[]>[]
 {
   if (!Array.isArray(folders))
@@ -55,52 +77,32 @@ export function filenameExtension(fname: string)
   return fname.slice((fname.lastIndexOf(".") - 1 >>> 0) + 2);
 }
 
-// @see https://codeburst.io/optimizing-array-analytics-in-javascript-part-two-search-intersection-and-cross-products-79b4a6d68da0
-export function arrayIntersection<T>(...arrays: T[][])
-{
-  // if we process the arrays from shortest to longest
-  // then we will identify failure points faster, i.e. when
-  // one item is not in all arrays
-  const ordered = (arrays.length === 1 ? arrays : arrays.sort((a1,a2) => a1.length - a2.length));
-  const shortest = ordered[0];
-  const set = new Set(); // used for bookeeping, Sets are faster
-  const result = []; // the intersection, conversion from Set is slow
-  // for each item in the shortest array
-  for (let i = 0; i < shortest.length; i += 1)
-  {
-    const item = shortest[i];
-    // see if item is in every subsequent array
-    let every = true; // don't use ordered.every ... it is slow
-    for (let j = 1; j < ordered.length; j += 1)
-    {
-      if (ordered[j].includes(item)) continue;
-      every = false;
-      break;
-    }
-    // ignore if not in every other array, or if already captured
-    if (!every || set.has(item)) continue;
-    // otherwise, add to bookeeping set and the result
-    set.add(item);
-    result[result.length] = item;
-  }
-  return result;
-}
-
-export function arrayDifference<T, U>(arrA: T[], arrB: U[], getArrAKey: (a: T) => unknown = (a) => a, getArrBKey: (b: U) => unknown = (b) => b): T[]
+/**
+ * Takes two arrays and finds the elements in the first which weren't in the second.
+ * Uses two functions to get keys from the array elements to use when checking for membership.
+ * If no functions are provided it simply uses the element itself. (Good for arrays of primitives.)
+ * @param arrA Array of type T to check for differences.
+ * @param arrB Array of type U to check against.
+ * @param getArrAKey Takes in something of type T and returns something that can be used as a key.
+ * @param getArrBKey Takes in something of type U and returns something that can be used as a key.
+ * @returns Array of type T containing elements which weren't found in arrB using the key getters to check for membership.
+ */
+export function arrayDifference<T, U>(arrA: T[], arrB: U[], getArrAKey?: (a: T) => unknown, getArrBKey?: (b: U) => unknown): T[]
 {
   const set = new Set();
   for (let i = 0; i < arrB.length; i += 1)
   {
     const item = arrB[i];
-    set.add(getArrBKey(item));
+    const key  = getArrBKey ? getArrBKey(item) : item;
+    set.add(key);
   }
 
   const result: T[] = [];
   for (let i = 0; i < arrA.length; i += 1)
   {
     const itemA = arrA[i];
-
-    if (set.has(getArrAKey(itemA))) continue;
+    const keyA  = getArrAKey ? getArrAKey(itemA) : itemA;
+    if (set.has(keyA)) continue;
 
     result[result.length] = itemA;
   }
