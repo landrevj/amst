@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { Entity, ManyToMany, Property, Collection } from '@mikro-orm/core'
+import { Entity, ManyToOne, Property } from '@mikro-orm/core'
 
 // eslint-disable-next-line import/no-cycle
 import { Workspace, WorkspaceStub } from './index';
@@ -12,8 +12,8 @@ export class Folder extends BaseEntity
   @Property({ type: 'string' })
   path!: string;
 
-  @ManyToMany(() => Workspace, workspace => workspace.folders)
-  workspaces = new Collection<Workspace>(this);
+  @ManyToOne(() => Workspace)
+  workspace = Workspace;
 
   constructor(path: string)
   {
