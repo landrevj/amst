@@ -1,20 +1,22 @@
 /* eslint-disable import/prefer-default-export */
-import { PrimaryKey } from '@mikro-orm/core'
+import { PrimaryKey, Property } from '@mikro-orm/core'
 
 export abstract class BaseEntity {
 
   @PrimaryKey({ type: 'number' })
   id!: number;
 
-  // @Property()
-  // createdAt: Date = new Date();
+  @Property({ type: Date })
+  createdAt: Date = new Date();
 
-  // @Property({ onUpdate: () => new Date() })
-  // updatedAt: Date = new Date();
+  @Property({ type: Date, onUpdate: () => new Date() })
+  updatedAt: Date = new Date();
 
 }
 
 export interface BaseEntityStub
 {
   id: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
