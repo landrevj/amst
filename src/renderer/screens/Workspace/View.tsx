@@ -46,8 +46,6 @@ export class WorkspaceView extends React.Component<WorkspaceViewProps, Workspace
       page,
     }
 
-    log.info(this.state);
-
     this.loadWorkspace(parseInt(id, 10));
   }
 
@@ -60,9 +58,7 @@ export class WorkspaceView extends React.Component<WorkspaceViewProps, Workspace
     else if (prevState.page !== page)
       this.loadFiles(id);
 
-    const { location: { search }, history } = this.props;
-    log.info(history);
-
+    const { location: { search } } = this.props;
     if (prevProps.location.search !== search)
     {
       this.loadPage(search);

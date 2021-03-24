@@ -42,7 +42,7 @@ class SocketClient
 
     if (!request.responseChannel) request.responseChannel = `${channel}_response_${uuid()}`;
 
-    log.info(channel, request);
+    // log.info(channel, request);
     this.socket.emit(channel, request);
 
     return new Promise(resolve => {

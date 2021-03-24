@@ -2,11 +2,11 @@
 import { FilterQuery, FindOptions } from '@mikro-orm/core';
 import log from 'electron-log';
 
-import { EntityChannel } from './Entity';
 import { DB } from '../../db';
 import { Workspace, File, Folder } from '../../db/entities';
 import { arrayDifference, filenameExtension, glob } from '../../utils';
 import { SocketRequest, SocketRequestStatus, SocketResponse } from '../../utils/websocket';
+import { EntityChannel } from './Entity';
 
 
 export class WorkspaceChannel extends EntityChannel<Workspace>
@@ -92,16 +92,16 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
         log.error(error);
         this.emitFailure(request);
       });
-      log.info('onWorkspace/fromMatches', existingFilesOnWorkspace, existingFilesFromMatches);
+      // log.info('onWorkspace/fromMatches', existingFilesOnWorkspace, existingFilesFromMatches);
       // d
       let existingFilesNotOnWorkspace: File[] = [];
       if (existingFilesFromMatches)
         existingFilesNotOnWorkspace = arrayDifference(existingFilesFromMatches, existingFilesOnWorkspace, file1 => file1.fullPath, file2 => file2.fullPath);
-      log.info('existingFilesNotOnWorkspace', existingFilesNotOnWorkspace);
+      // log.info('existingFilesNotOnWorkspace', existingFilesNotOnWorkspace);
       // e
       const entriesNotOnWorkspace = arrayDifference(matches, existingFilesOnWorkspace, entry => entry.path, file => file.fullPath);
       const entriesNotInDB = arrayDifference(entriesNotOnWorkspace, existingFilesNotOnWorkspace, entry => entry.path, file => file.fullPath);
-      log.info('entriesNotInDB', entriesNotInDB);
+      // log.info('entriesNotInDB', entriesNotInDB);
 
       // DB TRANSACTION START //////////////////////////////////////////////
       const updatedWorkspace = await DB.em?.transactional<Workspace>(em => {

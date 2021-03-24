@@ -17,7 +17,7 @@ export async function main()
   }).catch(log.catchErrors);
 
   if (!migration) throw new Error('worker/index.tsx: Failed to run migrations!');
-  log.debug('worker/index.tsx: Migrations were successful.');
+  log.debug('worker/index.ts: Migrations were successful.');
 
   Server.init([
     new FileChannel(),
