@@ -16,7 +16,8 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 
-import main from './main/main';
+import { main } from './main';
+
 
 export default class AppUpdater {
   constructor() {
@@ -27,6 +28,7 @@ export default class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
+let workerWindow: BrowserWindow | null = null;
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -75,13 +77,27 @@ const createWindow = async () => {
     height: 728,
     minWidth: 850,
     minHeight: 550,
+    // frame: false,
     icon: getAssetPath('icon.png'),
     webPreferences: {
       nodeIntegration: true,
     },
   });
 
-  mainWindow.loadURL(`file://${__dirname}/index.html`);
+  workerWindow = new BrowserWindow({
+    show: (process.env.NODE_ENV === 'development'),
+    width: 1024,
+    height: 728,
+    minWidth: 850,
+    minHeight: 550,
+    icon: getAssetPath('icon.png'),
+    webPreferences: {
+      nodeIntegration: true,
+    },
+  });
+  workerWindow.loadURL(`file://${__dirname}/index.html?type=worker`);
+
+  mainWindow.loadURL(`file://${__dirname}/index.html?type=renderer`);
 
   // @TODO: Use 'ready-to-show' event
   //        https://github.com/electron/electron/blob/master/docs/api/browser-window.md#using-ready-to-show-event
@@ -99,6 +115,12 @@ const createWindow = async () => {
 
   mainWindow.on('closed', () => {
     mainWindow = null;
+    workerWindow?.close();
+  });
+
+  workerWindow.on('closed', () => {
+    workerWindow = null;
+    mainWindow?.close();
   });
 
   const menuBuilder = new MenuBuilder(mainWindow);
@@ -127,9 +149,7 @@ app.on('window-all-closed', () => {
   }
 });
 
-app.whenReady().then(createWindow).then(() => {
-  return main();
-}).catch(console.log);
+app.whenReady().then(createWindow).then(main).catch(console.log);
 
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the

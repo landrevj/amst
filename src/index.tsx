@@ -1,32 +1,34 @@
-import 'reflect-metadata';
-
-import React from 'react';
-import { render } from 'react-dom';
 import log from 'electron-log';
-import App from './App';
-import DB from './utils/DB';
+import QueryString from 'query-string';
 
-if (process.env.NODE_ENV === 'development')
+// TODO: these conditional imports are probably what is causing the few couple errors on the renderer window
+//       with WDS and socket.io not connecting initially.
+async function initRenderer()
 {
-  log.transports.console.level = 'debug';
-  log.info(`index.tsx: Console logging transport set to: ${log.transports.console.level}`)
+  const Renderer = await import('./renderer');
+  Renderer.main();
 }
 
-DB.init()
-  .then(() => {
+async function initWorker()
+{
+  const Worker = await import('./worker');
+  Worker.main();
+}
 
-    log.debug('index.tsx: Will run migrations up through current...');
-    return DB.orm?.getMigrator().up(); // promise hurts me monke brain.
+const queryData  = QueryString.parse(global.location.search);
+const windowType = queryData.type;
 
-  }).then((migration) => {
-
-    if (!migration)
-    {
-      log.error('index.tsx: Failed to run migrations!');
-      throw new Error();
-    }
-
-    log.debug('index.tsx: Migrations were successful.');
-    return render(<App />, document.getElementById('root'));
-
-  }).catch(log.catchErrors);
+switch (windowType)
+{
+  case "renderer":
+    log.info('index.tsx: Renderer window.');
+    initRenderer();
+    break;
+  case "worker":
+    log.info('index.tsx: Worker window.');
+    initWorker();
+    break;
+  default:
+    log.error(`index.tsx: Passed windowType "${windowType}" was not valid.`);
+    break;
+}
