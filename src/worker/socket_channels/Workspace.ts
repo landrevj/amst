@@ -87,8 +87,8 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
       return;
     }
 
-    this.getSocket()?.emit(request.responseChannel as string, { status: SocketRequestStatus.SUCCESS });
-    this.getSocket()?.emit(`Workspace_${workspace.id}_sync`, { status: SocketRequestStatus.RUNNING, data: 'Started sync...' });
+    this.getSocket()?.emit(request.responseChannel as string, { status: SocketRequestStatus.SUCCESS } as SocketResponse<void>);
+    this.getSocket()?.emit(`Workspace_${workspace.id}_sync`, { status: SocketRequestStatus.RUNNING, data: 'Started sync...' } as SocketResponse<string>);
 
     // a
     const existingFilesOnWorkspace = workspace.files.getItems();
@@ -106,13 +106,12 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
 
     // d
     let existingFilesNotOnWorkspace: File[] = [];
-    if (existingFilesFromMatches)
-      existingFilesNotOnWorkspace = arrayDifference(existingFilesFromMatches, existingFilesOnWorkspace, file1 => file1.fullPath, file2 => file2.fullPath);
+    if (existingFilesFromMatches) existingFilesNotOnWorkspace = arrayDifference(existingFilesFromMatches, existingFilesOnWorkspace, file1 => file1.fullPath, file2 => file2.fullPath);
 
-      this.getSocket()?.emit(`Workspace_${workspace.id}_sync`, {
+    this.getSocket()?.emit(`Workspace_${workspace.id}_sync`, {
       status: SocketRequestStatus.RUNNING,
       data: `Found ${existingFilesNotOnWorkspace.length} pre-existing files...`
-    });
+    } as SocketResponse<string>);
 
     // e
     const entriesNotOnWorkspace = arrayDifference(matches, existingFilesOnWorkspace, entry => entry.path, file => file.fullPath);
@@ -121,7 +120,7 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
     this.getSocket()?.emit(`Workspace_${workspace.id}_sync`, {
       status: SocketRequestStatus.RUNNING,
       data: `Found ${entriesNotInDB.length} new files...`
-    });
+    } as SocketResponse<string>);
 
     // DB TRANSACTION START //////////////////////////////////////////////
     const updatedWorkspace = await em?.transactional<Workspace>(t_em => {
@@ -151,17 +150,19 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
     if (updatedWorkspace)
     {
       const newFileCount = existingFilesNotOnWorkspace.length + entriesNotInDB.length;
+
       this.getSocket()?.emit(`Workspace_${workspace.id}_sync`, {
         status: SocketRequestStatus.SUCCESS,
         data: `Added ${newFileCount} files to the workspace!`
-      });
+      } as SocketResponse<string>);
+
       return;
     }
 
     this.getSocket()?.emit(`Workspace_${workspace.id}_sync`, {
       status: SocketRequestStatus.FAILURE,
       data: `DB transaction failed!`
-    });
+    } as SocketResponse<string>);
 
   }
 
