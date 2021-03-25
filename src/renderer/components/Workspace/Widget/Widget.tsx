@@ -15,15 +15,14 @@ interface WorkspaceWidgetProps
 
 enum SpinnerState
 {
-  Idle = 'IDLE',
-  Working = 'WORKING',
+  IDLE = 'IDLE',
+  WORKING = 'WORKING',
 }
 
 interface WorkspaceWidgetState
 {
   folders: FolderStub[];
   searchState: SpinnerState;
-  lastFile: string;
   status: string;
 }
 
@@ -43,24 +42,49 @@ export default class WorkspaceWidget extends React.Component<WorkspaceWidgetProp
 
     this.state = {
       folders,
-      searchState: SpinnerState.Idle,
-      lastFile: '',
+      searchState: SpinnerState.IDLE,
       status: '',
     };
 
     this.onClickSync = this.onClickSync.bind(this);
+    this.syncStatusListener = this.syncStatusListener.bind(this);
+  }
+
+  componentDidMount()
+  {
+    const { workspace } = this.props;
+
+    Client.socket?.on(`Workspace_${workspace.id}_sync`, this.syncStatusListener);
+  }
+
+  componentWillUnmount()
+  {
+    const { workspace } = this.props;
+
+    Client.socket?.off(`Workspace_${workspace.id}_sync`, this.syncStatusListener);
   }
 
   async onClickSync()
   {
     const { workspace } = this.props;
-    this.setState({ searchState: SpinnerState.Working, status: 'Looking for new files...' });
 
     const response: SocketResponse<string> = await Client.send('Workspace', { action: 'syncFiles', params: workspace.id });
-    const success  = response.status === SocketRequestStatus.SUCCESS;
+    const failure  = response.status === SocketRequestStatus.FAILURE;
 
-    if (success) this.setState({ searchState: SpinnerState.Idle, status: response.data as string });
-    else         this.setState({ searchState: SpinnerState.Idle, status: 'Sync failed!' });
+    if (failure) this.setState({ status: 'Sync failed!' });
+  }
+
+  async syncStatusListener(response: SocketResponse<string>)
+  {
+    const { status, data } = response;
+
+    const searchState  = status === SocketRequestStatus.RUNNING ? SpinnerState.WORKING : SpinnerState.IDLE;
+    const statusString = data || '';
+
+    this.setState({
+      searchState,
+      status: statusString,
+    });
   }
 
   render()

@@ -14,14 +14,15 @@ export default class CRUD<EntityType>
 
   async create(args: any[], callback?: (entity: EntityType) => void)
   {
+    const em = DB.getNewEM();
     // DB TRANSACTION START /////////////////////////////////////////////
-    const entity = await DB.em?.transactional<EntityType>(em => {
+    const entity = await em?.transactional<EntityType>(t_em => {
 
       const newEntity = new this.Entity(...args);
 
       if (callback) callback(newEntity);
 
-      em.persist(newEntity);
+      t_em.persist(newEntity);
 
       return new Promise(resolve => {
         resolve(newEntity);
@@ -35,7 +36,8 @@ export default class CRUD<EntityType>
 
   async read(where: FilterQuery<EntityType> = {}, options: FindOptions<EntityType> = {})
   {
-    const entities = await DB.em?.find<EntityType>(this.Entity, where, options);
+    const em = DB.getNewEM();
+    const entities = await em?.find<EntityType>(this.Entity, where, options);
 
     return entities;
   }
@@ -44,10 +46,11 @@ export default class CRUD<EntityType>
 
   async destroy(where: FilterQuery<EntityType>)
   {
-    const entities = await DB.em?.find(this.Entity, where);
+    const em = DB.getNewEM();
+    const entities = await em?.find(this.Entity, where);
     if (entities)
     {
-      await DB.em?.removeAndFlush(entities);
+      await em?.removeAndFlush(entities);
       return true;
     }
     return false;

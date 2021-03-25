@@ -3,30 +3,30 @@ import { FilterQuery, FindOptions } from '@mikro-orm/core';
 // import log from 'electron-log';
 
 import { EntityChannel } from './Entity';
-import { File } from '../../db/entities';
+import { Folder } from '../../db/entities';
 import { SocketRequest } from '../../utils/websocket';
 
-export class FileChannel extends EntityChannel<File>
+export class FolderChannel extends EntityChannel<Folder>
 {
   constructor()
   {
-    super(File);
-    this.setName('File');
+    super(Folder);
+    this.setName('Folder');
   }
 
   // /////////////////////////////////////////////////////////
   // //////////////////////// ACTIONS ////////////////////////
   // /////////////////////////////////////////////////////////
-  async createAction(request: SocketRequest<[string, string, string]>)
+  async createAction(request: SocketRequest<[string]>)
   {
-    this.handleAction(request, (fileParams) => {
-      return this.create(fileParams);
+    this.handleAction(request, (folderParams) => {
+      return this.create(folderParams);
     });
   }
 
   // /////////////////////////////////////////////////////////
   // /////////////////////////////////////////////////////////
-  async readAction(request: SocketRequest<[FilterQuery<File>, FindOptions<File>]>)
+  async readAction(request: SocketRequest<[FilterQuery<Folder>, FindOptions<Folder>]>)
   {
     this.handleAction(request, ([where, options]) => {
       return this.read(where, options);

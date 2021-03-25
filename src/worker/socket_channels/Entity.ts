@@ -2,7 +2,7 @@
 import log from 'electron-log';
 import { Socket } from 'socket.io';
 
-import { DB, CRUD } from '../../db';
+import { CRUD } from '../../db';
 import { SocketChannelInterface, SocketRequest, SocketRequestStatus, SocketResponse } from '../../utils/websocket';
 
 export abstract class EntityChannel<EntityType> extends CRUD<EntityType> implements SocketChannelInterface
@@ -14,15 +14,6 @@ export abstract class EntityChannel<EntityType> extends CRUD<EntityType> impleme
   private private_socket: Socket | undefined;
   getSocket(): Socket | undefined { return this.private_socket }
   setSocket(socket: Socket | undefined) { this.private_socket = socket }
-
-  protected dbHasEM(request: SocketRequest<unknown>): boolean
-  {
-    if (DB.em) return true;
-
-    this.emitFailure(request);
-    log.error(`${this.name}Channel: DB.em was undefined or null.`);
-    return false;
-  }
 
   protected emitFailure(request: SocketRequest<unknown>)
   {

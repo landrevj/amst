@@ -74,72 +74,95 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
     if (!request.params) return;
     const id = request.params;
 
-    const workspace = await DB.em?.findOne(Workspace, id, ['files', 'folders']).catch(error => {
+    const em = DB.getNewEM();
+
+    const workspace = await em?.findOne(Workspace, id, ['files', 'folders']).catch(error => {
       log.error(error);
       this.emitFailure(request);
     });
 
-    if (workspace)
+    if (!workspace)
     {
-      // a
-      const existingFilesOnWorkspace = workspace.files.getItems();
-      // b
-      const searchPaths = workspace.folders.getItems().map(folder => folder.path);
-      const matches     = (await Promise.all(glob(searchPaths))).flat();
-      const matchPaths  = matches.map(entry => entry.path);
-      // c
-      const existingFilesFromMatches = await DB.em?.find(File, { fullPath: matchPaths }).catch(error => {
-        log.error(error);
-        this.emitFailure(request);
-      });
-      // log.info('onWorkspace/fromMatches', existingFilesOnWorkspace, existingFilesFromMatches);
-      // d
-      let existingFilesNotOnWorkspace: File[] = [];
-      if (existingFilesFromMatches)
-        existingFilesNotOnWorkspace = arrayDifference(existingFilesFromMatches, existingFilesOnWorkspace, file1 => file1.fullPath, file2 => file2.fullPath);
-      // log.info('existingFilesNotOnWorkspace', existingFilesNotOnWorkspace);
-      // e
-      const entriesNotOnWorkspace = arrayDifference(matches, existingFilesOnWorkspace, entry => entry.path, file => file.fullPath);
-      const entriesNotInDB = arrayDifference(entriesNotOnWorkspace, existingFilesNotOnWorkspace, entry => entry.path, file => file.fullPath);
-      // log.info('entriesNotInDB', entriesNotInDB);
-
-      // DB TRANSACTION START //////////////////////////////////////////////
-      const updatedWorkspace = await DB.em?.transactional<Workspace>(em => {
-        // f
-        existingFilesNotOnWorkspace.forEach(file => {
-          workspace.files.add(file);
-        });
-        // g
-        entriesNotInDB.forEach(entry => {
-          workspace.files.add(new File(entry.name, filenameExtension(entry.name), entry.path))
-        });
-        // DONE! Persist to DB...
-
-        em.persist(workspace);
-
-        return new Promise(resolve => {
-          resolve(workspace);
-        });
-
-      }).catch(error => {
-        log.error(error);
-        DB.emFork();
-      });
-      // DB TRANSACTION END ////////////////////////////////////////////////
-
-      if (updatedWorkspace)
-      {
-        const newFileCount = existingFilesNotOnWorkspace.length + entriesNotInDB.length;
-        const response: SocketResponse<string> = {
-          status: SocketRequestStatus.SUCCESS,
-          data: `Added ${newFileCount} files to the workspace!`,
-        };
-        this.getSocket()?.emit(request.responseChannel as string, response);
-        return;
-      }
+      this.emitFailure(request);
+      return;
     }
 
-    this.emitFailure(request);
+    this.getSocket()?.emit(request.responseChannel as string, { status: SocketRequestStatus.SUCCESS });
+    this.getSocket()?.emit(`Workspace_${workspace.id}_sync`, { status: SocketRequestStatus.RUNNING, data: 'Started sync...' });
+
+    // a
+    const existingFilesOnWorkspace = workspace.files.getItems();
+
+    // b
+    const searchPaths = workspace.folders.getItems().map(folder => folder.path);
+    const matches     = (await Promise.all(glob(searchPaths))).flat();
+    const matchPaths  = matches.map(entry => entry.path);
+
+    // c
+    const existingFilesFromMatches = await em?.find(File, { fullPath: matchPaths }).catch(error => {
+      log.error(error);
+      this.emitFailure(request);
+    });
+
+    // d
+    let existingFilesNotOnWorkspace: File[] = [];
+    if (existingFilesFromMatches)
+      existingFilesNotOnWorkspace = arrayDifference(existingFilesFromMatches, existingFilesOnWorkspace, file1 => file1.fullPath, file2 => file2.fullPath);
+
+      this.getSocket()?.emit(`Workspace_${workspace.id}_sync`, {
+      status: SocketRequestStatus.RUNNING,
+      data: `Found ${existingFilesNotOnWorkspace.length} pre-existing files...`
+    });
+
+    // e
+    const entriesNotOnWorkspace = arrayDifference(matches, existingFilesOnWorkspace, entry => entry.path, file => file.fullPath);
+    const entriesNotInDB = arrayDifference(entriesNotOnWorkspace, existingFilesNotOnWorkspace, entry => entry.path, file => file.fullPath);
+
+    this.getSocket()?.emit(`Workspace_${workspace.id}_sync`, {
+      status: SocketRequestStatus.RUNNING,
+      data: `Found ${entriesNotInDB.length} new files...`
+    });
+
+    // DB TRANSACTION START //////////////////////////////////////////////
+    const updatedWorkspace = await em?.transactional<Workspace>(t_em => {
+
+      // f
+      existingFilesNotOnWorkspace.forEach(file => {
+        workspace.files.add(file);
+      });
+
+      // g
+      entriesNotInDB.forEach(entry => {
+        workspace.files.add(new File(entry.name, filenameExtension(entry.name), entry.path))
+      });
+      // DONE! Persist to DB...
+
+      t_em.persist(workspace);
+
+      return new Promise(resolve => {
+        resolve(workspace);
+      });
+
+    }).catch(error => {
+      log.error(error);
+    });
+    // DB TRANSACTION END ////////////////////////////////////////////////
+
+    if (updatedWorkspace)
+    {
+      const newFileCount = existingFilesNotOnWorkspace.length + entriesNotInDB.length;
+      this.getSocket()?.emit(`Workspace_${workspace.id}_sync`, {
+        status: SocketRequestStatus.SUCCESS,
+        data: `Added ${newFileCount} files to the workspace!`
+      });
+      return;
+    }
+
+    this.getSocket()?.emit(`Workspace_${workspace.id}_sync`, {
+      status: SocketRequestStatus.FAILURE,
+      data: `DB transaction failed!`
+    });
+
   }
 
   // /////////////////////////////////////////////////////////
@@ -148,7 +171,7 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   handle(request: SocketRequest<any>)
   {
-    if (!this.dbHasEM(request) || !this.getSocket()) return; // check that the DB is initialized and we have a socket
+    if (!this.getSocket()) return; // check that the DB is initialized and we have a socket
 
     if (!request.responseChannel) request.responseChannel = `${this.getName()}_response`;
 

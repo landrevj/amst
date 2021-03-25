@@ -9,7 +9,6 @@ class Database
   private static instance: Database;
 
   private private_orm: MikroORM | undefined;
-  private  private_em: EntityManager | undefined;
 
   private constructor() { /* do nothing */ }
 
@@ -29,13 +28,11 @@ class Database
 
     const orm = await MikroORM.init(conf);
     this.private_orm = orm;
-    this.private_em  = orm.em;
   }
 
-  get orm(): MikroORM      | undefined { return this.private_orm }
-  get  em(): EntityManager | undefined { return this.private_em }
+  get orm(): MikroORM | undefined { return this.private_orm }
 
-  public emFork() { this.private_em = this.em?.fork() }
+  getNewEM(): EntityManager | undefined { return this.orm?.em.fork() }
 }
 
 const DB = Database.getInstance();
