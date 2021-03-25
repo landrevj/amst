@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unused-state */ // TODO: remove after state is used
 import React from 'react';
 import { Link } from 'react-router-dom';
 
