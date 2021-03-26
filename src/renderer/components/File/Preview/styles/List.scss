@@ -1,9 +1,0 @@
-.FilePreviewList {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  grid-template-rows: masonry;
-
-  figcaption {
-    word-wrap: break-word;
-  }
-}

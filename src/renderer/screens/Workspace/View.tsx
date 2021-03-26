@@ -11,7 +11,6 @@ import { WorkspaceStub, FileStub, File } from '../../../db/entities';
 import FilePreviewList from '../../components/File/Preview/List';
 
 import { SocketRequestStatus } from '../../../utils/websocket';
-import '../../../App.global.scss';
 
 interface WorkspaceViewRouteParams
 {
@@ -126,14 +125,17 @@ export class WorkspaceView extends React.Component<WorkspaceViewProps, Workspace
 
     const name = workspace ? workspace.name : 'Loading...';
 
-    const prevPageLink = page > 0 ? (<Link to={`/workspace/${id}?page=${page - 1}`}>prev</Link>) : (<span>prev</span>);
-    const nextPageLink =            (<Link to={`/workspace/${id}?page=${page + 1}`}>next</Link>);
+    const prevPageLink = page > 0 ? (<Link className='px-2 py-1 bg-blue-100 rounded' to={`/workspace/${id}?page=${page - 1}`}>prev</Link>) : (<span className='px-2 py-1 bg-gray-200 rounded'>prev</span>);
+    const nextPageLink =            (<Link className='px-2 py-1 bg-blue-200 rounded' to={`/workspace/${id}?page=${page + 1}`}>next</Link>);
 
     return (
       <>
-        <h3>{name}&apos;s files...</h3> Page {page} &nbsp;
-        {prevPageLink} &nbsp;
-        {nextPageLink}
+        <div className='space-x-1.5 p-4'>
+          <span className='px-2 py-1 bg-green-100 rounded'>{name}</span>
+          <span>Page {page}</span>
+          {prevPageLink}
+          {nextPageLink}
+        </div>
         <FilePreviewList files={files} />
         <Link to='/'>Back</Link>
       </>

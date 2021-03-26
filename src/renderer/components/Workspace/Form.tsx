@@ -5,7 +5,6 @@ import Client from '../../../utils/websocket/SocketClient';
 import { WorkspaceStub, FolderStub } from '../../../db/entities';
 import { MultiplePathPicker } from '../UI/MultiplePathPicker/MultiplePathPicker';
 
-import '../../../App.global.scss';
 import { SocketRequestStatus } from '../../../utils/websocket';
 import { isNumberArray } from '../../../utils';
 
@@ -98,13 +97,15 @@ export class WorkspaceForm extends React.Component<WorkspaceFormProps, Workspace
   {
     const { newName, newPaths } = this.state;
     return (
-      <>
-        <h2>New workspace... {newName}</h2>
-        <input type="text" value={newName} onChange={this.onNameChange}/>
-        <button type="button" onClick={this.onClickAddToDB}>add</button>
+      <div className='rounded bg-gray-100'>
+        <div className='p-2 mb-2 space-x-1.5'>
+          <h2>New workspace... {newName}</h2>
+          <input type="text" className='rounded' value={newName} onChange={this.onNameChange}/>
+          <button type="button" onClick={this.onClickAddToDB}>add</button>
+        </div>
         <hr/>
         <MultiplePathPicker pathArray={newPaths} onChange={this.onPathsChange}/>
-      </>
+      </div>
     );
   }
 };

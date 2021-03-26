@@ -6,8 +6,8 @@ import Client from '../../../utils/websocket/SocketClient';
 import { WorkspaceStub } from '../../../db/entities';
 import { WorkspaceForm, WorkspaceList } from '../../components/Workspace';
 
-import '../../../App.global.scss';
 import { SocketRequestStatus } from '../../../utils/websocket';
+import '../../../App.global.css';
 
 interface HomeState
 {
@@ -69,10 +69,11 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
     const { workspaces } = this.state;
     return (
       <>
-        <button type="button" onClick={this.onClickResetDB}>reset</button>
-        <WorkspaceForm onSubmit={this.onSubmitWorkspaceForm}/>
-        <hr/>
-        <WorkspaceList workspaces={workspaces}/>
+        <button className='fixed top-0 right-0 bg-red-300' type="button" onClick={this.onClickResetDB}>reset</button>
+        <div className='space-y-2'>
+          <WorkspaceForm onSubmit={this.onSubmitWorkspaceForm}/>
+          <WorkspaceList workspaces={workspaces}/>
+        </div>
       </>
     );
   }

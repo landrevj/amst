@@ -5,8 +5,6 @@ import Client from '../../../../utils/websocket/SocketClient';
 import { FileStub } from '../../../../db/entities';
 import { SupportedImageFormats } from '../index';
 
-import styles from './styles/Preview.scss';
-
 interface FilePreviewProps
 {
   file: FileStub;
@@ -20,14 +18,14 @@ export default function FilePreview({ file }: FilePreviewProps)
   let content: JSX.Element;
   if (isImage)
   {
-    content = (<img src={`http://${Client.host}:${Client.port}/amst/files/${file.id}`} alt={file.name}/>);
+    content = (<img className='min-w-full rounded-md shadow' src={`http://${Client.host}:${Client.port}/amst/files/${file.id}`} alt={file.name}/>);
   }
   else
   {
-    content = (<figcaption>{file.name}</figcaption>);
+    content = (<figcaption className='min-h-full px-1.5 py-1 rounded-md bg-gray-300 truncate'>{file.name}</figcaption>);
   }
 
   return (
-    <Link to={`/file/${file.id}`} className={styles.FilePreview}>{content}</Link>
+    <Link to={`/file/${file.id}`}>{content}</Link>
   );
 }

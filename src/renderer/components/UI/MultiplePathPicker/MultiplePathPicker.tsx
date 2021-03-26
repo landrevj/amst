@@ -3,7 +3,6 @@ import { OpenDialogReturnValue } from 'electron';
 import log from 'electron-log';
 
 import { IpcService } from '../../../../utils/ipc';
-import '../../../../App.global.scss';
 
 const ipc = new IpcService();
 
@@ -89,16 +88,17 @@ export class MultiplePathPicker extends React.Component<MultiplePathPickerProps>
     const { pathArray } = this.props;
     return (
       <>
-        <div>
-          <button type="button" onClick={this.onClickIncrementPath}>add path</button>
+        <div className='inline-block p-2 m-2 space-y-1.5'>
           {pathArray.map((path, i) =>
           // eslint-disable-next-line react/no-array-index-key
-          <div className="path-list-item" key={`path-${i}`}>
-            <input type="text" value={path} onChange={this.onPathChange} data-index={i}/>
-            <button type="button" onClick={this.onClickBrowseForPath} data-index={i}>browse</button>
-            <button type="button" onClick={this.onClickRemovePath} data-index={i}>X</button>
+          <div className='space-x-1.5' key={`path-${i}`}>
+            <input type='text' className='rounded' value={path} onChange={this.onPathChange} data-index={i}/>
+            <button type='button' onClick={this.onClickBrowseForPath} data-index={i}>browse</button>
+            <button type='button' className='bg-yellow-300' onClick={this.onClickRemovePath} data-index={i}>X</button>
           </div>
           )}
+          <hr/>
+          <button type="button" className='' onClick={this.onClickIncrementPath}>add path</button>
         </div>
       </>
     );

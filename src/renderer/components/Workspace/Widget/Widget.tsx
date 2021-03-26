@@ -92,8 +92,8 @@ export default class WorkspaceWidget extends React.Component<WorkspaceWidgetProp
     const { folders, searchState, status }   = this.state;
 
     return (
-      <div>
-        <Link to={`/workspace/${workspace.id}?page=0`}>{workspace.name}</Link>
+      <div className='space-x-1.5'>
+        <Link className='px-2 py-1 bg-green-100 rounded' to={`/workspace/${workspace.id}?page=0`}>{workspace.name}</Link>
         <button type='button' onClick={this.onClickSync}>sync</button> - {searchState}{status.length ? ` - ${status}` : ''}
         <FolderList folders={folders}/>
       </div>
