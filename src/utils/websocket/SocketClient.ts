@@ -13,15 +13,15 @@ class SocketClient
   private static instance: SocketClient;
 
   private private_socket: SocketIOClient.Socket | undefined;
-  private host: string | undefined;
-  private port: number | undefined;
+  private private_host: string | undefined;
+  private private_port: number | undefined;
 
   private constructor() { /* */ }
 
   public init(host: string = DEFAULT_HOST, port: number = DEFAULT_PORT)
   {
-    this.host = host;
-    this.port = port;
+    this.private_host = host;
+    this.private_port = port;
 
     this.private_socket = io(`http://${this.host}:${this.port}`, {});
 
@@ -34,6 +34,11 @@ class SocketClient
     if (!SocketClient.instance) SocketClient.instance = new SocketClient();
     return SocketClient.instance;
   }
+
+  isLocal(): boolean { return this.host === 'localhost' || this.host === '127.0.0.1' };
+
+  get host(): string | undefined { return this.private_host; }
+  get port(): number | undefined { return this.private_port; }
 
   get socket(): SocketIOClient.Socket | undefined { return this.private_socket; }
 

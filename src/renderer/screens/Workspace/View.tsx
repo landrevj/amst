@@ -8,7 +8,7 @@ import log from 'electron-log';
 
 import Client from '../../../utils/websocket/SocketClient';
 import { WorkspaceStub, FileStub, File } from '../../../db/entities';
-import FileList from '../../components/File/List';
+import FilePreviewList from '../../components/File/Preview/List';
 
 import { SocketRequestStatus } from '../../../utils/websocket';
 import '../../../App.global.scss';
@@ -124,8 +124,7 @@ export class WorkspaceView extends React.Component<WorkspaceViewProps, Workspace
   {
     const { id, workspace, files, page } = this.state;
 
-    let name = 'Loading...';
-    if (workspace) name = workspace.name;
+    const name = workspace ? workspace.name : 'Loading...';
 
     const prevPageLink = page > 0 ? (<Link to={`/workspace/${id}?page=${page - 1}`}>prev</Link>) : (<span>prev</span>);
     const nextPageLink =            (<Link to={`/workspace/${id}?page=${page + 1}`}>next</Link>);
@@ -135,7 +134,7 @@ export class WorkspaceView extends React.Component<WorkspaceViewProps, Workspace
         <h3>{name}&apos;s files...</h3> Page {page} &nbsp;
         {prevPageLink} &nbsp;
         {nextPageLink}
-        <FileList files={files} />
+        <FilePreviewList files={files} />
         <Link to='/'>Back</Link>
       </>
     );

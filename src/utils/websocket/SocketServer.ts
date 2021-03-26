@@ -1,10 +1,43 @@
-import { createServer } from "http";
+import { createServer, IncomingMessage, ServerResponse } from "http";
 import { Server, Socket } from 'socket.io';
-// import log from 'electron-log';
+import send from 'send';
+import log from 'electron-log';
 
+import { DB } from '../../db';
 import { SocketRequest, SocketChannelInterface } from './index';
+import { File } from "../../db/entities";
 
 const DEFAULT_SOCKET_IO_PORT = 3000;
+
+async function fileRequestListener(req: IncomingMessage, res: ServerResponse)
+{
+  const re = /^\/amst\/files\/(\d+)$/;
+  if (!req.url)
+  {
+    res.writeHead(500);
+    res.end("Missing Request URL");
+    return;
+  }
+  const match = req.url.match(re);
+  const fileID = match ? parseInt(match[1], 10) : undefined;
+
+  const em = DB.getNewEM();
+  const results = await em?.find(File, { id: fileID });
+  if (results?.length)
+  {
+    const file = results[0];
+    const path = file.fullPath;
+
+    log.verbose(`SocketServer.ts: Sending file with id ${fileID}`);
+    send(req, encodeURIComponent(path), {}).pipe(res);
+  }
+  else
+  {
+    res.writeHead(404);
+    res.end("Not Found");
+  }
+}
+
 
 class SocketServer
 {
@@ -17,7 +50,7 @@ class SocketServer
 
   public init(channels: SocketChannelInterface[], port?: number)
   {
-    const httpServer = createServer();
+    const httpServer = createServer(fileRequestListener);
     this.io = new Server(httpServer, {});
 
     this.io.on('connection', (socket) => {
