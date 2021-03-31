@@ -1,6 +1,6 @@
 import { join } from 'path';
 import normalize from 'normalize-path';
-import { arrayDifference, isNumberArray, filenameExtension, glob } from "../utils";
+import { arrayDifference, isNumberArray, filenameExtension, glob, mimeRegex } from "../utils";
 
 describe('isNumberArray()', () => {
   test('should return correct result', () => {
@@ -83,5 +83,39 @@ describe('arrayDifference()', () => {
     const output: TypeA[] = [{ nameA: '1' },{ nameA: '2' }];
 
     expect(arrayDifference(inputA, inputB, getterA, getterB)).toEqual(output);
+  });
+});
+
+describe('mimeRegex()', () => {
+  test('should extract type and subtype from valid mime type string', () => {
+    const inputs = [
+      'image/jpeg',
+      'application/atom+xml',
+      'application/EDI-X12',
+      'application/xml-dtd',
+      'application/zip',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'video/quicktime',
+      'application/json; indent=4',
+      'application/json',
+      'text/*',
+      '*/*',
+    ];
+    const outputs = [
+      { type: 'image',       subtype: 'jpeg' },
+      { type: 'application', subtype: 'atom' },
+      { type: 'application', subtype: 'EDI' },
+      { type: 'application', subtype: 'xml' },
+      { type: 'application', subtype: 'zip' },
+      { type: 'application', subtype: 'vnd' },
+      { type: 'video',       subtype: 'quicktime' },
+      { type: 'application', subtype: 'json' },
+      { type: 'application', subtype: 'json' },
+      { type: 'text',        subtype: '*' },
+      { type: '*' ,          subtype: '*' },
+    ];
+
+    inputs.forEach((input, i) => expect(mimeRegex(input)).toEqual(outputs[i]))
+
   });
 });

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 import Client from '../../../../utils/websocket/SocketClient';
 import { FileStub } from '../../../../db/entities';
-import { SupportedImageFormats } from '../index';
+import { mimeRegex } from '../../../../utils';
 
 interface FilePreviewProps
 {
@@ -12,13 +12,12 @@ interface FilePreviewProps
 
 export default function FilePreview({ file }: FilePreviewProps)
 {
-  const format = file.extension.toLowerCase();
-  const isImage = SupportedImageFormats.has(format);
+  const { type } = mimeRegex(file.mimeType || '');
 
   let content: JSX.Element;
-  if (isImage)
+  if (type === 'image')
   {
-    content = (<img className='min-w-full rounded-md shadow' src={`http://${Client.host}:${Client.port}/amst/files/${file.id}`} alt={file.name}/>);
+    content = (<img className='min-w-full rounded-md shadow' src={`http://${Client.host}:${Client.port}/files/${file.id}`} alt={file.name}/>);
   }
   else
   {

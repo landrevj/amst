@@ -13,7 +13,7 @@ export class Folder extends BaseEntity
   path!: string;
 
   @ManyToOne(() => Workspace)
-  workspace = Workspace;
+  workspace!: Workspace;
 
   constructor(path: string)
   {

@@ -1,8 +1,8 @@
 /* eslint-disable import/prefer-default-export */
-import { Entity, ManyToMany, Property, Collection, Unique } from '@mikro-orm/core'
+import { Entity, ManyToMany, OneToMany, Property, Collection, Unique } from '@mikro-orm/core'
 
 // eslint-disable-next-line import/no-cycle
-import { Workspace, WorkspaceStub } from './index';
+import { Workspace, WorkspaceStub, Tag, TagStub } from './index';
 import { BaseEntity, BaseEntityStub } from './BaseEntity';
 
 @Entity()
@@ -19,8 +19,17 @@ export class File extends BaseEntity
   @Unique()
   fullPath!: string;
 
+  @Property({ type: 'string', nullable: true })
+  mimeType?: string;
+
+  @Property({ type: 'string', nullable: true })
+  md5?: string;
+
   @ManyToMany(() => Workspace, workspace => workspace.files)
   workspaces = new Collection<Workspace>(this);
+
+  @OneToMany({ entity: () => Tag, mappedBy: 'file', orphanRemoval: true })
+  tags = new Collection<Tag>(this);
 
   constructor(name: string, extension: string, fullPath: string)
   {
@@ -37,5 +46,8 @@ export interface FileStub extends BaseEntityStub
   name: string;
   extension: string;
   fullPath: string;
+  mimeType?: string;
+  md5?: string;
   workspaces?: WorkspaceStub[];
+  tags?: TagStub[];
 }

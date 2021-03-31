@@ -85,10 +85,12 @@ export function filenameExtension(fname: string)
  * @param arrB Array of type U to check against.
  * @param getArrAKey Takes in something of type T and returns something that can be used as a key.
  * @param getArrBKey Takes in something of type U and returns something that can be used as a key.
- * @returns Array of type T containing elements which weren't found in arrB using the key getters to check for membership.
+ * @returns Array of type T containing elements which weren't found in arrB using either the key getters or the elements themselves
+ *          to check for membership.
  */
 export function arrayDifference<T, U>(arrA: T[], arrB: U[], getArrAKey?: (a: T) => unknown, getArrBKey?: (b: U) => unknown): T[]
 {
+  // add everything in arrB to a set so we can check for membership quickly
   const set = new Set();
   for (let i = 0; i < arrB.length; i += 1)
   {
@@ -109,3 +111,35 @@ export function arrayDifference<T, U>(arrA: T[], arrB: U[], getArrAKey?: (a: T) 
   return result;
 }
 
+
+/**
+ * Takes in a mime type string and attempts to extract the type and subtype.
+ * @see https://stackoverflow.com/a/26721917
+ * @param str A valid mime type string.
+ * @returns An object with a type and subtype, both of type string|undefined.
+ */
+export function mimeRegex(str: string): { type: string | undefined, subtype: string | undefined }
+{
+  const re = /(\w+|\*)\/(\w+|\*)(\s*;\s*(\w+)=\s*=\s*(\S+))?/;
+  const match = str.match(re);
+
+  if (!match) return { type: undefined, subtype: undefined }
+
+  return { type: match[1], subtype: match[2] };
+}
+
+export function compareStrings(a: string, b:string)
+{
+  // from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort
+  const nameA = a.toUpperCase(); // ignore upper and lowercase
+  const nameB = b.toUpperCase(); // ignore upper and lowercase
+  if (nameA < nameB) {
+    return -1;
+  }
+  if (nameA > nameB) {
+    return 1;
+  }
+
+  // names must be equal
+  return 0;
+}

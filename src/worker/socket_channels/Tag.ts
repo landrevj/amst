@@ -2,32 +2,31 @@
 import { FilterQuery, FindOptions } from '@mikro-orm/core';
 // import log from 'electron-log';
 
-import { DB } from '../../db';
 import { EntityChannel } from './Entity';
-import { File, Tag } from '../../db/entities';
+import { Tag } from '../../db/entities';
 import { SocketRequest } from '../../utils/websocket';
 
-export class FileChannel extends EntityChannel<File>
+export class TagChannel extends EntityChannel<Tag>
 {
   constructor()
   {
-    super(File);
-    this.setName('File');
+    super(Tag);
+    this.setName('Tag');
   }
 
   // /////////////////////////////////////////////////////////
   // //////////////////////// ACTIONS ////////////////////////
   // /////////////////////////////////////////////////////////
-  async createAction(request: SocketRequest<[string, string, string]>)
+  async createAction(request: SocketRequest<[string, string | undefined]>)
   {
-    this.handleAction(request, (fileParams) => {
-      return this.create(fileParams);
+    this.handleAction(request, (tagParams) => {
+      return this.create(tagParams);
     });
   }
 
   // /////////////////////////////////////////////////////////
   // /////////////////////////////////////////////////////////
-  async readAction(request: SocketRequest<[FilterQuery<File>, FindOptions<File>]>)
+  async readAction(request: SocketRequest<[FilterQuery<Tag>, FindOptions<Tag>]>)
   {
     this.handleAction(request, ([where, options]) => {
       return this.read(where, options);
@@ -44,25 +43,6 @@ export class FileChannel extends EntityChannel<File>
   {
     this.handleAction(request, (ids) => {
       return this.destroy(ids);
-    });
-  }
-
-  // /////////////////////////////////////////////////////////
-  // /////////////////////////////////////////////////////////
-  async addTag(request: SocketRequest<[number, string, string | undefined]>)
-  {
-    this.handleAction(request, async ([fileID, name, category]) => {
-      const em   = DB.getNewEM();
-      const file = await em?.findOne(File, fileID);
-      if (em && file)
-      {
-        const tag = new Tag(name, category);
-        file.tags.add(tag);
-        await em.persistAndFlush(file);
-        return tag;
-      }
-
-      return undefined;
     });
   }
 
@@ -86,10 +66,6 @@ export class FileChannel extends EntityChannel<File>
         break;
       case 'destroy':
         this.destroyAction(request);
-        break;
-
-      case 'addTag':
-        this.addTag(request);
         break;
 
       default:

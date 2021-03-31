@@ -2,7 +2,7 @@ import React from 'react';
 import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
 import QueryString from 'query-string';
-import { FilterQuery, FindOptions } from '@mikro-orm/core';
+import { FilterQuery, FindOptions, QueryOrder } from '@mikro-orm/core';
 import log from 'electron-log';
 
 
@@ -101,6 +101,7 @@ export class WorkspaceView extends React.Component<WorkspaceViewProps, Workspace
       workspaces: { id: workspaceID },
     };
     const options: FindOptions<File> = {
+      orderBy: { id: QueryOrder.DESC },
       limit: itemsPerPage,
       offset: page * itemsPerPage,
     }
@@ -137,7 +138,7 @@ export class WorkspaceView extends React.Component<WorkspaceViewProps, Workspace
           {nextPageLink}
         </div>
         <FilePreviewList files={files} />
-        <Link to='/'>Back</Link>
+        <Link to='/'>Home</Link>
       </>
     );
   }

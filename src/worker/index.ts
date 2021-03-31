@@ -3,7 +3,7 @@ import log from 'electron-log';
 
 import DB from '../db/DB';
 import Server from '../utils/websocket/SocketServer';
-import { FileChannel, FolderChannel, WorkspaceChannel } from './socket_channels';
+import { FileChannel, FolderChannel, TagChannel, WorkspaceChannel } from './socket_channels';
 
 // eslint-disable-next-line import/prefer-default-export
 export async function main()
@@ -20,6 +20,7 @@ export async function main()
   log.debug('worker/index.ts: Migrations were successful.');
 
   Server.init([
+    new TagChannel(),
     new FileChannel(),
     new FolderChannel(),
     new WorkspaceChannel(),

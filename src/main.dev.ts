@@ -86,10 +86,10 @@ const createWindow = async () => {
 
   workerWindow = new BrowserWindow({
     show: (process.env.NODE_ENV === 'development'),
-    width: 1024,
-    height: 728,
-    minWidth: 850,
-    minHeight: 550,
+    width: 250,
+    height: 150,
+    // minWidth: 850,
+    // minHeight: 550,
     icon: getAssetPath('icon.png'),
     webPreferences: {
       nodeIntegration: true,

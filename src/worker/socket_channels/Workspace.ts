@@ -1,5 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 import { FilterQuery, FindOptions } from '@mikro-orm/core';
+import { lookup } from 'mime-types';
+// import md5File from 'md5-file';
 import log from 'electron-log';
 
 import { DB } from '../../db';
@@ -58,6 +60,18 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
 
   // /////////////////////////////////////////////////////////
   // /////////////////////////////////////////////////////////
+  async emitSyncUpdate(workspaceID: number, text: string, success?: boolean)
+  {
+    let status = SocketRequestStatus.RUNNING;
+    if      (success === true)  status = SocketRequestStatus.SUCCESS;
+    else if (success === false) status = SocketRequestStatus.FAILURE;
+
+    this.getSocket()?.emit(`Workspace_${workspaceID}_sync`, {
+      status,
+      data: text,
+    } as SocketResponse<string>);
+  }
+
   async syncFiles(request: SocketRequest<number>)
   {
     /* a: get list of files on the workspace
@@ -88,7 +102,7 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
     }
 
     this.getSocket()?.emit(request.responseChannel as string, { status: SocketRequestStatus.SUCCESS } as SocketResponse<void>);
-    this.getSocket()?.emit(`Workspace_${workspace.id}_sync`, { status: SocketRequestStatus.RUNNING, data: 'Started sync...' } as SocketResponse<string>);
+    this.emitSyncUpdate(workspace.id, 'Started sync...');
 
     // a
     const existingFilesOnWorkspace = workspace.files.getItems();
@@ -108,19 +122,12 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
     let existingFilesNotOnWorkspace: File[] = [];
     if (existingFilesFromMatches) existingFilesNotOnWorkspace = arrayDifference(existingFilesFromMatches, existingFilesOnWorkspace, file1 => file1.fullPath, file2 => file2.fullPath);
 
-    this.getSocket()?.emit(`Workspace_${workspace.id}_sync`, {
-      status: SocketRequestStatus.RUNNING,
-      data: `Found ${existingFilesNotOnWorkspace.length} pre-existing files...`
-    } as SocketResponse<string>);
+    this.emitSyncUpdate(workspace.id, `Found ${existingFilesNotOnWorkspace.length} pre-existing files...`);
 
     // e
     const entriesNotOnWorkspace = arrayDifference(matches, existingFilesOnWorkspace, entry => entry.path, file => file.fullPath);
     const entriesNotInDB = arrayDifference(entriesNotOnWorkspace, existingFilesNotOnWorkspace, entry => entry.path, file => file.fullPath);
-
-    this.getSocket()?.emit(`Workspace_${workspace.id}_sync`, {
-      status: SocketRequestStatus.RUNNING,
-      data: `Found ${entriesNotInDB.length} new files...`
-    } as SocketResponse<string>);
+    this.emitSyncUpdate(workspace.id, `Found ${entriesNotInDB.length} new files...`);
 
     // DB TRANSACTION START //////////////////////////////////////////////
     const updatedWorkspace = await em?.transactional<Workspace>(t_em => {
@@ -131,11 +138,18 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
       });
 
       // g
-      entriesNotInDB.forEach(entry => {
-        workspace.files.add(new File(entry.name, filenameExtension(entry.name), entry.path))
+      const { length } = entriesNotInDB;
+
+      entriesNotInDB.forEach((entry, i) => {
+        this.emitSyncUpdate(workspace.id, `Importing new file ${i + 1} of ${length} to the DB...`);
+
+        const file = new File(entry.name, filenameExtension(entry.name), entry.path);
+        // calculate some metadata
+        file.mimeType = lookup(entry.path) || undefined;
+        // file.md5         = md5File.sync(entry.path);
+        workspace.files.add(file);
       });
       // DONE! Persist to DB...
-
       t_em.persist(workspace);
 
       return new Promise(resolve => {
@@ -150,20 +164,11 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
     if (updatedWorkspace)
     {
       const newFileCount = existingFilesNotOnWorkspace.length + entriesNotInDB.length;
-
-      this.getSocket()?.emit(`Workspace_${workspace.id}_sync`, {
-        status: SocketRequestStatus.SUCCESS,
-        data: `Added ${newFileCount} files to the workspace!`
-      } as SocketResponse<string>);
-
+      this.emitSyncUpdate(workspace.id, `Added ${newFileCount} files to the workspace!`, true);
       return;
     }
 
-    this.getSocket()?.emit(`Workspace_${workspace.id}_sync`, {
-      status: SocketRequestStatus.FAILURE,
-      data: `DB transaction failed!`
-    } as SocketResponse<string>);
-
+    this.emitSyncUpdate(workspace.id, 'DB transaction failed!', false);
   }
 
   // /////////////////////////////////////////////////////////

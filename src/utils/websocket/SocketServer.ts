@@ -1,7 +1,7 @@
 import { createServer, IncomingMessage, ServerResponse } from "http";
 import { Server, Socket } from 'socket.io';
 import send from 'send';
-import log from 'electron-log';
+// import log from 'electron-log';
 
 import { DB } from '../../db';
 import { SocketRequest, SocketChannelInterface } from './index';
@@ -11,31 +11,30 @@ const DEFAULT_SOCKET_IO_PORT = 3000;
 
 async function fileRequestListener(req: IncomingMessage, res: ServerResponse)
 {
-  const re = /^\/amst\/files\/(\d+)$/;
   if (!req.url)
   {
     res.writeHead(500);
     res.end("Missing Request URL");
     return;
   }
+  const re = /^\/files\/(\d+)$/;
   const match = req.url.match(re);
-  const fileID = match ? parseInt(match[1], 10) : undefined;
-
-  const em = DB.getNewEM();
-  const results = await em?.find(File, { id: fileID });
-  if (results?.length)
+  if (match)
   {
-    const file = results[0];
-    const path = file.fullPath;
+    const fileID = parseInt(match[1], 10);
 
-    log.verbose(`SocketServer.ts: Sending file with id ${fileID}`);
-    send(req, encodeURIComponent(path), {}).pipe(res);
+    const em = DB.getNewEM();
+    const file = await em?.findOne(File, fileID);
+    if (file)
+    {
+      // log.verbose(`SocketServer.ts: Sending file with id ${fileID}`);
+      send(req, encodeURIComponent(file.fullPath), {}).pipe(res);
+      return;
+    }
   }
-  else
-  {
-    res.writeHead(404);
-    res.end("Not Found");
-  }
+
+  res.writeHead(404);
+  res.end("Not Found");
 }
 
 
