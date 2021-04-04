@@ -6,6 +6,7 @@ import { DB } from '../../db';
 import { EntityChannel } from './Entity';
 import { File, Tag } from '../../db/entities';
 import { SocketRequest } from '../../utils/websocket';
+import { FileSearchQuery } from '../../renderer/components/File';
 
 export class FileChannel extends EntityChannel<File>
 {
@@ -30,6 +31,7 @@ export class FileChannel extends EntityChannel<File>
   async readAction(request: SocketRequest<[FilterQuery<File>, FindOptions<File>]>)
   {
     this.handleAction(request, ([where, options]) => {
+      console.log(where);
       return this.read(where, options);
     });
   }
@@ -65,6 +67,15 @@ export class FileChannel extends EntityChannel<File>
       return undefined;
     });
   }
+
+  // /////////////////////////////////////////////////////////
+  // /////////////////////////////////////////////////////////
+  // async search(request: SocketRequest<FileSearchQuery>)
+  // {
+  //   this.handleAction(request, async (fsq) => {
+  //     const em =
+  //   });
+  // }
 
   // /////////////////////////////////////////////////////////
   // /////////////////////////////////////////////////////////

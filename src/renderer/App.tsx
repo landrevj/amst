@@ -2,7 +2,7 @@ import React from 'react';
 import { HashRouter as Router, Switch, Route } from 'react-router-dom';
 
 import { Home } from './screens/Home/Home';
-import { WorkspaceView } from './screens/Workspace/View';
+import { FileSearch } from './screens/File/Search';
 import FileView from './screens/File/View';
 
 export default function App()
@@ -10,7 +10,7 @@ export default function App()
   return (
     <Router>
       <Switch>
-        <Route path="/workspace/:id" component={WorkspaceView}/>
+        <Route exact path="/file" component={FileSearch}/>
         <Route path="/file/:id" component={FileView}/>
         <Route path="/" component={Home} />
       </Switch>

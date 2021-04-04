@@ -1,4 +1,5 @@
 import React from 'react';
+import { TagTuple } from './index';
 import { TagStub } from '../../../db/entities';
 import { SocketRequestStatus } from '../../../utils/websocket';
 import Client from '../../../utils/websocket/SocketClient';
@@ -19,7 +20,7 @@ export default class TagForm extends React.Component<TagFormProps>
     this.handleTagInputSubmit = this.handleTagInputSubmit.bind(this);
   }
 
-  async handleTagInputSubmit(tag: [string, string | undefined])
+  async handleTagInputSubmit(tag: TagTuple)
   {
     const { fileID, onSubmit } = this.props;
 

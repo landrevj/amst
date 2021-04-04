@@ -5,6 +5,7 @@ import { FilterQuery, FindOptions } from '@mikro-orm/core';
 import { EntityChannel } from './Entity';
 import { Tag } from '../../db/entities';
 import { SocketRequest } from '../../utils/websocket';
+import { TagTuple } from '../../renderer/components/Tag';
 
 export class TagChannel extends EntityChannel<Tag>
 {
@@ -17,7 +18,7 @@ export class TagChannel extends EntityChannel<Tag>
   // /////////////////////////////////////////////////////////
   // //////////////////////// ACTIONS ////////////////////////
   // /////////////////////////////////////////////////////////
-  async createAction(request: SocketRequest<[string, string | undefined]>)
+  async createAction(request: SocketRequest<TagTuple>)
   {
     this.handleAction(request, (tagParams) => {
       return this.create(tagParams);

@@ -30,6 +30,6 @@ export class Tag extends BaseEntity
 export interface TagStub extends BaseEntityStub
 {
   name: string;
-  category: string;
+  category?: string;
   file?: FileStub;
 }

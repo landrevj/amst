@@ -13,7 +13,7 @@ export class Workspace extends BaseEntity
   @Unique()
   name!: string;
 
-  @ManyToMany(() => File, 'workspaces', { owner: true })
+  @ManyToMany(() => File, file => file.workspaces, { owner: true })
   files = new Collection<File>(this);
 
   @OneToMany({ entity: () => Folder, mappedBy: 'workspace', orphanRemoval: true })

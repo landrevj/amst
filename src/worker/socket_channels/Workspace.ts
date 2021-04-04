@@ -119,9 +119,7 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
     });
 
     // d
-    let existingFilesNotOnWorkspace: File[] = [];
-    if (existingFilesFromMatches) existingFilesNotOnWorkspace = arrayDifference(existingFilesFromMatches, existingFilesOnWorkspace, file1 => file1.fullPath, file2 => file2.fullPath);
-
+    const existingFilesNotOnWorkspace: File[] = existingFilesFromMatches ? arrayDifference(existingFilesFromMatches, existingFilesOnWorkspace, file1 => file1.fullPath, file2 => file2.fullPath) : [];
     this.emitSyncUpdate(workspace.id, `Found ${existingFilesNotOnWorkspace.length} pre-existing files...`);
 
     // e
@@ -146,7 +144,7 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
         const file = new File(entry.name, filenameExtension(entry.name), entry.path);
         // calculate some metadata
         file.mimeType = lookup(entry.path) || undefined;
-        // file.md5         = md5File.sync(entry.path);
+        // file.md5      = md5File.sync(entry.path);
         workspace.files.add(file);
       });
       // DONE! Persist to DB...
