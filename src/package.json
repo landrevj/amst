@@ -1,7 +1,7 @@
 {
   "name": "amst",
   "productName": "amst",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A file database and tagging system.",
   "main": "./main.prod.js",
   "author": {
@@ -15,14 +15,14 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@mikro-orm/core": "^4.4.4",
-    "@mikro-orm/migrations": "^4.4.4",
-    "@mikro-orm/sqlite": "^4.4.4",
+    "@mikro-orm/core": "^4.5.1",
+    "@mikro-orm/migrations": "^4.5.1",
+    "@mikro-orm/sqlite": "^4.5.1",
     "reflect-metadata": "^0.1.13",
     "socket.io": "^4.0.0"
   },
   "devDependencies": {
-    "@mikro-orm/cli": "^4.4.4",
+    "@mikro-orm/cli": "^4.5.1",
     "@types/socket.io": "^2.1.13"
   },
   "mikro-orm": {

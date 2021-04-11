@@ -2,7 +2,7 @@ import React from 'react';
 import { HashRouter as Router, Switch, Route } from 'react-router-dom';
 
 import { Home } from './screens/Home/Home';
-import { FileSearch } from './screens/File/Search';
+import FileSearch from './screens/File/Search';
 import FileView from './screens/File/View';
 
 export default function App()

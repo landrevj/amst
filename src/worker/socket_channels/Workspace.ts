@@ -1,12 +1,12 @@
 /* eslint-disable import/prefer-default-export */
+import { basename, extname } from 'path';
 import { FilterQuery, FindOptions } from '@mikro-orm/core';
 import { lookup } from 'mime-types';
-// import md5File from 'md5-file';
 import log from 'electron-log';
 
 import { DB } from '../../db';
 import { Workspace, File, Folder } from '../../db/entities';
-import { arrayDifference, filenameExtension, glob } from '../../utils';
+import { arrayDifference, glob } from '../../utils';
 import { SocketRequest, SocketRequestStatus, SocketResponse } from '../../utils/websocket';
 import { EntityChannel } from './Entity';
 
@@ -141,7 +141,8 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
       entriesNotInDB.forEach((entry, i) => {
         this.emitSyncUpdate(workspace.id, `Importing new file ${i + 1} of ${length} to the DB...`);
 
-        const file = new File(entry.name, filenameExtension(entry.name), entry.path);
+        const ext = extname(entry.name); // extname returns extensions with the dot if there was an extension
+        const file = new File(basename(entry.name, ext), ext.slice(1), entry.path); // so we slice it before persisting it. ("".slice(1) is "")
         // calculate some metadata
         file.mimeType = lookup(entry.path) || undefined;
         // file.md5      = md5File.sync(entry.path);

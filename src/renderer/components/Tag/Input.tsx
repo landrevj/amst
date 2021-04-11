@@ -3,6 +3,7 @@ import { TagTuple } from './index';
 
 interface TagInputProps
 {
+  className?: string;
   onSubmit: (tag: TagTuple) => void;
 }
 
@@ -68,13 +69,12 @@ export default class TagInput extends React.Component<TagInputProps, TagInputSta
 
   render()
   {
+    const { className } = this.props;
     const { input } = this.state;
     return (
-      <div>
-        <form onSubmit={this.handleSubmit}>
-          <input type='text' value={input} onChange={this.handleChange}/>
-        </form>
-      </div>
+      <form onSubmit={this.handleSubmit}>
+        <input className={className} type='text' value={input} onChange={this.handleChange}/>
+      </form>
     );
   }
 }

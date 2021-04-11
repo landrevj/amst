@@ -1,6 +1,7 @@
 /* eslint-disable prefer-destructuring */
 import { Constructor, Options } from '@mikro-orm/core';
 import { Migration } from '@mikro-orm/migrations';
+import { SqliteDriver } from '@mikro-orm/sqlite';
 import { join, basename } from 'path';
 
 import { Tag, File, Folder, Workspace, BaseEntity } from './db/entities';
@@ -29,7 +30,7 @@ const migrationsList = Object.keys(migrations).map((migrationName) => ({
 }));
 // ///////////////////////////////////////////
 
-const options: Options = {
+const options: Options<SqliteDriver> = {
   type: 'sqlite',
   dbName: join(__dirname, 'db/dev_database.sqlite'),
   entities: [Workspace, File, Tag, Folder, BaseEntity], // order can matter here: https://mikro-orm.io/docs/installation#possible-issues-with-circular-dependencies

@@ -29,19 +29,22 @@ export default function TagList({ tags, onTagRemove }: TagListProps)
   const categories = coalesceTags(tags);
 
   return (
-    <div>
-      {Object.entries(categories).sort().map(([category, catTags]) =>
-        <div key={category}>
-          <p>{category}</p>
-          <hr/>
-          <div className='flex flex-row flex-wrap'>
-            {catTags.map(tag =>
-            <TagButton tag={tag} onRemove={onTagRemove} hideCategory key={tag.id}/>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
+    <table className='table-auto'>
+      <tbody>
+        {Object.entries(categories).sort().map(([category, catTags]) =>
+          <tr key={category}>
+            <td className='align-text-top text-right'>
+              <div className='inline-block px-2 text-sm rounded-full bg-blue-200 border-2 border-solid border-blue-200'>{category}</div>
+            </td>
+            <td className='flex flex-row flex-wrap'>
+              {catTags.map(tag =>
+              <TagButton tag={tag} onRemove={onTagRemove} hideCategory key={tag.id}/>
+              )}
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
   );
 }
 

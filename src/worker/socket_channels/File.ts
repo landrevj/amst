@@ -1,5 +1,6 @@
 /* eslint-disable import/prefer-default-export */
-import { FilterQuery, FindOptions } from '@mikro-orm/core';
+import { FilterQuery, FindOptions, QueryOrder } from '@mikro-orm/core';
+import md5File from 'md5-file';
 // import log from 'electron-log';
 
 import { DB } from '../../db';
@@ -31,7 +32,6 @@ export class FileChannel extends EntityChannel<File>
   async readAction(request: SocketRequest<[FilterQuery<File>, FindOptions<File>]>)
   {
     this.handleAction(request, ([where, options]) => {
-      console.log(where);
       return this.read(where, options);
     });
   }
@@ -70,13 +70,62 @@ export class FileChannel extends EntityChannel<File>
 
   // /////////////////////////////////////////////////////////
   // /////////////////////////////////////////////////////////
-  // async search(request: SocketRequest<FileSearchQuery>)
-  // {
-  //   this.handleAction(request, async (fsq) => {
-  //     const em =
-  //   });
-  // }
+  async search(request: SocketRequest<FileSearchQuery>)
+  {
+    this.handleAction(request, async (q) => {
+      const em = DB.getNewEM();
+      if (!em) return undefined;
 
+      const qb = em.createQueryBuilder(File, 'f').select('*', true);
+      const qbCount = em.createQueryBuilder(File, 'f').count('f.id', true);
+
+      if (q.workspaceID)
+      {
+        [qb, qbCount].forEach(e => {
+          e.leftJoin('f.workspaces', 'w')
+           .where({ 'w.id': q.workspaceID });
+        });
+      }
+      if (q.tags)
+      {
+        const havingString = q.tags.map(([ , category]) => `sum(t.name = ? and t.category ${category ? '=' : 'is'} ?)`).join(' and ');
+        const tags = q.tags.flat();
+
+        [qb, qbCount].forEach(e => {
+          e.leftJoin('f.tags', 't')
+           .groupBy('f.id')
+           .having(havingString, tags);
+        });
+      }
+
+      qb.orderBy({ id: QueryOrder.DESC });
+      qb.limit(q.limit, (q.page && q.limit) ? q.page * q.limit : 0); // pagination
+
+      const files = await qb.getResult();
+      const [{ count }] = await em.getKnex().sum('count as count').from(qbCount.getKnexQuery());
+
+      return { files, count };
+    });
+  }
+
+  // /////////////////////////////////////////////////////////
+  // /////////////////////////////////////////////////////////
+  async calculateMD5(request: SocketRequest<number>)
+  {
+    this.handleAction(request, async (id) => {
+      const em = DB.getNewEM();
+      if (!em || !id) return undefined;
+
+      const file = await em?.findOne(File, id);
+      if (!file) return undefined;
+
+      const md5 = md5File.sync(file.fullPath);
+      file.md5  = md5;
+      em.flush();
+
+      return md5;
+    });
+  }
   // /////////////////////////////////////////////////////////
   // /////////////////////////////////////////////////////////
 
@@ -101,6 +150,12 @@ export class FileChannel extends EntityChannel<File>
 
       case 'addTag':
         this.addTag(request);
+        break;
+      case 'search':
+        this.search(request);
+        break;
+      case 'calculateMD5':
+        this.calculateMD5(request);
         break;
 
       default:

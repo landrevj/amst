@@ -17,6 +17,6 @@ export abstract class BaseEntity {
 export interface BaseEntityStub
 {
   id: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }

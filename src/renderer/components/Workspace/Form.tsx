@@ -68,8 +68,8 @@ export class WorkspaceForm extends React.Component<WorkspaceFormProps, Workspace
           const fs: FolderStub = {
             id,
             path: newPaths[index],
-            createdAt: new Date(),
-            updatedAt: new Date(), // TODO: this is bad, just requery for the folders once that is set up
+            createdAt: '',
+            updatedAt: '', // TODO: this is bad, just requery for the folders once that is set up
           };
           return fs;
         });

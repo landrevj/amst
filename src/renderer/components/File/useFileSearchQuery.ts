@@ -1,0 +1,99 @@
+/* eslint-disable react/jsx-props-no-spreading */
+// "When Not To Use It: ...or the props spreading is used inside HOC."
+
+import { useState, useEffect, useMemo } from 'react';
+import { useHistory, useLocation } from 'react-router-dom';
+import QueryString from 'query-string';
+import log from 'electron-log';
+
+import Client from '../../../utils/websocket/SocketClient';
+import { SocketRequestStatus } from '../../../utils/websocket';
+
+import { FileSearchQuery } from '.';
+import { FileStub } from '../../../db/entities';
+import { TagTuple } from '../Tag';
+
+const DEFAULT_FILES_PER_PAGE = 20;
+
+function loadQuery(search: string): FileSearchQuery
+{
+  // console.log(search);
+  const qs = QueryString.parse(search);
+
+  // query-string properties are of type string | string[] | null
+  // this helper basically just narrows type and applies a function appropriately
+  // can ask for the result to return as the first element in an array if 'thing' was a singular string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const helper = (thing: string | string[] | null, fn: (e: string) => any, returnArray?: boolean) => {
+    if (Array.isArray(thing))       return thing.map(fn);
+    if (typeof thing === 'string')  return returnArray ? [fn(thing)] : fn(thing);
+
+    return thing;
+  };
+
+  const newQuery: FileSearchQuery = {
+    workspaceID: helper(qs.workspaceID, id => parseInt(id, 10)),
+    tags: helper(qs.tags, t => {
+      const s = t.split(',');
+      const tag: TagTuple = [s[0], s[1] === '' ? undefined : s[1]]
+      return tag;
+    }, true),
+    page: helper(qs.page, p => parseInt(p, 10)) || 0,
+    limit: helper(qs.limit, l => parseInt(l, 10)) || DEFAULT_FILES_PER_PAGE,
+  }
+
+  return newQuery;
+}
+
+export default function useFileSearchQuery(): [FileStub[], number, number, number, () => void, () => void, FileSearchQuery]
+{
+  const location = useLocation();
+  const [files,   setFiles]   = useState([] as FileStub[]);
+  const [count,   setCount]   = useState(0);
+  const [page,    setPage]    = useState(0);
+  const [maxPage, setMaxPage] = useState(0);
+
+  const query = useMemo(() => loadQuery(location.search), [location.search]);
+
+  useEffect(() => {
+    async function loadFiles()
+    {
+      const fileResponse = await Client.send<{ files: FileStub[], count: number | undefined }>('File', { action: 'search', params: query });
+      const fileSuccess  = fileResponse.status === SocketRequestStatus.SUCCESS;
+      if (!(fileSuccess && fileResponse.data))
+      {
+        log.error(`Failed to get files for workspace with given id: ${query.workspaceID}`);
+        return;
+      };
+
+      const { data } = fileResponse;
+      const newFiles = data.files;
+      const newCount = data.count;
+
+      setFiles(newFiles);
+      setCount(newCount || 0);
+      setPage(query.page || 0);
+      // compute the length of the 'search results array' and then subtract one to get the largest index
+      setMaxPage(Math.ceil((newCount || 0) / (query.limit || DEFAULT_FILES_PER_PAGE)) - 1);
+    }
+    loadFiles();
+  }, [query]);
+
+
+  const history = useHistory();
+  const prevPage = () => {
+    if (page <= 0) return;
+
+    const pqs = QueryString.stringify({ ...query, page: page - 1 });
+    history.push(`/file?${pqs}`);
+  };
+
+  const nextPage = () => {
+    if (page >= maxPage) return;
+
+    const nqs = QueryString.stringify({ ...query, page: page + 1 });
+    history.push(`/file?${nqs}`);
+  };
+
+  return [files, count, page, maxPage, prevPage, nextPage, query];
+}

@@ -33,8 +33,8 @@ export default class TagForm extends React.Component<TagFormProps>
   render()
   {
     return (
-      <div className='rounded bg-gray-100 p-4'>
-        <TagInput onSubmit={this.handleTagInputSubmit}/>
+      <div>
+        <TagInput className='px-2 py-1 text-sm rounded-full bg-gray-100 border-2 border-solid border-gray-300' onSubmit={this.handleTagInputSubmit}/>
       </div>
     );
   }
