@@ -10,7 +10,7 @@ interface TagInputProps
 interface TagInputState
 {
   input: string;
-  category?: string;
+  category: string;
   tag: string;
 }
 
@@ -23,6 +23,7 @@ export default class TagInput extends React.Component<TagInputProps, TagInputSta
     this.state = {
       input: '',
       tag: '',
+      category: '',
     };
 
     this.handleChange = this.handleChange.bind(this);
@@ -31,12 +32,18 @@ export default class TagInput extends React.Component<TagInputProps, TagInputSta
 
   handleChange({ target: { value } }: React.ChangeEvent<HTMLInputElement>)
   {
+    // potentially two groups separated by ':', e.g. /^category:tag$/ or /^tag:$/ or /^tag$/
+    // the first is the tag if only the first group was filled in
+    // if we got values in both the first is the category and the second is the tag
     const re = /^([^:]+):?([^:]+)*$/;
-    const match = value.match(re);
+    const match = value.match(re); // match one can be either the tag or category, match two is always the tag if its there
     if (match?.length === 3)
     {
+      // if there was something in the tag group use that, otherwise use what was in the category group instead
       const tag = match[2] || match[1];
-      const category = match[2] ? match[1] : match[2];
+      // if there was something in the tag group we can use the value from the category group as our category value
+      // otherwise we didn't get both a category and a tag, so we just use the empty string for our category.
+      const category = match[2] ? match[1] : '';
 
       this.setState({
         input: value,
@@ -59,11 +66,11 @@ export default class TagInput extends React.Component<TagInputProps, TagInputSta
 
     if (tag === '') return;
 
-    onSubmit([tag.trim(), category?.trim()]);
+    onSubmit([tag.trim(), category.trim()]);
     this.setState({
       input: '',
       tag: '',
-      category: undefined,
+      category: '',
     })
   }
 

@@ -88,7 +88,7 @@ export class FileChannel extends EntityChannel<File>
       }
       if (q.tags)
       {
-        const havingString = q.tags.map(([ , category]) => `sum(t.name = ? and t.category ${category ? '=' : 'is'} ?)`).join(' and ');
+        const havingString = Array(q.tags.length).fill('sum(t.name = ? and t.category = ?)').join(' and ');
         const tags = q.tags.flat();
 
         [qb, qbCount].forEach(e => {

@@ -144,7 +144,8 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
         const ext = extname(entry.name); // extname returns extensions with the dot if there was an extension
         const file = new File(basename(entry.name, ext), ext.slice(1), entry.path); // so we slice it before persisting it. ("".slice(1) is "")
         // calculate some metadata
-        file.mimeType = lookup(entry.path) || undefined;
+        const mt = lookup(entry.path);
+        if (mt) file.mimeType = mt;
         // file.md5      = md5File.sync(entry.path);
         workspace.files.add(file);
       });

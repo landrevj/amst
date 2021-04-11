@@ -13,13 +13,13 @@ export class Tag extends BaseEntity
   @Property({ type: 'string' })
   name!: string;
 
-  @Property({ type: 'string', nullable: true })
-  category?: string;
+  @Property({ type: 'string' })
+  category!: string;
 
   @ManyToOne(() => File)
   file!: File;
 
-  constructor(name: string, category?: string)
+  constructor(name: string, category = '')
   {
     super();
     this.name = name;
@@ -30,6 +30,6 @@ export class Tag extends BaseEntity
 export interface TagStub extends BaseEntityStub
 {
   name: string;
-  category?: string;
+  category: string;
   file?: FileStub;
 }

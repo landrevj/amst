@@ -16,7 +16,7 @@ function coalesceTags(tags: TagStub[]): TagCategoryObject
 {
   const cats: TagCategoryObject = {};
   tags.forEach(tag => {
-    const key = tag.category || 'none';
+    const key = tag.category !== '' ? tag.category : 'none';
     if (!cats[key]) cats[key] = [];
     cats[key].push(tag);
   })

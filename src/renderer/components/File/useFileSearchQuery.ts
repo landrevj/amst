@@ -35,7 +35,7 @@ function loadQuery(search: string): FileSearchQuery
     workspaceID: helper(qs.workspaceID, id => parseInt(id, 10)),
     tags: helper(qs.tags, t => {
       const s = t.split(',');
-      const tag: TagTuple = [s[0], s[1] === '' ? undefined : s[1]]
+      const tag: TagTuple = [s[0], s[1]];
       return tag;
     }, true),
     page: helper(qs.page, p => parseInt(p, 10)) || 0,
