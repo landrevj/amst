@@ -4,6 +4,8 @@ import { RouteComponentProps } from 'react-router';
 // import { Link } from 'react-router-dom';
 // import QueryString from 'query-string';
 // import { FilterQuery, FindOptions } from '@mikro-orm/core';
+import { Link } from 'react-router-dom';
+import QueryString from 'query-string';
 import TimeAgo from 'javascript-time-ago';
 import log from 'electron-log';
 
@@ -15,45 +17,47 @@ import { SocketRequestStatus } from '../../../utils/websocket';
 import TagForm from '../../components/Tag/Form';
 import { mimeRegex } from '../../../utils';
 import TagList from '../../components/Tag/List';
+import withFileSearchQuery, { WithFileSearchQueryProps } from '../../components/File/withFileSearchQuery';
 
 interface FileViewRouteParams
 {
   id: string;
 }
-type FileViewProps = RouteComponentProps<FileViewRouteParams>;
+type FileViewProps = WithFileSearchQueryProps & RouteComponentProps<FileViewRouteParams>;
 
 interface FileViewState
 {
-  id: number;
+  // id: number;
   file?: FileStub;
   tags: TagStub[];
 }
 
-export default class FileView extends React.Component<FileViewProps, FileViewState>
+class FileView extends React.Component<FileViewProps, FileViewState>
 {
   constructor(props: FileViewProps)
   {
     super(props);
 
-    const { match: { params: { id } } } = this.props;
-
+    // const { match: { params: { id } } } = this.props;
+    const { files } = this.props;
+    const file = files[0] || undefined;
     this.state = {
-      id: parseInt(id, 10),
+      // id: parseInt(id, 10),
+      file,
       tags: [],
     };
 
-    this.loadFile(parseInt(id, 10));
+    // this.loadFile(parseInt(id, 10));
 
     this.handleTagFormSubmit = this.handleTagFormSubmit.bind(this);
     this.handleTagRemove = this.handleTagRemove.bind(this);
     this.handleCalculateMD5 = this.handleCalculateMD5.bind(this);
   }
 
-  async componentDidUpdate(_prevProps: FileViewProps, prevState: FileViewState)
+  async componentDidUpdate(prevProps: FileViewProps)
   {
-    const { id } = this.state;
-
-    if (prevState.id !== id) this.loadFile(id);
+    const { files } = this.props;
+    if (prevProps.files[0] !== files[0]) this.loadFile();
   }
 
   async handleTagFormSubmit(newTag: TagStub)
@@ -67,7 +71,6 @@ export default class FileView extends React.Component<FileViewProps, FileViewSta
   async handleTagRemove(id: number)
   {
     const { tags } = this.state;
-    console.log(id);
 
     const response = await Client.send<void>('Tag', { action: 'destroy', params: [id] });
     const success  = response.status === SocketRequestStatus.SUCCESS;
@@ -97,25 +100,42 @@ export default class FileView extends React.Component<FileViewProps, FileViewSta
     this.setState({ file: newFile });
   }
 
-  async loadFile(id: number)
+  async loadFile()
   {
-    const response = await Client.send<FileStub[]>('File', { action: 'read', params: [id, { populate: ['tags'] }] });
+    const { files } = this.props;
+    const file = files[0] || undefined;
+
+    const response = await Client.send<TagStub[]>('Tag', { action: 'read', params: [{ file: { id: file.id } }] });
     const success  = response.status === SocketRequestStatus.SUCCESS;
     if (!success || !response.data)
     {
-      log.error(`Failed to get file with given id: ${id}`);
+      log.error(`Failed to get tags for file with given id: ${file.id}`);
       return;
     }
 
-    const [ file ] = response.data;
+    const tags = response.data;
     this.setState({
       file,
-      tags: file.tags || [],
+      tags,
     });
+    // const response = await Client.send<FileStub[]>('File', { action: 'read', params: [id, { populate: ['tags'] }] });
+    // const success  = response.status === SocketRequestStatus.SUCCESS;
+    // if (!success || !response.data)
+    // {
+    //   log.error(`Failed to get file with given id: ${id}`);
+    //   return;
+    // }
+
+    // const [ file ] = response.data;
+    // this.setState({
+    //   file,
+    //   tags: file.tags || [],
+    // });
   }
 
   render()
   {
+    const { page, maxPage, prevPage, nextPage, query, parentQuery } = this.props;
     const { file, tags } = this.state;
     if (!file) return ( <span>Loading...</span> );
 
@@ -143,22 +163,28 @@ export default class FileView extends React.Component<FileViewProps, FileViewSta
           </div>
         </div>
 
+
         <div className='absolute top-full w-full pb-5 bg-gray-100'>
           <div className='flex flex-row'>
             <div>
-              <p>prev</p>
+              <button type='button' onClick={prevPage}>prev</button>
             </div>
             <div className='flex-grow text-center'>
-              <div>{file.id}</div>
+              <div>
+                #{file.id}
+                <br/>
+                {page + 1} of {maxPage + 1}
+                <Link to={`/file?${QueryString.stringify(parentQuery || {})}`}>back</Link>
+              </div>
             </div>
             <div>
-              <p>next</p>
+              <button type='button' onClick={nextPage}>next</button>
             </div>
           </div>
 
           <div className='flex flex-row flex-wrap justify-evenly'>
             <div className='flex-initial max-w-4xl px-4 py-10'>
-              <TagList tags={tags} onTagRemove={this.handleTagRemove}/>
+              <TagList tags={tags} searchTagTuples={query.tags} onTagRemove={this.handleTagRemove}/>
               <div className='flex flex-row mt-5'>
                 <div className='mr-1 px-2 py-1 text-sm rounded-full bg-green-200 border-2 border-solid border-green-200'>new tag</div>
                 <TagForm fileID={file.id} onSubmit={this.handleTagFormSubmit}/>
@@ -184,3 +210,5 @@ export default class FileView extends React.Component<FileViewProps, FileViewSta
     );
   }
 }
+
+export default withFileSearchQuery({ defaultFilesPerPage: 1 })(FileView);

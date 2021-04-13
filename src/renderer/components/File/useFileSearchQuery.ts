@@ -15,7 +15,7 @@ import { TagTuple } from '../Tag';
 
 const DEFAULT_FILES_PER_PAGE = 20;
 
-function loadQuery(search: string): FileSearchQuery
+export function loadQuery(search: string, defaultFilesPerPage?: number): FileSearchQuery
 {
   // console.log(search);
   const qs = QueryString.parse(search);
@@ -39,21 +39,35 @@ function loadQuery(search: string): FileSearchQuery
       return tag;
     }, true),
     page: helper(qs.page, p => parseInt(p, 10)) || 0,
-    limit: helper(qs.limit, l => parseInt(l, 10)) || DEFAULT_FILES_PER_PAGE,
+    limit: helper(qs.limit, l => parseInt(l, 10)) || defaultFilesPerPage || DEFAULT_FILES_PER_PAGE,
   }
 
   return newQuery;
 }
 
-export default function useFileSearchQuery(): [FileStub[], number, number, number, () => void, () => void, FileSearchQuery]
+export interface Options
 {
-  const location = useLocation();
-  const [files,   setFiles]   = useState([] as FileStub[]);
+  // how many files appear in one page of a search
+  defaultFilesPerPage?: number,
+}
+
+export interface LocationState
+{
+  parentQuery: FileSearchQuery;
+}
+
+export default function useFileSearchQuery(options: Readonly<Options>): [FileStub[], number, number, number, () => void, () => void, FileSearchQuery, FileSearchQuery | undefined]
+{
+  const location = useLocation<LocationState | undefined>();
+  const [parentQuery] = useState<FileSearchQuery | undefined>(location.state?.parentQuery);
+
+  const [files,   setFiles]   = useState<FileStub[]>([]);
   const [count,   setCount]   = useState(0);
   const [page,    setPage]    = useState(0);
   const [maxPage, setMaxPage] = useState(0);
+  // console.log(location);
 
-  const query = useMemo(() => loadQuery(location.search), [location.search]);
+  const query = useMemo(() => loadQuery(location.search, options.defaultFilesPerPage), [location.search, options.defaultFilesPerPage]);
 
   useEffect(() => {
     async function loadFiles()
@@ -74,10 +88,10 @@ export default function useFileSearchQuery(): [FileStub[], number, number, numbe
       setCount(newCount || 0);
       setPage(query.page || 0);
       // compute the length of the 'search results array' and then subtract one to get the largest index
-      setMaxPage(Math.ceil((newCount || 0) / (query.limit || DEFAULT_FILES_PER_PAGE)) - 1);
+      setMaxPage(Math.ceil((newCount || 0) / (query.limit || options.defaultFilesPerPage || DEFAULT_FILES_PER_PAGE)) - 1);
     }
     loadFiles();
-  }, [query]);
+  }, [query, options.defaultFilesPerPage]);
 
 
   const history = useHistory();
@@ -85,15 +99,15 @@ export default function useFileSearchQuery(): [FileStub[], number, number, numbe
     if (page <= 0) return;
 
     const pqs = QueryString.stringify({ ...query, page: page - 1 });
-    history.push(`/file?${pqs}`);
+    history.push(`${location.pathname}?${pqs}`);
   };
 
   const nextPage = () => {
     if (page >= maxPage) return;
 
     const nqs = QueryString.stringify({ ...query, page: page + 1 });
-    history.push(`/file?${nqs}`);
+    history.push(`${location.pathname}?${nqs}`);
   };
 
-  return [files, count, page, maxPage, prevPage, nextPage, query];
+  return [files, count, page, maxPage, prevPage, nextPage, query, parentQuery];
 }

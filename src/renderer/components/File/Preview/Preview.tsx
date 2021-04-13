@@ -1,19 +1,26 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import QueryString from 'query-string';
 
 import Client from '../../../../utils/websocket/SocketClient';
 import { FileStub } from '../../../../db/entities';
 import { mimeRegex } from '../../../../utils';
+import { FileSearchQuery } from '..';
+import { loadQuery } from '../useFileSearchQuery';
 
 interface FilePreviewProps
 {
   file: FileStub;
+  searchResultIndex?: number;
 }
 
-export default function FilePreview({ file }: FilePreviewProps)
+export default function FilePreview({ file, searchResultIndex }: FilePreviewProps)
 {
-  const { type } = mimeRegex(file.mimeType || '');
+  const location = useLocation();
+  const query = loadQuery(location.search);
+  const linkQuery: FileSearchQuery = { ...query, limit: 1, page: searchResultIndex };
 
+  const { type } = mimeRegex(file.mimeType || '');
   let content: JSX.Element;
   if (type === 'image')
   {
@@ -25,6 +32,15 @@ export default function FilePreview({ file }: FilePreviewProps)
   }
 
   return (
-    <Link to={`/file/${file.id}`}>{content}</Link>
+    <Link to={{
+      pathname: `/file/${file.id}`,
+      search: `?${QueryString.stringify(linkQuery)}`,
+      state: { parentQuery: query } }}>
+        {content}
+    </Link>
   );
 }
+
+FilePreview.defaultProps = {
+  searchResultIndex: undefined,
+};

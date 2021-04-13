@@ -90,15 +90,15 @@ class FileSearchPanel extends React.Component<FileSearchPanelProps, FileSearchPa
     const { tags } = this.state;
 
     return (
-    <div className='h-full bg-gray-200'>
+    <div className='flex-none h-full w-64 bg-gray-200'>
       <button type='button' onClick={this.handleSearchButtonClick}>search</button>
-      <TagInput className='mx-2 px-2 py-1 text-sm rounded-full w-52 bg-gray-100 border-2 border-solid border-gray-300' onSubmit={this.handleTagInputSubmit}/>
-      <div className='flex flex-row flex-wrap'>
-        {tags?.map((tag, i) =>
+      <TagInput className='block mx-auto px-2 py-1 text-sm rounded-full w-56 bg-gray-100 border-2 border-solid border-gray-300' onSubmit={this.handleTagInputSubmit} allowReservedCategoryPrefixes/>
+      {tags?.length ? <div className='flex flex-row flex-wrap justify-center m-3 p-2 rounded bg-gray-300'>
+        {tags.map((tag, i) =>
           // eslint-disable-next-line react/no-array-index-key
           <TagButton tag={{ id: i, name: tag[0], category: tag[1], createdAt: '', updatedAt: '' }} onRemove={this.handleTagRemove} key={i}/>
         )}
-      </div>
+      </div> : <></>}
     </div>
     );
   }

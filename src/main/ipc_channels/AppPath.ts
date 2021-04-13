@@ -1,8 +1,7 @@
 import { app, IpcMainEvent } from 'electron';
 import { IpcChannelInterface, IpcRequest } from "../../utils/ipc/IpcChannel";
 
-export type AppPathOptions =
-  'home' | 'appData' | 'userData' | 'cache' | 'temp' | 'exe' | 'module' | 'desktop' | 'documents' | 'downloads' | 'music' | 'pictures' | 'videos' | 'recent' | 'logs' | 'pepperFlashSystemPlugin' | 'crashDumps';
+export type AppPathOptions = "module" | "cache" | "home" | "appData" | "userData" | "temp" | "exe" | "desktop" | "documents" | "downloads" | "music" | "pictures" | "videos" | "recent" | "logs" | "crashDumps";
 
 export class AppPathChannel implements IpcChannelInterface
 {

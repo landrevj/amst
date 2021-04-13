@@ -4,6 +4,7 @@ import { TagTuple } from './index';
 interface TagInputProps
 {
   className?: string;
+  allowReservedCategoryPrefixes?: boolean; // [*,!] are reserved for marking special searches when at the beginning of a category
   onSubmit: (tag: TagTuple) => void;
 }
 
@@ -32,11 +33,13 @@ export default class TagInput extends React.Component<TagInputProps, TagInputSta
 
   handleChange({ target: { value } }: React.ChangeEvent<HTMLInputElement>)
   {
+    const { allowReservedCategoryPrefixes } = this.props;
     // potentially two groups separated by ':', e.g. /^category:tag$/ or /^tag:$/ or /^tag$/
     // the first is the tag if only the first group was filled in
     // if we got values in both the first is the category and the second is the tag
-    const re = /^([^:]+):?([^:]+)*$/;
-    const match = value.match(re); // match one can be either the tag or category, match two is always the tag if its there
+    const re = /^(?![*!])([^:]+):?([^:]+)?$/;
+    const reWithRes = /^([^:]+):?([^:]+)?$/;
+    const match = value.match(allowReservedCategoryPrefixes ? reWithRes : re); // match one can be either the tag or category, match two is always the tag if its there
     if (match?.length === 3)
     {
       // if there was something in the tag group use that, otherwise use what was in the category group instead

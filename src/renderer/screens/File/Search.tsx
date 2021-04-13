@@ -9,7 +9,7 @@ import FileSearchPanel from '../../components/File/Search/Panel';
 // eslint-disable-next-line import/prefer-default-export
 function FileSearch()
 {
-  const [files, count, page, maxPage, prevPage, nextPage, query] = useFileSearchQuery();
+  const [files, count, page, maxPage, prevPage, nextPage, query] = useFileSearchQuery({ defaultFilesPerPage: 30 });
 
   const prevPageLink = page > 0       ? (<button type='button' className='px-2 py-1 bg-blue-100 rounded' onClick={prevPage}>prev</button>) : (<span className='px-2 py-1 bg-gray-200 rounded'>prev</span>);
   const nextPageLink = page < maxPage ? (<button type='button' className='px-2 py-1 bg-blue-200 rounded' onClick={nextPage}>next</button>) : (<span className='px-2 py-1 bg-gray-200 rounded'>next</span>);
@@ -26,7 +26,7 @@ function FileSearch()
 
           <span>({count} results)</span>
         </div>
-        <FilePreviewList files={files} />
+        <FilePreviewList files={files} query={query}/>
       </div>
     </div>
   );

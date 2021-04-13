@@ -6,7 +6,7 @@ import React from 'react';
 
 import { FileSearchQuery } from '.';
 import { FileStub } from '../../../db/entities';
-import useFileSearchQuery from './useFileSearchQuery';
+import useFileSearchQuery, { Options } from './useFileSearchQuery';
 
 export interface WithFileSearchQueryProps
 {
@@ -19,23 +19,27 @@ export interface WithFileSearchQueryProps
   nextPage: () => void;
 
   query: FileSearchQuery;
+  parentQuery?: FileSearchQuery;
 }
 
 // TODO: this with HMR might cause wdm to enter a recompile loop
 
 // https://react-typescript-cheatsheet.netlify.app/docs/hoc/full_example
-export default function withFileSearchQuery<T extends WithFileSearchQueryProps = WithFileSearchQueryProps>(Component: React.ComponentType<T>)
+// usage: withFileSearchQuery({ ...UseFileSearchQueryOptions })(Component)
+const withFileSearchQuery = (options: Readonly<Options>) => <T extends WithFileSearchQueryProps = WithFileSearchQueryProps>(Component: React.ComponentType<T>) =>
 {
   const displayName = Component.displayName || Component.name || "Component";
 
   const WrappedComponent: React.FC<Omit<T, keyof WithFileSearchQueryProps>> = (props: Omit<T, keyof WithFileSearchQueryProps>) => {
     //
-    const [files, count, page, maxPage, prevPage, nextPage, query] = useFileSearchQuery();
+    const [files, count, page, maxPage, prevPage, nextPage, query, parentQuery] = useFileSearchQuery(options);
 
-    return <Component {...(props as T)} files={files} count={count} page={page} maxPage={maxPage} prevPage={prevPage} nextPage={nextPage} query={query} />;
+    return <Component {...(props as T)} files={files} count={count} page={page} maxPage={maxPage} prevPage={prevPage} nextPage={nextPage} query={query} parentQuery={parentQuery}/>;
   };
 
   WrappedComponent.displayName = `withFileSearchQuery(${displayName})`;
 
   return WrappedComponent;
 }
+
+export default withFileSearchQuery;
