@@ -7,6 +7,8 @@ import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
 import QueryString from 'query-string';
 import TimeAgo from 'javascript-time-ago';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowCircleLeft, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import log from 'electron-log';
 
 
@@ -165,21 +167,27 @@ class FileView extends React.Component<FileViewProps, FileViewState>
 
 
         <div className='absolute top-full w-full pb-5 bg-gray-100'>
-          <div className='flex flex-row'>
-            <div>
-              <button type='button' onClick={prevPage}>prev</button>
-            </div>
+          <div className='flex flex-row px-3 py-1'>
+            <button type='button' className='h-6 bg-transparent' onClick={prevPage}>
+              <FontAwesomeIcon className='mr-2 fill-current text-gray-600' icon={faChevronLeft}/>
+              prev
+            </button>
+
             <div className='flex-grow text-center'>
-              <div>
-                #{file.id}
-                <br/>
-                {page + 1} of {maxPage + 1}
-                <Link to={`/file?${QueryString.stringify(parentQuery || {})}`}>back</Link>
-              </div>
+              <span className='px-2 rounded-full bg-blue-300'>
+                #{file.id} - {page + 1}/{maxPage + 1}
+              </span>
+              <br/>
+              <Link className='inline-block px-2 rounded-full bg-green-300' to={`/file?${QueryString.stringify(parentQuery || {})}`}>
+                <FontAwesomeIcon className='mr-1 -ml-1 my-auto fill-current text-gray-100' icon={faArrowCircleLeft}/>
+                <span>search</span>
+              </Link>
             </div>
-            <div>
-              <button type='button' onClick={nextPage}>next</button>
-            </div>
+
+            <button type='button' className='h-6 bg-transparent' onClick={nextPage}>
+              next
+              <FontAwesomeIcon className='ml-2 fill-current text-gray-600' icon={faChevronRight}/>
+            </button>
           </div>
 
           <div className='flex flex-row flex-wrap justify-evenly'>
