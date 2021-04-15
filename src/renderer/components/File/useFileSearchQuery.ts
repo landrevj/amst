@@ -56,7 +56,7 @@ export interface LocationState
   parentQuery: FileSearchQuery;
 }
 
-export default function useFileSearchQuery(options: Readonly<Options>): [FileStub[], number, number, number, () => void, () => void, FileSearchQuery, FileSearchQuery | undefined]
+export default function useFileSearchQuery(options: Readonly<Options>): [FileStub[], number, number, number, () => void, () => void, (p: number) => void, FileSearchQuery, FileSearchQuery | undefined]
 {
   const location = useLocation<LocationState | undefined>();
   const [parentQuery] = useState<FileSearchQuery | undefined>(location.state?.parentQuery);
@@ -101,13 +101,16 @@ export default function useFileSearchQuery(options: Readonly<Options>): [FileStu
     const pqs = QueryString.stringify({ ...query, page: page - 1 });
     history.push(`${location.pathname}?${pqs}`);
   };
-
   const nextPage = () => {
     if (page >= maxPage) return;
 
     const nqs = QueryString.stringify({ ...query, page: page + 1 });
     history.push(`${location.pathname}?${nqs}`);
   };
+  const goToPage = (p: number) => {
+    const sqs = QueryString.stringify({ ...query, page: p });
+    history.push(`${location.pathname}?${sqs}`);
+  };
 
-  return [files, count, page, maxPage, prevPage, nextPage, query, parentQuery];
+  return [files, count, page, maxPage, prevPage, nextPage, goToPage, query, parentQuery];
 }

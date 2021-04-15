@@ -17,6 +17,7 @@ export interface WithFileSearchQueryProps
 
   prevPage: () => void;
   nextPage: () => void;
+  goToPage: (p: number) => void;
 
   query: FileSearchQuery;
   parentQuery?: FileSearchQuery;
@@ -32,9 +33,9 @@ const withFileSearchQuery = (options: Readonly<Options>) => <T extends WithFileS
 
   const WrappedComponent: React.FC<Omit<T, keyof WithFileSearchQueryProps>> = (props: Omit<T, keyof WithFileSearchQueryProps>) => {
     //
-    const [files, count, page, maxPage, prevPage, nextPage, query, parentQuery] = useFileSearchQuery(options);
+    const [files, count, page, maxPage, prevPage, nextPage, goToPage, query, parentQuery] = useFileSearchQuery(options);
 
-    return <Component {...(props as T)} files={files} count={count} page={page} maxPage={maxPage} prevPage={prevPage} nextPage={nextPage} query={query} parentQuery={parentQuery}/>;
+    return <Component {...(props as T)} files={files} count={count} page={page} maxPage={maxPage} prevPage={prevPage} nextPage={nextPage} goToPage={goToPage} query={query} parentQuery={parentQuery}/>;
   };
 
   WrappedComponent.displayName = `withFileSearchQuery(${displayName})`;

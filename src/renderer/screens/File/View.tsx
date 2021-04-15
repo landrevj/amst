@@ -194,13 +194,13 @@ class FileView extends React.Component<FileViewProps, FileViewState>
             <div className='flex-initial max-w-4xl px-4 py-10'>
               <table className='table-fixed'>
                 <tbody>
-                  <tr><td className='text-right font-bold pr-2'>#</td><td>{file.id}</td></tr>
-                  <tr><td className='text-right font-bold pr-2'>name</td><td>{file.name}</td></tr>
-                  <tr><td className='text-right font-bold pr-2'>extension</td><td>{file.extension}</td></tr>
-                  <tr><td className='text-right font-bold pr-2'>mime</td><td>{file.mimeType || 'unknown'}</td></tr>
-                  <tr><td className='text-right font-bold pr-2'>md5</td><td>{file.md5 || md5Button}</td></tr>
-                  <tr><td className='text-right font-bold pr-2'>imported</td><td>{timeAgo.format(Date.parse(file.createdAt))}</td></tr>
-                  <tr><td className='text-right font-bold pr-2'>path</td><td>{file.fullPath}</td></tr>
+                  <tr><td className='text-right font-bold pr-2'>#</td><td className='break-all'>{file.id}</td></tr>
+                  <tr><td className='text-right font-bold pr-2'>name</td><td className='break-all'>{file.name}</td></tr>
+                  <tr><td className='text-right font-bold pr-2'>extension</td><td className='break-all'>{file.extension}</td></tr>
+                  <tr><td className='text-right font-bold pr-2'>mime</td><td className='break-all'>{file.mimeType || 'unknown'}</td></tr>
+                  <tr><td className='text-right font-bold pr-2'>md5</td><td className='break-all'>{file.md5 || md5Button}</td></tr>
+                  <tr><td className='text-right font-bold pr-2'>imported</td><td className='break-all'>{timeAgo.format(Date.parse(file.createdAt))}</td></tr>
+                  <tr><td className='text-right font-bold pr-2'>path</td><td className='break-all'>{file.fullPath}</td></tr>
                 </tbody>
               </table>
             </div>

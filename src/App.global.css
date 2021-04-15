@@ -19,9 +19,9 @@ audio:focus {
 
 /************************************************************/
 /************************************************************/
-html {
-  overflow-y: overlay; /* put the scrollbar on top of content */
-}
+/* html {
+  overflow-y: overlay;
+} */
 
 ::-webkit-scrollbar {
   @apply w-3.5;

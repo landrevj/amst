@@ -51,10 +51,9 @@ export default function TagList({ tags, searchTagTuples, onTagRemove }: TagListP
             </td>
             <td className='align-middle'>
               <div className='flex flex-row flex-wrap'>
-                {catTags.map(tag => {
-                const borderColor = searchTagTuples?.find(t => tagTupleEqualsStub(t, tag)) ? 'border-indigo-300 bg-indigo-100' : '';
-                return <TagButton tag={tag} highlightClassName={borderColor} onRemove={onTagRemove} hideCategory key={tag.id}/>;
-                })}
+                {catTags.map(tag =>
+                <TagButton tag={tag} highlighted={!!searchTagTuples?.find(t => tagTupleEqualsStub(t, tag))} onRemove={onTagRemove} hideCategory key={tag.id}/>
+                )}
               </div>
             </td>
           </tr>
