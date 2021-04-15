@@ -56,7 +56,7 @@ export default class TagInput extends React.Component<TagInputProps, TagInputSta
     }
     else if (value === '')
     {
-      this.setState({ input: value });
+      this.setState({ input: '' });
     }
   }
 

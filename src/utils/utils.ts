@@ -143,3 +143,12 @@ export function compareStrings(a: string, b:string)
   // names must be equal
   return 0;
 }
+
+// https://github.com/DefinitelyTyped/DefinitelyTyped/issues/26635#issuecomment-400260278
+export function updateState<T extends string, State>(key: keyof State, value: T): (prevState: State) => State
+{
+  return ( prevState: State ): State => ({
+    ...prevState,
+    [key]: value,
+  })
+}

@@ -24,21 +24,36 @@ export function loadQuery(search: string, defaultFilesPerPage?: number): FileSea
   // this helper basically just narrows type and applies a function appropriately
   // can ask for the result to return as the first element in an array if 'thing' was a singular string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const helper = (thing: string | string[] | null, fn: (e: string) => any, returnArray?: boolean) => {
-    if (Array.isArray(thing))       return thing.map(fn);
-    if (typeof thing === 'string')  return returnArray ? [fn(thing)] : fn(thing);
+  const helper = (thing: string | string[] | null, fn?: (e: string) => any, returnArray?: boolean) => {
+    if (Array.isArray(thing) && fn)       return thing.map(fn);
+    if (typeof thing === 'string')
+    {
+      if (fn) return returnArray ? [fn(thing)] : fn(thing);
+
+      return thing;
+    }
 
     return thing;
   };
 
   const newQuery: FileSearchQuery = {
+    // these are always strings so just cast them
+    name:      qs.name as string,
+    extension: qs.extension as string,
+    fullPath:  qs.fullPath as string,
+    mimeType:  qs.mimeType as string,
+    md5:       qs.md5 as string,
+
+    // these need to be parsed from strings
     workspaceID: helper(qs.workspaceID, id => parseInt(id, 10)),
     tags: helper(qs.tags, t => {
       const s = t.split(',');
       const tag: TagTuple = [s[0], s[1]];
       return tag;
     }, true),
-    page: helper(qs.page, p => parseInt(p, 10)) || 0,
+
+    // these need to be parsed and have defaults
+    page:  helper(qs.page, p => parseInt(p, 10)) || 0,
     limit: helper(qs.limit, l => parseInt(l, 10)) || defaultFilesPerPage || DEFAULT_FILES_PER_PAGE,
   }
 

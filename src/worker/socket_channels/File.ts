@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { FilterQuery, FindOptions, QueryOrder } from '@mikro-orm/core';
+import { FilterQuery, FindOptions, QBFilterQuery, QueryOrder } from '@mikro-orm/core';
 import md5File from 'md5-file';
 // import log from 'electron-log';
 
@@ -79,27 +79,65 @@ export class FileChannel extends EntityChannel<File>
       const qb = em.createQueryBuilder(File, 'f').select('*', true);
       const qbCount = em.createQueryBuilder(File, 'f').count('f.id', true);
 
-      if (q.workspaceID)
+      const { name, extension, fullPath, mimeType, md5, workspaceID, tags, page, limit } = q;
+      if (workspaceID)
       {
         [qb, qbCount].forEach(e => {
           e.leftJoin('f.workspaces', 'w')
-           .where({ 'w.id': q.workspaceID });
+           .where({ 'w.id': workspaceID });
         });
       }
-      if (q.tags)
+      if (tags)
       {
-        const havingString = Array(q.tags.length).fill('sum(t.name = ? and t.category = ?)').join(' and ');
-        const tags = q.tags.flat();
+        const havingString = Array(tags.length).fill('sum(t.name = ? and t.category = ?)').join(' and ');
+        const flatTags = tags.flat();
 
         [qb, qbCount].forEach(e => {
           e.leftJoin('f.tags', 't')
            .groupBy('f.id')
-           .having(havingString, tags);
+           .having(havingString, flatTags);
+        });
+      }
+
+      const like = (s: string): QBFilterQuery<File> => ({ $like: `%${s}%` });
+
+      if (name && name !== '')
+      {
+        [qb, qbCount].forEach(e => {
+          e.where({ name: like(name) }, '$and');
+        });
+      }
+
+      if (extension && extension !== '')
+      {
+        [qb, qbCount].forEach(e => {
+          e.where({ extension }, '$and');
+        });
+      }
+
+      if (fullPath && fullPath !== '')
+      {
+        [qb, qbCount].forEach(e => {
+          e.where({ fullPath: like(fullPath) }, '$and');
+        });
+      }
+
+      if (mimeType && mimeType !== '')
+      {
+        [qb, qbCount].forEach(e => {
+          e.where({ mimeType: like(mimeType) }, '$and');
+        });
+      }
+
+      if (md5 && md5 !== '')
+      {
+        [qb, qbCount].forEach(e => {
+          e.where({ md5 }, '$and');
         });
       }
 
       qb.orderBy({ id: QueryOrder.DESC });
-      qb.limit(q.limit, (q.page && q.limit) ? q.page * q.limit : 0); // pagination
+      qb.limit(limit, (page && limit) ? page * limit : 0); // pagination
 
       const files = await qb.getResult();
       const [{ count }] = await em.getKnex().sum('count as count').from(qbCount.getKnexQuery());
