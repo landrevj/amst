@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
 import QueryString from 'query-string';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -36,18 +36,15 @@ class FileSearchPanel extends React.Component<FileSearchPanelProps, FileSearchPa
       fullPath: '',
       mimeType: '',
       md5: '',
+      andOr: 'and',
       modifiedQuery: false,
     };
 
     this.handleTagInputSubmit    = this.handleTagInputSubmit.bind(this);
     this.handleTagRemove         = this.handleTagRemove.bind(this);
     this.handleSearchButtonClick = this.handleSearchButtonClick.bind(this);
-
-    this.handleNameInputChange      = this.handleNameInputChange.bind(this);
-    this.handleExtensionInputChange = this.handleExtensionInputChange.bind(this);
-    this.handleFullPathInputChange  = this.handleFullPathInputChange.bind(this);
-    this.handleMimeTypeInputChange  = this.handleMimeTypeInputChange.bind(this);
-    this.handleMD5InputChange       = this.handleMD5InputChange.bind(this);
+    this.handleToggleAndOr       = this.handleToggleAndOr.bind(this);
+    this.handleStringInputChange = this.handleStringInputChange.bind(this);
   }
 
   componentDidMount()
@@ -93,12 +90,13 @@ class FileSearchPanel extends React.Component<FileSearchPanelProps, FileSearchPa
   handleSearchButtonClick()
   {
     const { query } = this.props;
-    const { name, extension, fullPath, mimeType, md5, tags } = this.state;
+    const { name, extension, fullPath, mimeType, md5, andOr, tags } = this.state;
 
     const newQuery = new FileSearchQuery(query?.props || {});
     Object.assign(newQuery, {
       name, extension, fullPath, mimeType, md5,
       tags,
+      andOr,
       page: 0,
     });
 
@@ -106,44 +104,20 @@ class FileSearchPanel extends React.Component<FileSearchPanelProps, FileSearchPa
     history.push(`/file?${newQuery}`);
   }
 
-  handleNameInputChange({ target: { value } }: React.ChangeEvent<HTMLInputElement>)
+  handleToggleAndOr()
   {
+    const { andOr } = this.state;
     this.setState({
-      name: value,
-      modifiedQuery: true,
+      andOr: andOr === 'and' ? 'or' : 'and',
     });
   }
 
-  handleExtensionInputChange({ target: { value } }: React.ChangeEvent<HTMLInputElement>)
+  handleStringInputChange({ target: { name, value } }: React.ChangeEvent<HTMLInputElement>)
   {
-    this.setState({
-      extension: value,
+    this.setState(prevState => ({
+      ...updateState<string, FileSearchPanelState>(name as keyof IFileSearchQuery, value)(prevState),
       modifiedQuery: true,
-    });
-  }
-
-  handleFullPathInputChange({ target: { value } }: React.ChangeEvent<HTMLInputElement>)
-  {
-    this.setState({
-      fullPath: value,
-      modifiedQuery: true,
-    });
-  }
-
-  handleMimeTypeInputChange({ target: { value } }: React.ChangeEvent<HTMLInputElement>)
-  {
-    this.setState({
-      mimeType: value,
-      modifiedQuery: true,
-    });
-  }
-
-  handleMD5InputChange({ target: { value } }: React.ChangeEvent<HTMLInputElement>)
-  {
-    this.setState({
-      md5: value,
-      modifiedQuery: true,
-    });
+    }));
   }
 
   setQuery(query: FileSearchQuery | undefined)
@@ -157,7 +131,7 @@ class FileSearchPanel extends React.Component<FileSearchPanelProps, FileSearchPa
   render()
   {
     const { resultCount } = this.props;
-    const { name, extension, fullPath, mimeType, md5, tags, modifiedQuery } = this.state;
+    const { name, extension, fullPath, mimeType, md5, tags, andOr, modifiedQuery } = this.state;
 
     return (
       <div className='flex-none flex flex-col h-full w-64 bg-gray-200'>
@@ -171,18 +145,21 @@ class FileSearchPanel extends React.Component<FileSearchPanelProps, FileSearchPa
 
         {tags?.length ?
         <div className='z-20 flex flex-row flex-wrap justify-center w-56 mx-auto -mt-4 p-2 pt-6 rounded-b-xl bg-gray-300'>
-          {tags.map((tag, i) =>
-            // eslint-disable-next-line react/no-array-index-key
-            <TagButton fontClassName='text-xs' tag={{ id: i, name: tag[0], category: tag[1], createdAt: '', updatedAt: '' }} onRemove={this.handleTagRemove} key={i}/>
-          )}
+          {tags.map((tag, i) => {
+            return <>
+              { i === 0 ? <></> : <button type='button' className='text-xs focus:ring-0 focus:text-blue-400' onClick={this.handleToggleAndOr}>{andOr}</button>
+              /* eslint-disable-next-line react/no-array-index-key */}
+              <TagButton fontClassName='text-xs' tag={{ id: i, name: tag[0], category: tag[1], createdAt: '', updatedAt: '' }} onRemove={this.handleTagRemove} key={i}/>
+            </>;
+          })}
         </div> : <></>}
 
         <div className='z-10 w-56 mx-auto -mt-4 p-2 pt-6 space-y-2 rounded-b-xl bg-gray-400'>
-          <input type='text' value={name}      onChange={this.handleNameInputChange}      className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-400 placeholder-opacity-75' placeholder='name'/>
-          <input type='text' value={extension} onChange={this.handleExtensionInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-400 placeholder-opacity-75' placeholder='extension'/>
-          <input type='text' value={fullPath}  onChange={this.handleFullPathInputChange}  className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-400 placeholder-opacity-75' placeholder='path'/>
-          <input type='text' value={mimeType}  onChange={this.handleMimeTypeInputChange}  className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-400 placeholder-opacity-75' placeholder='mime type'/>
-          <input type='text' value={md5}       onChange={this.handleMD5InputChange}       className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-400 placeholder-opacity-75' placeholder='md5'/>
+          <input type='text' value={name}      name='name'      onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-400 placeholder-opacity-75' placeholder='name'/>
+          <input type='text' value={extension} name='extension' onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-400 placeholder-opacity-75' placeholder='extension'/>
+          <input type='text' value={fullPath}  name='fullPath'  onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-400 placeholder-opacity-75' placeholder='path'/>
+          <input type='text' value={mimeType}  name='mimeType'  onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-400 placeholder-opacity-75' placeholder='mime type'/>
+          <input type='text' value={md5}       name='md5'       onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-400 placeholder-opacity-75' placeholder='md5'/>
         </div>
 
         {resultCount !== undefined ? <div className={`w-56 mx-auto -mt-4 px-1 py-0 pt-3.5 rounded-b-xl text-center ${modifiedQuery ? 'bg-yellow-300' : 'bg-blue-300 '}`}><span className='text-sm'>{modifiedQuery ? 'modified' : `${resultCount} results`}</span></div> : <></>}

@@ -34,12 +34,14 @@ export default function FilePreview({ file, searchResultIndex }: FilePreviewProp
   return (
     <figure key={file.id} className='m-1 w-44 max-h-60 flex-auto'>
       <Link
-        className='block rounded-md'
+        className='block h-full rounded-md'
         to={{ pathname: `/file/${file.id}`,
               search: `?${linkQuery}`,
               state: { parentQuery: query }
             }}>
-        {content}
+        <div className='h-full rounded-md overflow-hidden'>
+          {content}
+        </div>
       </Link>
     </figure>
   );

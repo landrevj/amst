@@ -79,7 +79,12 @@ export class FileChannel extends EntityChannel<File>
       const qb = em.createQueryBuilder(File, 'f').select('*', true);
       const qbCount = em.createQueryBuilder(File, 'f').count('f.id', true);
 
-      const { name, extension, fullPath, mimeType, md5, workspaceID, tags, page, limit } = q;
+      const {
+        name, extension, fullPath, mimeType, md5,
+        workspaceID, tags, andOr,
+        page, limit,
+      } = q;
+
       if (workspaceID)
       {
         [qb, qbCount].forEach(e => {
@@ -89,7 +94,7 @@ export class FileChannel extends EntityChannel<File>
       }
       if (tags)
       {
-        const havingString = Array(tags.length).fill('sum(t.name = ? and t.category = ?)').join(' and ');
+        const havingString = Array(tags.length).fill('sum(t.name = ? and t.category = ?)').join(` ${andOr || 'and'} `);
         const flatTags = tags.flat();
 
         [qb, qbCount].forEach(e => {
