@@ -147,7 +147,8 @@ class FileSearchPanel extends React.Component<FileSearchPanelProps, FileSearchPa
         <div className='z-20 flex flex-row flex-wrap justify-center w-56 mx-auto -mt-4 p-2 pt-6 rounded-b-xl bg-gray-300'>
           {tags.map((tag, i) => {
             return <>
-              { i === 0 ? <></> : <button type='button' className='text-xs focus:ring-0 focus:text-blue-400' onClick={this.handleToggleAndOr}>{andOr}</button>
+              {/* eslint-disable-next-line react/no-array-index-key */
+               i === 0 ? <></> : <button type='button' className='bg-transparent text-xs focus:ring-0 focus:text-blue-400' onClick={this.handleToggleAndOr} key={i - 1}>{andOr === 'and' ? '&' : '|'}</button>
               /* eslint-disable-next-line react/no-array-index-key */}
               <TagButton fontClassName='text-xs' tag={{ id: i, name: tag[0], category: tag[1], createdAt: '', updatedAt: '' }} onRemove={this.handleTagRemove} key={i}/>
             </>;
