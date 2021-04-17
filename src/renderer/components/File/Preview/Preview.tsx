@@ -1,12 +1,10 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import QueryString from 'query-string';
 
 import Client from '../../../../utils/websocket/SocketClient';
 import { FileStub } from '../../../../db/entities';
 import { mimeRegex } from '../../../../utils';
-import { FileSearchQuery } from '..';
-import { loadQuery } from '../useFileSearchQuery';
+import FileSearchQuery from '../Search/Query';
 
 interface FilePreviewProps
 {
@@ -17,8 +15,10 @@ interface FilePreviewProps
 export default function FilePreview({ file, searchResultIndex }: FilePreviewProps)
 {
   const location = useLocation();
-  const query = loadQuery(location.search);
-  const linkQuery: FileSearchQuery = { ...query, limit: 1, page: searchResultIndex };
+  const query = new FileSearchQuery(location.search);
+  const linkQuery: FileSearchQuery = new FileSearchQuery(location.search);
+  linkQuery.limit = 1;
+  linkQuery.page = searchResultIndex;
 
   const { type } = mimeRegex(file.mimeType || '');
   let content: JSX.Element;
@@ -32,12 +32,16 @@ export default function FilePreview({ file, searchResultIndex }: FilePreviewProp
   }
 
   return (
-    <Link to={{
-      pathname: `/file/${file.id}`,
-      search: `?${QueryString.stringify(linkQuery)}`,
-      state: { parentQuery: query } }}>
+    <figure key={file.id} className='m-1 w-44 max-h-60 flex-auto'>
+      <Link
+        className='block rounded-md'
+        to={{ pathname: `/file/${file.id}`,
+              search: `?${linkQuery}`,
+              state: { parentQuery: query }
+            }}>
         {content}
-    </Link>
+      </Link>
+    </figure>
   );
 }
 

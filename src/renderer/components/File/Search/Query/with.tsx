@@ -4,9 +4,9 @@
 import React from 'react';
 // import log from 'electron-log';
 
-import { FileSearchQuery } from '.';
-import { FileStub } from '../../../db/entities';
-import useFileSearchQuery, { Options } from './useFileSearchQuery';
+import FileSearchQuery from './Query';
+import { FileStub } from '../../../../../db/entities';
+import useFileSearchQuery, { Options } from './use';
 
 export interface WithFileSearchQueryProps
 {

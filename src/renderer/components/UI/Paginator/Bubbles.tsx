@@ -4,6 +4,7 @@ import React from 'react';
 
 interface PaginationBubblesProps
 {
+  className?: string;
   width?: number;
 
   page: number;
@@ -25,7 +26,7 @@ const Button: React.FC<BP> = ({ className, pageFn, inner }: BP) => {
 }
 Button.defaultProps = { className: '' };
 
-export default function PaginationBubbles({ width, page, maxPage, prevPage, nextPage, goToPage }: PaginationBubblesProps)
+export default function PaginationBubbles({ className, width, page, maxPage, prevPage, nextPage, goToPage }: PaginationBubblesProps)
 {
   const t = (width || PaginationBubbles.defaultProps.width);
   const w = Math.min(t, maxPage + 1);
@@ -50,18 +51,25 @@ export default function PaginationBubbles({ width, page, maxPage, prevPage, next
   const maxPageGreaterThanWidth = maxPage > t;
 
   return (
-    <div className='flex flex-row justify-center'>
-      <Button className={`bg-transparent text-gray-500 ${(page > hw) && maxPageGreaterThanWidth ? '' : 'invisible'}`} pageFn={() => goToPage(0)} inner={faAngleDoubleLeft}/>
-      <Button className='bg-transparent text-gray-500' pageFn={prevPage} inner={faAngleLeft}/>
+    <div className={`flex flex-row justify-center ${className}`}>
+      <Button className={`bg-transparent text-gray-500 hover:text-blue-400 ${(page > hw) && maxPageGreaterThanWidth ? '' : 'invisible'}`} pageFn={() => goToPage(0)} inner={faAngleDoubleLeft}/>
+      <Button className='bg-transparent text-gray-500 hover:text-blue-400' pageFn={prevPage} inner={faAngleLeft}/>
 
-      <div className='space-x-1'>
-        {pageArr.map(p => <Button className={`rounded-full text-sm ${p === page ? 'bg-blue-200' : ''}`} pageFn={() => { if (p !== page) goToPage(p) }} inner={(p + 1).toString()} key={p}/>)}
+      <div className='flex flex-row flex-wrap justify-center space-x-1'>
+        {pageArr.map(p => (
+          <Button className={`rounded-full px-2.5 focus:outline-none focus:ring-4 ring-blue-200 ring-opacity-50 ${p === page ? 'bg-blue-200' : 'bg-transparent hover: hover:text-blue-400'}`}
+                  pageFn={() => { if (p !== page) goToPage(p) }}
+                  inner={(p + 1).toString()} key={p}/>)
+        )}
       </div>
 
-      <Button className='bg-transparent text-gray-500' pageFn={nextPage} inner={faAngleRight}/>
-      <Button className={`bg-transparent text-gray-500 ${(page < maxPage - hw) && maxPageGreaterThanWidth ? '' : 'invisible'}`} pageFn={() => goToPage(maxPage)} inner={faAngleDoubleRight}/>
+      <Button className='bg-transparent text-gray-500 hover:text-blue-400' pageFn={nextPage} inner={faAngleRight}/>
+      <Button className={`bg-transparent text-gray-500 hover:text-blue-400 ${(page < maxPage - hw) && maxPageGreaterThanWidth ? '' : 'invisible'}`} pageFn={() => goToPage(maxPage)} inner={faAngleDoubleRight}/>
     </div>
   );
 }
 
-PaginationBubbles.defaultProps = { width: 5 };
+PaginationBubbles.defaultProps = {
+  className: '',
+  width: 5
+};

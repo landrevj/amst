@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 // import log from 'electron-log';
 
-import useFileSearchQuery from '../../components/File/useFileSearchQuery';
+import useFileSearchQuery from '../../components/File/Search/Query/use';
 import FilePreviewList from '../../components/File/Preview/List';
 import FileSearchPanel from '../../components/File/Search/Panel';
 import PaginationBubbles from '../../components/UI/Paginator/Bubbles';
@@ -15,19 +15,26 @@ function FileSearch()
   const [files, count, page, maxPage, prevPage, nextPage, goToPage, query] = useFileSearchQuery({ defaultFilesPerPage: 30 });
 
   const paginationWidth = 9;
-  const pagination = <PaginationBubbles width={paginationWidth} page={page} maxPage={maxPage} prevPage={prevPage} nextPage={nextPage} goToPage={goToPage}/>;
+  const pagination = <PaginationBubbles className='flex-grow' width={paginationWidth} page={page} maxPage={maxPage} prevPage={prevPage} nextPage={nextPage} goToPage={goToPage}/>;
 
   return (
     <div className='flex flex-row h-screen'>
       <FileSearchPanel query={query} files={files} resultCount={count}/>
 
       <div className='flex-grow h-full overflow-y-auto relative p-3'>
-        <Link className='absolute left-3' to='/'>
-          <FontAwesomeIcon className='mr-2 fill-current text-gray-600' icon={faChevronLeft}/>home
-        </Link>
-        <span className='absolute right-3'>{page + 1}/{maxPage + 1}</span>
 
-        {pagination}
+        <div className='flex flex-row'>
+          <Link className='flex-none block rounded focus:outline-none focus:ring-4 ring-blue-200 ring-opacity-50' to='/'>
+            <FontAwesomeIcon className='mr-2 fill-current text-gray-600' icon={faChevronLeft}/>home
+          </Link>
+          {pagination}
+          <div className='flex-none space-x-1'>
+            <span className='text-gray-400'>{page + 1}</span>
+            <span>/</span>
+            <span>{maxPage + 1}</span>
+          </div>
+        </div>
+
         <FilePreviewList className='my-2 rounded' files={files} query={query}/>
         {pagination}
 

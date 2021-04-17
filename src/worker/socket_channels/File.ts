@@ -7,7 +7,7 @@ import { DB } from '../../db';
 import { EntityChannel } from './Entity';
 import { File, Tag } from '../../db/entities';
 import { SocketRequest } from '../../utils/websocket';
-import { FileSearchQuery } from '../../renderer/components/File';
+import { IFileSearchQuery } from '../../renderer/components/File/Search/Query';
 
 export class FileChannel extends EntityChannel<File>
 {
@@ -70,7 +70,7 @@ export class FileChannel extends EntityChannel<File>
 
   // /////////////////////////////////////////////////////////
   // /////////////////////////////////////////////////////////
-  async search(request: SocketRequest<FileSearchQuery>)
+  async search(request: SocketRequest<IFileSearchQuery>)
   {
     this.handleAction(request, async (q) => {
       const em = DB.getNewEM();

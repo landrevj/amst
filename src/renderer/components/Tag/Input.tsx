@@ -40,7 +40,11 @@ export default class TagInput extends React.Component<TagInputProps, TagInputSta
     const re = /^(?![*!])([^:]+):?([^:]+)?$/;
     const reWithRes = /^([^:]+):?([^:]+)?$/;
     const match = value.match(allowReservedCategoryPrefixes ? reWithRes : re); // match one can be either the tag or category, match two is always the tag if its there
-    if (match?.length === 3)
+    if (value === '')
+    {
+      this.setState({ input: '', category: '', tag: '' });
+    }
+    else if (match)
     {
       // if there was something in the tag group use that, otherwise use what was in the category group instead
       const tag = match[2] || match[1];
@@ -53,10 +57,6 @@ export default class TagInput extends React.Component<TagInputProps, TagInputSta
         category,
         tag,
       });
-    }
-    else if (value === '')
-    {
-      this.setState({ input: '' });
     }
   }
 

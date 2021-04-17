@@ -7,6 +7,11 @@
  *        See https://github.com/webpack-contrib/sass-loader#imports
  */
 
+button,
+a {
+  @apply focus:outline-none focus:ring-4 ring-blue-200 ring-opacity-50;
+}
+
 body {
   font-family: Roboto, sans-serif;
   @apply text-base;
@@ -17,7 +22,8 @@ audio:focus {
   outline: none;
 }
 
-a {
+a,
+img {
   -webkit-user-drag: none;
 }
 

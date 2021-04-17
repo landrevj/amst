@@ -1,11 +1,7 @@
 /* eslint-disable jsx-a11y/media-has-caption */
 import React from 'react';
 import { RouteComponentProps } from 'react-router';
-// import { Link } from 'react-router-dom';
-// import QueryString from 'query-string';
-// import { FilterQuery, FindOptions } from '@mikro-orm/core';
 import { Link } from 'react-router-dom';
-import QueryString from 'query-string';
 import TimeAgo from 'javascript-time-ago';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowCircleLeft, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
@@ -19,7 +15,7 @@ import { SocketRequestStatus } from '../../../utils/websocket';
 import TagForm from '../../components/Tag/Form';
 import { mimeRegex } from '../../../utils';
 import TagList from '../../components/Tag/List';
-import withFileSearchQuery, { WithFileSearchQueryProps } from '../../components/File/withFileSearchQuery';
+import withFileSearchQuery, { WithFileSearchQueryProps } from '../../components/File/Search/Query/with';
 
 interface FileViewRouteParams
 {
@@ -44,12 +40,9 @@ class FileView extends React.Component<FileViewProps, FileViewState>
     const { files } = this.props;
     const file = files[0] || undefined;
     this.state = {
-      // id: parseInt(id, 10),
       file,
       tags: [],
     };
-
-    // this.loadFile(parseInt(id, 10));
 
     this.handleTagFormSubmit = this.handleTagFormSubmit.bind(this);
     this.handleTagRemove = this.handleTagRemove.bind(this);
@@ -120,19 +113,6 @@ class FileView extends React.Component<FileViewProps, FileViewState>
       file,
       tags,
     });
-    // const response = await Client.send<FileStub[]>('File', { action: 'read', params: [id, { populate: ['tags'] }] });
-    // const success  = response.status === SocketRequestStatus.SUCCESS;
-    // if (!success || !response.data)
-    // {
-    //   log.error(`Failed to get file with given id: ${id}`);
-    //   return;
-    // }
-
-    // const [ file ] = response.data;
-    // this.setState({
-    //   file,
-    //   tags: file.tags || [],
-    // });
   }
 
   render()
@@ -147,7 +127,10 @@ class FileView extends React.Component<FileViewProps, FileViewState>
     if (type === 'video')
     {
       content = (
-        <video className='max-h-screen' controls>
+        // we set the key here so the video will always update the video source when the file changes
+        // this wasnt an issue initially but at some point it became one. idk what happened
+        // but it would update the source in the html but the video would still be the same
+        <video className='max-h-screen' key={file.id} controls>
           <source src={`http://${Client.host}:${Client.port}/files/${file.id}`}/>
           Something wasnt supported!
         </video>
@@ -178,7 +161,7 @@ class FileView extends React.Component<FileViewProps, FileViewState>
                 #{file.id} - {page + 1}/{maxPage + 1}
               </span>
               <br/>
-              <Link className='inline-block px-2 rounded-full bg-green-300' to={`/file?${QueryString.stringify(parentQuery || {})}`}>
+              <Link className='inline-block px-2 rounded-full bg-green-300' to={`/file?${parentQuery || ''}`}>
                 <FontAwesomeIcon className='mr-1 -ml-1 my-auto fill-current text-gray-100' icon={faArrowCircleLeft}/>
                 <span>search</span>
               </Link>
