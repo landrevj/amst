@@ -12,7 +12,11 @@ module.exports = {
       }
     }
   },
-  variants: {},
+  variants: {
+    extend: {
+      borderWidth: ['focus'],
+    },
+  },
   plugins: [
     require('@tailwindcss/forms'),
   ]
