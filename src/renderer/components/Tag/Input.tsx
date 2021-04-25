@@ -83,7 +83,7 @@ export default class TagInput extends React.Component<TagInputProps, TagInputSta
     const { input } = this.state;
     return (
       <form className='contents' onSubmit={this.handleSubmit}>
-        <input className={className} type='text' value={input} onChange={this.handleChange}/>
+        <input className={className} type='text' value={input} placeholder='category:tag' onChange={this.handleChange}/>
       </form>
     );
   }

@@ -78,6 +78,7 @@ export class FileChannel extends EntityChannel<File>
 
       const qb = em.createQueryBuilder(File, 'f').select('*', true);
       const qbCount = em.createQueryBuilder(File, 'f').count('f.id', true);
+      const qbBoth = [qb, qbCount];
 
       const {
         name, extension, fullPath, mimeType, md5,
@@ -87,7 +88,7 @@ export class FileChannel extends EntityChannel<File>
 
       if (workspaceID)
       {
-        [qb, qbCount].forEach(e => {
+        qbBoth.forEach(e => {
           e.leftJoin('f.workspaces', 'w')
            .where({ 'w.id': workspaceID });
         });
@@ -97,46 +98,46 @@ export class FileChannel extends EntityChannel<File>
         const havingString = Array(tags.length).fill('sum(t.name = ? and t.category = ?)').join(` ${andOr || 'and'} `);
         const flatTags = tags.flat();
 
-        [qb, qbCount].forEach(e => {
+        qbBoth.forEach(e => {
           e.leftJoin('f.tags', 't')
            .groupBy('f.id')
            .having(havingString, flatTags);
         });
       }
 
-      const like = (s: string): QBFilterQuery<File> => ({ $like: `%${s}%` });
+      const like = (s: string): QBFilterQuery<File> => ({ $like: `%%${s}%%` }); // double % so it doesn't complain about string substitution
 
       if (name && name !== '')
       {
-        [qb, qbCount].forEach(e => {
+        qbBoth.forEach(e => {
           e.where({ name: like(name) }, '$and');
         });
       }
 
       if (extension && extension !== '')
       {
-        [qb, qbCount].forEach(e => {
+        qbBoth.forEach(e => {
           e.where({ extension }, '$and');
         });
       }
 
       if (fullPath && fullPath !== '')
       {
-        [qb, qbCount].forEach(e => {
+        qbBoth.forEach(e => {
           e.where({ fullPath: like(fullPath) }, '$and');
         });
       }
 
       if (mimeType && mimeType !== '')
       {
-        [qb, qbCount].forEach(e => {
+        qbBoth.forEach(e => {
           e.where({ mimeType: like(mimeType) }, '$and');
         });
       }
 
       if (md5 && md5 !== '')
       {
-        [qb, qbCount].forEach(e => {
+        qbBoth.forEach(e => {
           e.where({ md5 }, '$and');
         });
       }

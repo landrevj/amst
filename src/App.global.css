@@ -59,6 +59,35 @@ input[type='number']::-webkit-outer-spin-button {
 }
 /************************************************************/
 /************************************************************/
+.react-select-container {
+  @apply text-sm;
+}
+.react-select__control {
+  @apply h-8;
+  min-height: 2rem !important;
+  @apply rounded-full border-2 border-gray-400 !important;
+}
+.react-select__control--is-focused {
+  @apply border-blue-600 ring-1 ring-blue-600 !important;
+}
+.react-select__value-container > div:not(.react-select__single-value) {
+  @apply m-0 p-0;
+}
+.react-select__menu {
+  @apply relative;
+}
+.react-select__input > input {
+  @apply border-0 focus:ring-0;
+}
+.react-select__indicator-separator {
+  display: none;
+}
+.react-select__indicator {
+  @apply p-0 px-1 !important;
+}
+
+/************************************************************/
+/************************************************************/
 
 button {
   @apply rounded bg-gray-300;

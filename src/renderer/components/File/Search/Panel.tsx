@@ -1,15 +1,21 @@
 import React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
+import AsyncSelect from 'react-select/async';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { FilterQuery } from '@mikro-orm/core';
 
-import { FileStub } from '../../../../db/entities';
+import { FileStub, Workspace, WorkspaceStub } from '../../../../db/entities';
+import Client from '../../../../utils/websocket/SocketClient';
 
 import { TagTuple } from '../../Tag';
 import TagButton from '../../Tag/Button';
 import TagInput from '../../Tag/Input';
 import { updateState } from '../../../../utils';
 import FileSearchQuery, { IFileSearchQuery } from './Query';
+import { SocketRequestStatus } from '../../../../utils/websocket';
+
+type OptionType = { value: string, label: string };
 
 interface FileSearchPanelProps extends RouteComponentProps
 {
@@ -20,6 +26,8 @@ interface FileSearchPanelProps extends RouteComponentProps
 
 interface FileSearchPanelState extends IFileSearchQuery
 {
+  workspaceSelectValue: OptionType;
+  workspaceSelectOptions: OptionType[];
   modifiedQuery: boolean;
 }
 
@@ -36,6 +44,8 @@ class FileSearchPanel extends React.Component<FileSearchPanelProps, FileSearchPa
       mimeType: '',
       md5: '',
       andOr: 'and',
+      workspaceSelectValue: { value: '', label: 'Loading...' },
+      workspaceSelectOptions: [],
       modifiedQuery: false,
     };
 
@@ -44,6 +54,8 @@ class FileSearchPanel extends React.Component<FileSearchPanelProps, FileSearchPa
     this.handleSearchButtonClick = this.handleSearchButtonClick.bind(this);
     this.handleToggleAndOr       = this.handleToggleAndOr.bind(this);
     this.handleStringInputChange = this.handleStringInputChange.bind(this);
+    this.handleLoadWorkspaceSelect = this.handleLoadWorkspaceSelect.bind(this);
+    this.handleWorkspaceSelectChange = this.handleWorkspaceSelectChange.bind(this);
   }
 
   componentDidMount()
@@ -54,14 +66,22 @@ class FileSearchPanel extends React.Component<FileSearchPanelProps, FileSearchPa
     if (query) Object.entries(query).forEach(e => {
       if (e[1]) this.setState(updateState(e[0] as keyof IFileSearchQuery, e[1]));
     });
-
   }
 
-  async componentDidUpdate(prevProps: FileSearchPanelProps)
+  async componentDidUpdate(prevProps: FileSearchPanelProps, prevState: FileSearchPanelState)
   {
     const { query } = this.props;
 
     if (prevProps.query !== query) this.setQuery(query);
+
+    const { workspaceID, workspaceSelectOptions } = this.state;
+
+    // setting value for initial load of workspace select options. dont need to run this otherwise.
+    if (prevState.workspaceSelectValue.value === '' && prevState.workspaceSelectOptions !== workspaceSelectOptions)
+    {
+      const thisWorkspace = workspaceSelectOptions.find(o => o.value === workspaceID?.toString());
+      if (thisWorkspace) this.setWorkspaceSelectValue(thisWorkspace);
+    }
   }
 
   handleTagInputSubmit(tag: TagTuple)
@@ -89,13 +109,14 @@ class FileSearchPanel extends React.Component<FileSearchPanelProps, FileSearchPa
   handleSearchButtonClick()
   {
     const { query } = this.props;
-    const { name, extension, fullPath, mimeType, md5, andOr, tags } = this.state;
+    const { name, extension, fullPath, mimeType, md5, andOr, tags, workspaceID } = this.state;
 
     const newQuery = new FileSearchQuery(query?.props || {});
     Object.assign(newQuery, {
       name, extension, fullPath, mimeType, md5,
       tags,
       andOr,
+      workspaceID,
       page: 0,
     });
 
@@ -119,6 +140,47 @@ class FileSearchPanel extends React.Component<FileSearchPanelProps, FileSearchPa
     }));
   }
 
+  async handleLoadWorkspaceSelect(input: string)
+  {
+    const query: FilterQuery<Workspace> = { name: { $like: `%%${input}%%` } };
+    const response = await Client.send<WorkspaceStub[]>('Workspace', { action: 'read', params: [input.length ? query : {}] });
+    const success = response.status === SocketRequestStatus.SUCCESS;
+
+    if (!success || !response.data) return [{ label: 'DB query failed!', value: 'null' }] as OptionType[];
+
+    const options: OptionType[] = response.data.map(w => ({ label: w.name, value: w.id.toString() }));
+
+    this.setState({
+      workspaceSelectOptions: options,
+    });
+    return options;
+  }
+
+  handleWorkspaceSelectChange(option: OptionType | null)
+  {
+    if (!option) return;
+
+    this.setWorkspaceSelectValue(option, true);
+  }
+
+  setWorkspaceSelectValue(option: OptionType, changedWorkspace?: boolean)
+  {
+    if (changedWorkspace)
+    {
+      this.setState({
+        workspaceID: parseInt(option.value, 10),
+        workspaceSelectValue: option,
+        modifiedQuery: true,
+      });
+    }
+    else
+    {
+      this.setState({
+        workspaceSelectValue: option,
+      });
+    }
+  }
+
   setQuery(query: FileSearchQuery | undefined)
   {
     this.setState({
@@ -130,7 +192,7 @@ class FileSearchPanel extends React.Component<FileSearchPanelProps, FileSearchPa
   render()
   {
     const { resultCount } = this.props;
-    const { name, extension, fullPath, mimeType, md5, tags, andOr, modifiedQuery } = this.state;
+    const { name, extension, fullPath, mimeType, md5, tags, andOr, workspaceSelectValue, modifiedQuery } = this.state;
 
     return (
       <div className='flex-none flex flex-col h-full w-64 bg-gray-200'>
@@ -155,6 +217,7 @@ class FileSearchPanel extends React.Component<FileSearchPanelProps, FileSearchPa
         </div> : <></>}
 
         <div className='z-10 w-56 mx-auto -mt-4 p-2 pt-6 space-y-2 rounded-b-xl bg-gray-400'>
+          <AsyncSelect<OptionType> cacheOptions defaultOptions loadOptions={this.handleLoadWorkspaceSelect} value={workspaceSelectValue} onChange={this.handleWorkspaceSelectChange} className='react-select-container' classNamePrefix='react-select'/>
           <input type='text' value={name}      name='name'      onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-400 placeholder-opacity-75' placeholder='name'/>
           <input type='text' value={extension} name='extension' onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-400 placeholder-opacity-75' placeholder='extension'/>
           <input type='text' value={fullPath}  name='fullPath'  onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-400 placeholder-opacity-75' placeholder='path'/>
