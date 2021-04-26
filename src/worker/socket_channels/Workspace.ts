@@ -6,10 +6,14 @@ import log from 'electron-log';
 
 import { DB } from '../../db';
 import { Workspace, File, Folder } from '../../db/entities';
-import { arrayDifference, glob } from '../../utils';
+import { chunk, glob } from '../../utils';
 import { SocketRequest, SocketRequestStatus, SocketResponse } from '../../utils/websocket';
 import { EntityChannel } from './Entity';
 
+const CHUNK_SIZE = 100;
+const MATCHED_PATHS_CHUNK_SIZE = CHUNK_SIZE;
+const         EFNOW_CHUNK_SIZE = CHUNK_SIZE;
+const     NEW_PATHS_CHUNK_SIZE = CHUNK_SIZE;
 
 export class WorkspaceChannel extends EntityChannel<Workspace>
 {
@@ -81,7 +85,7 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
      * c = set of all file paths matched from workspace's folders
      *
      * d - remove all paths from c found in b
-     * c is now a set of all files matched from workspace's folders which weren't found on a file associated with the workspace
+     * c is now a set of all file paths matched from workspace's folders which weren't found on a file associated with the workspace
      *
      * e = query all files with paths from c which exist in the DB (these will be existing files in the DB which were matched from the workspace's folders but werent associated with it)
      * f - remove all paths from c found in e
@@ -96,9 +100,14 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
     const id = request.params;
 
     let em = DB.getNewEM();
+    if (!em)
+    {
+      this.emitFailure(request);
+      return;
+    }
 
     // a ///////////////////////////////////////////////////////////////////////////////////////////////
-    const workspace = await em?.findOne(Workspace, id, ['files', 'folders']).catch(error => {
+    const workspace = await em.findOne(Workspace, id, ['files', 'folders']).catch(error => {
       log.error(error);
       this.emitFailure(request);
     });
@@ -109,47 +118,60 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
       return;
     }
 
+    // respond to inital sync request
     this.getSocket()?.emit(request.responseChannel as string, { status: SocketRequestStatus.SUCCESS } as SocketResponse<void>);
+    // emit general sync update message
     this.emitSyncUpdate(workspace.id, 'Started sync...');
+
     // b ///////////////////////////////////////////////////////////////////////////////////////////////
     const existingFilesOnWorkspace = workspace.files.getItems();
     // c ///////////////////////////////////////////////////////////////////////////////////////////////
+    this.emitSyncUpdate(workspace.id, 'Searching for files (this might take a while)...');
     const searchPaths = workspace.folders.getItems().map(folder => folder.path);
     const matches     = (await Promise.all(glob(searchPaths))).flat();
     const matchSet = new Set(matches.map(entry => entry.path)); // <- c
     // d ///////////////////////////////////////////////////////////////////////////////////////////////
     existingFilesOnWorkspace.forEach(file => matchSet.delete(file.fullPath));
     // e ///////////////////////////////////////////////////////////////////////////////////////////////
-    const eQB = em?.createQueryBuilder(File, 'f')
-      .select('*')
-      .leftJoin('f.workspaces', 'w')
-      .where({ fullPath: Array.from(matchSet) })
-      .groupBy('f.id')
-      .having('sum(w.id = ?) = 0', [workspace.id]);
+    const pathChunks = chunk(Array.from(matchSet), MATCHED_PATHS_CHUNK_SIZE);
+    const queryPromises: Promise<File[]>[] = [];
 
-    const existingFilesNotOnWorkspace = await eQB?.getResult();
-    if (!existingFilesNotOnWorkspace)
-    {
-      this.emitFailure(request);
-      return;
-    }
+    pathChunks.forEach(pathChunk => {
+      const tempEM = DB.getNewEM();
+      if (!tempEM) return;
+
+      const eQB = tempEM.createQueryBuilder(File, 'f')
+        .select('*')
+        .leftJoin('f.workspaces', 'w')
+        .where({ fullPath: pathChunk })
+        .groupBy('f.id')
+        .having('sum(w.id = ?) = 0', [workspace.id]);
+
+      queryPromises.push(eQB.getResult());
+      tempEM.clear();
+    })
+
+    const existingFilesNotOnWorkspace = (await Promise.all(queryPromises)).flat();
+    // log.info(existingFilesNotOnWorkspace);
+
     this.emitSyncUpdate(workspace.id, `Found ${existingFilesNotOnWorkspace.length} pre-existing files in the DB...`);
     // f ///////////////////////////////////////////////////////////////////////////////////////////////
     existingFilesNotOnWorkspace.forEach(file => matchSet.delete(file.fullPath));
     // g ///////////////////////////////////////////////////////////////////////////////////////////////
     for (let i = 0; i < existingFilesNotOnWorkspace.length; i += 1)
     {
+      this.emitSyncUpdate(workspace.id, `Adding pre-existing file ${i + 1} of ${existingFilesNotOnWorkspace.length} to the workspace...`);
       const file = existingFilesNotOnWorkspace[i];
       workspace.files.add(file);
       em?.persist(workspace);
 
       // @see https://github.com/mikro-orm/mikro-orm/issues/732#issuecomment-671874524
       // eslint-disable-next-line no-await-in-loop
-      if (i % 100 === 0) await em?.flush();
+      if (i % EFNOW_CHUNK_SIZE === 0) await em?.flush();
     }
     await em?.flush();
     em?.clear();
-
+    // /////////////////////////////////////////////////////////////////////////////////////////////////
     // get a new em and a new workspace so our identity map isnt overpopulated and we can actually insert with any degree of performance
     em = DB.getNewEM();
     const newWorkspace = await em?.findOne(Workspace, id).catch(error => {
@@ -162,7 +184,6 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
       this.emitFailure(request);
       return;
     }
-
     // h ///////////////////////////////////////////////////////////////////////////////////////////////
     const paths = Array.from(matchSet);
     for (let i = 0; i < paths.length; i += 1)
@@ -183,11 +204,11 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
 
       // @see https://github.com/mikro-orm/mikro-orm/issues/732#issuecomment-671874524
       // eslint-disable-next-line no-await-in-loop
-      if (i % 100 === 0) await em?.flush();
+      if (i % NEW_PATHS_CHUNK_SIZE === 0) await em?.flush();
     }
     await em?.flush();
     em?.clear();
-    // DONE!
+    // DONE ////////////////////////////////////////////////////////////////////////////////////////////
 
     const newFileCount = existingFilesNotOnWorkspace.length + paths.length;
     this.emitSyncUpdate(workspace.id, `Added ${newFileCount} files to the workspace!`, true);

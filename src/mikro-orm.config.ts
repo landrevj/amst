@@ -35,7 +35,7 @@ const options: Options<SqliteDriver> = {
   dbName: join(__dirname, 'db/dev_database.sqlite'),
   entities: [Workspace, File, Tag, Folder, BaseEntity], // order can matter here: https://mikro-orm.io/docs/installation#possible-issues-with-circular-dependencies
   discovery: { disableDynamicFileAccess: true },
-  debug: true,
+  debug: process.env.NODE_ENV === 'development' && false,
   migrations: {
     tableName: 'mikro_orm_migrations', // name of database table with log of executed transactions
     path: join(__dirname, 'db/migrations'), // path to the folder with migrations

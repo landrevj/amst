@@ -152,3 +152,15 @@ export function updateState<T extends string, State>(key: keyof State, value: T)
     [key]: value,
   })
 }
+
+/**
+ * Splits an array into an array of smaller arrays.
+ * @param arr Input array.
+ * @param size Chunk size.
+ * @returns The chunked array. Each element is an array with a max size of 'size', containing that many elements from the original array.
+ *          Can be undone by calling flat() on the result.
+ */
+export function chunk<T>(arr: T[], size: number): T[][]
+{
+  return Array.from({ length: Math.ceil(arr.length / size) }, (_, i) => arr.slice(i * size, i * size + size));
+}
