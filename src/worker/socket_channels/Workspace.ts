@@ -74,22 +74,30 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
 
   async syncFiles(request: SocketRequest<number>)
   {
-    /* a: get list of files on the workspace
-     * b: get list of new paths to be added
-     * c: query the db for existing files with paths in 'b'
+    /** Sync Process
      *
-     * d: files in 'c' that arent in 'a'. (files which are already in the database but not on the current workspace, which need to get added to it)
-     * e: paths from 'b' that aren't on files in 'a' or 'd'. (new paths which arent in the db, on or off of the current workspace)
+     * a - get all files and folders on current workspace
+     * b = list of all files on the workspace
+     * c = set of all file paths matched from workspace's folders
      *
-     * f => add d to the workspace
-     * g => add e to the workspace as files
+     * d - remove all paths from c found in b
+     * c is now a set of all files matched from workspace's folders which weren't found on a file associated with the workspace
+     *
+     * e = query all files with paths from c which exist in the DB (these will be existing files in the DB which were matched from the workspace's folders but werent associated with it)
+     * f - remove all paths from c found in e
+     * c is now a set of all file paths matched from the workspace's folders which weren't found on any file in the DB
+     *
+     * g - associate all of e to the current workspace
+     * h - add all paths in c to the workspace as new files
+     *
      */
 
     if (!request.params) return;
     const id = request.params;
 
-    const em = DB.getNewEM();
+    let em = DB.getNewEM();
 
+    // a ///////////////////////////////////////////////////////////////////////////////////////////////
     const workspace = await em?.findOne(Workspace, id, ['files', 'folders']).catch(error => {
       log.error(error);
       this.emitFailure(request);
@@ -103,72 +111,86 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
 
     this.getSocket()?.emit(request.responseChannel as string, { status: SocketRequestStatus.SUCCESS } as SocketResponse<void>);
     this.emitSyncUpdate(workspace.id, 'Started sync...');
-
-    // a
+    // b ///////////////////////////////////////////////////////////////////////////////////////////////
     const existingFilesOnWorkspace = workspace.files.getItems();
-
-    // b
+    // c ///////////////////////////////////////////////////////////////////////////////////////////////
     const searchPaths = workspace.folders.getItems().map(folder => folder.path);
     const matches     = (await Promise.all(glob(searchPaths))).flat();
-    const matchPaths  = matches.map(entry => entry.path);
+    const matchSet = new Set(matches.map(entry => entry.path)); // <- c
+    // d ///////////////////////////////////////////////////////////////////////////////////////////////
+    existingFilesOnWorkspace.forEach(file => matchSet.delete(file.fullPath));
+    // e ///////////////////////////////////////////////////////////////////////////////////////////////
+    const eQB = em?.createQueryBuilder(File, 'f')
+      .select('*')
+      .leftJoin('f.workspaces', 'w')
+      .where({ fullPath: Array.from(matchSet) })
+      .groupBy('f.id')
+      .having('sum(w.id = ?) = 0', [workspace.id]);
 
-    // c
-    const existingFilesFromMatches = await em?.find(File, { fullPath: matchPaths }).catch(error => {
+    const existingFilesNotOnWorkspace = await eQB?.getResult();
+    if (!existingFilesNotOnWorkspace)
+    {
+      this.emitFailure(request);
+      return;
+    }
+    this.emitSyncUpdate(workspace.id, `Found ${existingFilesNotOnWorkspace.length} pre-existing files in the DB...`);
+    // f ///////////////////////////////////////////////////////////////////////////////////////////////
+    existingFilesNotOnWorkspace.forEach(file => matchSet.delete(file.fullPath));
+    // g ///////////////////////////////////////////////////////////////////////////////////////////////
+    for (let i = 0; i < existingFilesNotOnWorkspace.length; i += 1)
+    {
+      const file = existingFilesNotOnWorkspace[i];
+      workspace.files.add(file);
+      em?.persist(workspace);
+
+      // @see https://github.com/mikro-orm/mikro-orm/issues/732#issuecomment-671874524
+      // eslint-disable-next-line no-await-in-loop
+      if (i % 100 === 0) await em?.flush();
+    }
+    await em?.flush();
+    em?.clear();
+
+    // get a new em and a new workspace so our identity map isnt overpopulated and we can actually insert with any degree of performance
+    em = DB.getNewEM();
+    const newWorkspace = await em?.findOne(Workspace, id).catch(error => {
       log.error(error);
       this.emitFailure(request);
     });
 
-    // d
-    const existingFilesNotOnWorkspace: File[] = existingFilesFromMatches ? arrayDifference(existingFilesFromMatches, existingFilesOnWorkspace, file1 => file1.fullPath, file2 => file2.fullPath) : [];
-    this.emitSyncUpdate(workspace.id, `Found ${existingFilesNotOnWorkspace.length} pre-existing files...`);
-
-    // e
-    const entriesNotOnWorkspace = arrayDifference(matches, existingFilesOnWorkspace, entry => entry.path, file => file.fullPath);
-    const entriesNotInDB = arrayDifference(entriesNotOnWorkspace, existingFilesNotOnWorkspace, entry => entry.path, file => file.fullPath);
-    this.emitSyncUpdate(workspace.id, `Found ${entriesNotInDB.length} new files...`);
-
-    // DB TRANSACTION START //////////////////////////////////////////////
-    const updatedWorkspace = await em?.transactional<Workspace>(t_em => {
-
-      // f
-      existingFilesNotOnWorkspace.forEach(file => {
-        workspace.files.add(file);
-      });
-
-      // g
-      const { length } = entriesNotInDB;
-
-      entriesNotInDB.forEach((entry, i) => {
-        this.emitSyncUpdate(workspace.id, `Importing new file ${i + 1} of ${length} to the DB...`);
-
-        const ext = extname(entry.name); // extname returns extensions with the dot if there was an extension
-        const file = new File(basename(entry.name, ext), ext.slice(1), entry.path); // so we slice it before persisting it. ("".slice(1) is "")
-        // calculate some metadata
-        const mt = lookup(entry.path);
-        if (mt) file.mimeType = mt;
-        // file.md5      = md5File.sync(entry.path);
-        workspace.files.add(file);
-      });
-      // DONE! Persist to DB...
-      t_em.persist(workspace);
-
-      return new Promise(resolve => {
-        resolve(workspace);
-      });
-
-    }).catch(error => {
-      log.error(error);
-    });
-    // DB TRANSACTION END ////////////////////////////////////////////////
-
-    if (updatedWorkspace)
+    if (!newWorkspace)
     {
-      const newFileCount = existingFilesNotOnWorkspace.length + entriesNotInDB.length;
-      this.emitSyncUpdate(workspace.id, `Added ${newFileCount} files to the workspace!`, true);
+      this.emitFailure(request);
       return;
     }
 
-    this.emitSyncUpdate(workspace.id, 'DB transaction failed!', false);
+    // h ///////////////////////////////////////////////////////////////////////////////////////////////
+    const paths = Array.from(matchSet);
+    for (let i = 0; i < paths.length; i += 1)
+    {
+      const path = paths[i];
+      this.emitSyncUpdate(newWorkspace.id, `Importing new file ${i + 1} of ${paths.length} to the DB...`);
+
+      const ext = extname(path); // extname returns extensions with the dot if there was an extension
+      const file = new File(basename(path, ext), ext.slice(1), path); // so we slice it before persisting it. ("".slice(1) is "")
+
+      // calculate some metadata
+      const mt = lookup(path);
+      if (mt) file.mimeType = mt;
+      // file.md5      = md5File.sync(entry.path);
+
+      newWorkspace.files.add(file);
+      em?.persist(newWorkspace);
+
+      // @see https://github.com/mikro-orm/mikro-orm/issues/732#issuecomment-671874524
+      // eslint-disable-next-line no-await-in-loop
+      if (i % 100 === 0) await em?.flush();
+    }
+    await em?.flush();
+    em?.clear();
+    // DONE!
+
+    const newFileCount = existingFilesNotOnWorkspace.length + paths.length;
+    this.emitSyncUpdate(workspace.id, `Added ${newFileCount} files to the workspace!`, true);
   }
 
   // /////////////////////////////////////////////////////////
