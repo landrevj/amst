@@ -2,6 +2,7 @@
 import { basename, extname } from 'path';
 import { FilterQuery, FindOptions } from '@mikro-orm/core';
 import { lookup } from 'mime-types';
+import pluralize from 'pluralize';
 import log from 'electron-log';
 
 import { DB } from '../../db';
@@ -10,10 +11,10 @@ import { chunk, glob } from '../../utils';
 import { SocketRequest, SocketRequestStatus, SocketResponse } from '../../utils/websocket';
 import { EntityChannel } from './Entity';
 
-const CHUNK_SIZE = 100;
-const MATCHED_PATHS_CHUNK_SIZE = CHUNK_SIZE;
-const         EFNOW_CHUNK_SIZE = CHUNK_SIZE;
-const     NEW_PATHS_CHUNK_SIZE = CHUNK_SIZE;
+const CHUNK_SIZE = 250;
+const MATCHED_PATHS_CHUNK_SIZE    = CHUNK_SIZE;
+const FILE_ASSOCIATION_CHUNK_SIZE = CHUNK_SIZE;
+const     NEW_PATHS_CHUNK_SIZE    = CHUNK_SIZE;
 
 export class WorkspaceChannel extends EntityChannel<Workspace>
 {
@@ -99,7 +100,7 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
     if (!request.params) return;
     const id = request.params;
 
-    let em = DB.getNewEM();
+    const em = DB.getNewEM();
     if (!em)
     {
       this.emitFailure(request);
@@ -145,51 +146,26 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
         .leftJoin('f.workspaces', 'w')
         .where({ fullPath: pathChunk })
         .groupBy('f.id')
-        .having('sum(w.id = ?) = 0', [workspace.id]);
+        .having('sum(w.id = ?) = 0 or sum(w.id = ?) is NULL', [workspace.id, workspace.id]);
 
       queryPromises.push(eQB.getResult());
       tempEM.clear();
-    })
+    });
 
     const existingFilesNotOnWorkspace = (await Promise.all(queryPromises)).flat();
     // log.info(existingFilesNotOnWorkspace);
 
-    this.emitSyncUpdate(workspace.id, `Found ${existingFilesNotOnWorkspace.length} pre-existing files in the DB...`);
+    this.emitSyncUpdate(workspace.id, `Found ${existingFilesNotOnWorkspace.length} pre-existing ${pluralize('file', existingFilesNotOnWorkspace.length)} in the DB...`);
     // f ///////////////////////////////////////////////////////////////////////////////////////////////
     existingFilesNotOnWorkspace.forEach(file => matchSet.delete(file.fullPath));
     // g ///////////////////////////////////////////////////////////////////////////////////////////////
-    for (let i = 0; i < existingFilesNotOnWorkspace.length; i += 1)
-    {
-      this.emitSyncUpdate(workspace.id, `Adding pre-existing file ${i + 1} of ${existingFilesNotOnWorkspace.length} to the workspace...`);
-      const file = existingFilesNotOnWorkspace[i];
-      workspace.files.add(file);
-      em?.persist(workspace);
-
-      // @see https://github.com/mikro-orm/mikro-orm/issues/732#issuecomment-671874524
-      // eslint-disable-next-line no-await-in-loop
-      if (i % EFNOW_CHUNK_SIZE === 0) await em?.flush();
-    }
-    await em?.flush();
-    em?.clear();
-    // /////////////////////////////////////////////////////////////////////////////////////////////////
-    // get a new em and a new workspace so our identity map isnt overpopulated and we can actually insert with any degree of performance
-    em = DB.getNewEM();
-    const newWorkspace = await em?.findOne(Workspace, id).catch(error => {
-      log.error(error);
-      this.emitFailure(request);
-    });
-
-    if (!newWorkspace)
-    {
-      this.emitFailure(request);
-      return;
-    }
+    await this.associateFiles(workspace.id, existingFilesNotOnWorkspace, 'existing files');
     // h ///////////////////////////////////////////////////////////////////////////////////////////////
     const paths = Array.from(matchSet);
+    const newFiles: File[] = Array(paths.length);
     for (let i = 0; i < paths.length; i += 1)
     {
       const path = paths[i];
-      this.emitSyncUpdate(newWorkspace.id, `Importing new file ${i + 1} of ${paths.length} to the DB...`);
 
       const ext = extname(path); // extname returns extensions with the dot if there was an extension
       const file = new File(basename(path, ext), ext.slice(1), path); // so we slice it before persisting it. ("".slice(1) is "")
@@ -199,19 +175,54 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
       if (mt) file.mimeType = mt;
       // file.md5      = md5File.sync(entry.path);
 
-      newWorkspace.files.add(file);
-      em?.persist(newWorkspace);
+      em?.persist(file);
+      newFiles[i] = file;
 
-      // @see https://github.com/mikro-orm/mikro-orm/issues/732#issuecomment-671874524
-      // eslint-disable-next-line no-await-in-loop
-      if (i % NEW_PATHS_CHUNK_SIZE === 0) await em?.flush();
+      if (i % NEW_PATHS_CHUNK_SIZE === 0)
+      {
+        // eslint-disable-next-line no-await-in-loop
+        await em?.flush();
+        em?.clear();
+        this.emitSyncUpdate(workspace.id, `Importing new files to the DB... (${i + 1} of ${paths.length})`);
+      }
     }
     await em?.flush();
     em?.clear();
+
+    await this.associateFiles(workspace.id, newFiles, 'new files');
     // DONE ////////////////////////////////////////////////////////////////////////////////////////////
 
     const newFileCount = existingFilesNotOnWorkspace.length + paths.length;
-    this.emitSyncUpdate(workspace.id, `Added ${newFileCount} files to the workspace!`, true);
+    this.emitSyncUpdate(workspace.id, `Added ${pluralize('file', newFileCount, true)} to the workspace!`, true);
+  }
+
+  async associateFiles(workspaceID: number, files: File[], filesDescription = 'files')
+  {
+    const promises: Promise<void>[] = [];
+
+    const chunks = chunk(files, FILE_ASSOCIATION_CHUNK_SIZE);
+    chunks.forEach((currentChunk, i) => {
+      // use an async lambda rather than just making the current function we are in async so
+      // we can syncronously build a list of promises for each chunk, then await them all together
+      const fn = async () => {
+        const em = DB.getNewEM();
+        if (!em) return;
+
+        const workspace = await em.findOne(Workspace, workspaceID).catch(log.error);
+        if (workspace)
+        {
+          workspace.files.add(...currentChunk);
+          em.persist(workspace);
+        }
+        await em.flush();
+        em.clear();
+        this.emitSyncUpdate(workspaceID, `Associating ${filesDescription} with workspace... (${(i + 1) * FILE_ASSOCIATION_CHUNK_SIZE} of ${files.length})`);
+      };
+
+      promises.push(fn());
+    });
+
+    await Promise.all(promises); // await all so we dont return until each chunk has persisted
   }
 
   // /////////////////////////////////////////////////////////

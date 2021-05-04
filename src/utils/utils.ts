@@ -155,6 +155,7 @@ export function updateState<T extends string, State>(key: keyof State, value: T)
 
 /**
  * Splits an array into an array of smaller arrays.
+ * @see https://stackoverflow.com/a/10456644
  * @param arr Input array.
  * @param size Chunk size.
  * @returns The chunked array. Each element is an array with a max size of 'size', containing that many elements from the original array.
