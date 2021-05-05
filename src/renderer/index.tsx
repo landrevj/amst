@@ -17,3 +17,5 @@ export function main()
   Client.init();
   render(<App />, document.getElementById('root'));
 }
+
+main();

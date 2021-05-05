@@ -7,7 +7,7 @@ import { WorkspaceStub } from '../../../db/entities';
 import { WorkspaceForm, WorkspaceList } from '../../components/Workspace';
 
 import { SocketRequestStatus } from '../../../utils/websocket';
-import '../../../App.global.css';
+import '../../App.global.css';
 
 interface HomeState
 {

@@ -27,7 +27,7 @@ export default class AppUpdater {
   }
 }
 
-let mainWindow: BrowserWindow | null = null;
+let rendererWindow: BrowserWindow | null = null;
 let workerWindow: BrowserWindow | null = null;
 
 if (process.env.NODE_ENV === 'production') {
@@ -71,7 +71,7 @@ const createWindow = async () => {
     return path.join(RESOURCES_PATH, ...paths);
   };
 
-  mainWindow = new BrowserWindow({
+  rendererWindow = new BrowserWindow({
     show: false,
     width: 1024,
     height: 728,
@@ -97,39 +97,49 @@ const createWindow = async () => {
       contextIsolation: false,
     },
   });
-  workerWindow.loadURL(`file://${__dirname}/index.html?type=worker`);
+  workerWindow.loadURL(`file://${__dirname}/worker/index.html`);
 
-  mainWindow.loadURL(`file://${__dirname}/index.html?type=renderer`);
+  rendererWindow.loadURL(`file://${__dirname}/renderer/index.html`);
 
   // @TODO: Use 'ready-to-show' event
   //        https://github.com/electron/electron/blob/master/docs/api/browser-window.md#using-ready-to-show-event
-  mainWindow.webContents.on('did-finish-load', () => {
-    if (!mainWindow) {
+  rendererWindow.webContents.on('did-finish-load', () => {
+    if (!rendererWindow) {
       throw new Error('"mainWindow" is not defined');
     }
     if (process.env.START_MINIMIZED) {
-      mainWindow.minimize();
+      rendererWindow.minimize();
     } else {
-      mainWindow.show();
-      mainWindow.focus();
+      rendererWindow.show();
+      rendererWindow.focus();
     }
   });
+  // workerWindow.webContents.on('did-finish-load', () => {
+  //   if (!workerWindow) {
+  //     throw new Error('"mainWindow" is not defined');
+  //   }
+  //   if (process.env.START_MINIMIZED) {
+  //     workerWindow.minimize();
+  //   } else {
+  //     workerWindow.show();
+  //     workerWindow.focus();
+  //   }
+  // });
 
-  mainWindow.on('closed', () => {
-    mainWindow = null;
+  rendererWindow.on('closed', () => {
+    rendererWindow = null;
     workerWindow?.close();
   });
 
   workerWindow.on('closed', () => {
     workerWindow = null;
-    mainWindow?.close();
   });
 
-  const menuBuilder = new MenuBuilder(mainWindow);
+  const menuBuilder = new MenuBuilder(rendererWindow);
   menuBuilder.buildMenu();
 
   // Open urls in the user's browser
-  mainWindow.webContents.on('new-window', (event, url) => {
+  rendererWindow.webContents.on('new-window', (event, url) => {
     event.preventDefault();
     shell.openExternal(url);
   });
@@ -156,5 +166,5 @@ app.whenReady().then(createWindow).then(main).catch(console.log);
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-  if (mainWindow === null) createWindow();
+  if (rendererWindow === null) createWindow();
 });

@@ -27,16 +27,23 @@ export default merge(baseConfig, {
 
   target: 'electron-renderer',
 
-  entry: [
-    'core-js',
-    'regenerator-runtime/runtime',
-    path.join(__dirname, '../../src/index.tsx'),
-  ],
+  entry: {
+    renderer: [
+      'core-js',
+      'regenerator-runtime/runtime',
+      path.join(__dirname, '../../src/renderer/index.tsx'),
+    ],
+    worker: [
+      'core-js',
+      'regenerator-runtime/runtime',
+      path.join(__dirname, '../../src/worker/index.ts'),
+    ],
+  },
 
   output: {
     path: path.join(__dirname, '../../src/dist'),
-    publicPath: './dist/',
-    filename: 'renderer.prod.js',
+    publicPath: '../dist/',
+    filename: '[name].renderer.prod.js',
   },
 
   module: {
@@ -176,7 +183,7 @@ export default merge(baseConfig, {
     }),
 
     new MiniCssExtractPlugin({
-      filename: 'style.css',
+      filename: '[name].css',
     }),
 
     new BundleAnalyzerPlugin({

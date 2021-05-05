@@ -26,3 +26,5 @@ export async function main()
     new WorkspaceChannel(),
   ]);
 }
+
+main();
