@@ -2,6 +2,8 @@
 import React from 'react';
 import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
+import Hotkeys from 'react-hot-keys';
+import { HotkeysEvent } from 'hotkeys-js';
 import TimeAgo from 'javascript-time-ago';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowCircleLeft, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
@@ -47,6 +49,8 @@ class FileView extends React.Component<FileViewProps, FileViewState>
     this.handleTagFormSubmit = this.handleTagFormSubmit.bind(this);
     this.handleTagRemove = this.handleTagRemove.bind(this);
     this.handleCalculateMD5 = this.handleCalculateMD5.bind(this);
+
+    this.onKeyDown = this.onKeyDown.bind(this);
   }
 
   async componentDidUpdate(prevProps: FileViewProps)
@@ -93,6 +97,26 @@ class FileView extends React.Component<FileViewProps, FileViewState>
 
     const newFile: FileStub = { ...file, md5: response.data };
     this.setState({ file: newFile });
+  }
+
+  onKeyDown(_shortcut: string, _e: KeyboardEvent, handler: HotkeysEvent)
+  {
+    const { prevPage, nextPage } = this.props;
+    switch(handler.key)
+    {
+      case 'left':
+      case 'a':
+        prevPage();
+        break;
+
+      case 'right':
+      case 'd':
+        nextPage();
+        break;
+
+      default:
+        break;
+    }
   }
 
   async loadFile()
@@ -142,6 +166,8 @@ class FileView extends React.Component<FileViewProps, FileViewState>
     const timeAgo = new TimeAgo();
     return (
       <div>
+        <Hotkeys keyName='left,right,a,d' onKeyDown={this.onKeyDown}/>
+
         <div className='fixed flex w-full h-screen bg-gray-900'>
           <div className='m-auto'>
             {content}

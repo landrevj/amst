@@ -82,7 +82,7 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
   async syncFiles(request: SocketRequest<number>)
   {
     /**
-     * General Process Steps:
+     * General Steps:
      *
      * a - get all folders on current workspace
      * b = list of all files on the workspace
@@ -125,7 +125,6 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
     const promises: Promise<number>[] = [];
 
     const folders = await em.find(Folder, { workspace: id });
-    console.log(folders);
     const searchPaths = folders.map(folder => folder.path);
     searchPaths.forEach(folder => {
 
@@ -166,7 +165,6 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
       promises.push(fn());
 
     });
-    // DONE ////////////////////////////////////////////////////////////////////////////////////////////
 
     const newFileCount = (await Promise.all(promises)).reduce((a,c) => a + c, 0);
     this.emitSyncUpdate(id, `Added ${pluralize('file', newFileCount, true)} to the workspace!`, true);
