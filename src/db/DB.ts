@@ -29,6 +29,10 @@ class Database
 
       conf.dbName = prodDBPath;
     }
+    else if (process.env.NODE_ENV === 'development')
+    {
+      conf.dbName = './src/db/dev_database.sqlite';
+    }
 
     const orm = await MikroORM.init(conf);
     this.private_orm = orm;
