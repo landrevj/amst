@@ -141,25 +141,29 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
 
         const pathChunk: string[] = Array(PATH_DISCOVERY_CHUNK_SIZE);
         let chunkLength = 0;
-        let totalAddedFiles = 0;
+        let totalFilesDiscovered = 0;
+        let totalFilesAdded = 0;
         // eslint-disable-next-line no-restricted-syntax
         for await (const filePath of pathStream)
         {
           pathChunk[chunkLength] = filePath as string;
           chunkLength += 1;
+          totalFilesDiscovered += 1;
 
           if (chunkLength === PATH_DISCOVERY_CHUNK_SIZE)
           {
-            totalAddedFiles += await this.syncPathChunk(id, pathChunk);
+            totalFilesAdded += await WorkspaceChannel.syncPathChunk(id, pathChunk);
             chunkLength = 0;
           }
+          this.emitSyncUpdate(id, `Discovered ${pluralize('file', totalFilesDiscovered, true)} - Added ${pluralize('file', totalFilesAdded, true)} to the workspace`);
         }
         if (chunkLength !== 0)
         {
-          totalAddedFiles += await this.syncPathChunk(id, pathChunk.slice(0, chunkLength));
+          totalFilesAdded += await WorkspaceChannel.syncPathChunk(id, pathChunk.slice(0, chunkLength));
+          this.emitSyncUpdate(id, `Discovered ${pluralize('file', totalFilesDiscovered, true)} - Added ${pluralize('file', totalFilesAdded, true)} to the workspace`);
         }
 
-        return totalAddedFiles;
+        return totalFilesAdded;
       }
 
       promises.push(fn());
@@ -170,7 +174,7 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
     this.emitSyncUpdate(id, `Added ${pluralize('file', newFileCount, true)} to the workspace!`, true);
   }
 
-  async syncPathChunk(workspaceID: number, pathChunk: string[])
+  static async syncPathChunk(workspaceID: number, pathChunk: string[])
   {
     const em = DB.getNewEM();
     if (!em) return 0;
@@ -211,13 +215,13 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
     });
 
     const existingFilesNotOnWorkspace = (await Promise.all(queryPromises)).flat();
-    this.emitSyncUpdate(workspaceID, `Found ${existingFilesNotOnWorkspace.length} pre-existing ${pluralize('file', existingFilesNotOnWorkspace.length)} in the DB...`);
+    // this.emitSyncUpdate(workspaceID, `Found ${existingFilesNotOnWorkspace.length} pre-existing ${pluralize('file', existingFilesNotOnWorkspace.length)} in the DB...`);
 
     // remove existing files from those we might need to create new records for ////////////////////////
     existingFilesNotOnWorkspace.forEach(file => matchSet.delete(file.fullPath));
 
     // associate the existing files with the current workspace /////////////////////////////////////////
-    await this.associateFiles(workspaceID, existingFilesNotOnWorkspace, 'existing files');
+    await WorkspaceChannel.associateFiles(workspaceID, existingFilesNotOnWorkspace, 'existing files');
 
     // create new file records /////////////////////////////////////////////////////////////////////////
     const paths = Array.from(matchSet);
@@ -242,20 +246,20 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
         // eslint-disable-next-line no-await-in-loop
         await em?.flush();
         em?.clear();
-        this.emitSyncUpdate(workspaceID, `Importing new files to the DB... (${i + 1} of ${paths.length})`);
+        // this.emitSyncUpdate(workspaceID, `Importing new files to the DB... (${i + 1} of ${paths.length})`);
       }
     }
     await em?.flush();
     em?.clear();
 
     // associate the new records with the current workspace
-    await this.associateFiles(workspaceID, newFiles, 'new files');
+    await WorkspaceChannel.associateFiles(workspaceID, newFiles, 'new files');
 
     // return the total number of files we associated to the current workspace
     return existingFilesNotOnWorkspace.length + newFiles.length;
   }
 
-  async associateFiles(workspaceID: number, files: File[], filesDescription = 'files')
+  static async associateFiles(workspaceID: number, files: File[], filesDescription = 'files')
   {
     const promises: Promise<void>[] = [];
 
@@ -275,7 +279,7 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
         }
         await em.flush();
         em.clear();
-        this.emitSyncUpdate(workspaceID, `Associating ${filesDescription} with workspace... (${(i + 1) * FILE_ASSOCIATION_CHUNK_SIZE} of ${files.length})`);
+        // this.emitSyncUpdate(workspaceID, `Associating ${filesDescription} with workspace... (${(i + 1) * FILE_ASSOCIATION_CHUNK_SIZE} of ${files.length})`);
       };
 
       promises.push(fn());
