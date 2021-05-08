@@ -69,11 +69,20 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
     const { workspaces } = this.state;
     return (
       <>
-        <button className='fixed top-0 right-0 bg-red-300' type="button" onClick={this.onClickResetDB}>reset</button>
-        <div className='space-y-2'>
-          <WorkspaceForm onSubmit={this.onSubmitWorkspaceForm}/>
-          <WorkspaceList workspaces={workspaces}/>
+      <div className='h-screen animate-bg-gradient-shift bg-gradient-to-tr from-indigo-800 via-blue-500 to-teal-500 filter saturate-[0.7]'/>
+        {/* <button className='fixed top-0 right-0 bg-red-300' type="button" onClick={this.onClickResetDB}>reset</button> */}
+      <div className='h-screen absolute inset-0 p-4 bg-transparent'>
+        <div className='h-full flex flex-row justify-center space-x-4 px-4'>
+          <div className='max-h-full'>
+            <div className='max-h-full overflow-auto bg-white rounded'>
+              <WorkspaceForm onSubmit={this.onSubmitWorkspaceForm}/>
+            </div>
+          </div>
+          <div className='overflow-auto flex-grow max-w-5xl space-y-2 bg-white p-4 rounded'>
+            <WorkspaceList workspaces={workspaces}/>
+          </div>
         </div>
+      </div>
       </>
     );
   }

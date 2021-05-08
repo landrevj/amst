@@ -18,6 +18,7 @@ import MenuBuilder from './menu';
 
 import { main } from './main';
 
+// app.commandLine.appendSwitch('js-flags', '--expose-gc');
 
 export default class AppUpdater {
   constructor() {

@@ -1,4 +1,6 @@
 import React from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheck, faEdit, faUndo } from '@fortawesome/free-solid-svg-icons';
 // import log from 'electron-log';
 
 import Client from '../../../utils/websocket/SocketClient';
@@ -32,18 +34,27 @@ export class WorkspaceForm extends React.Component<WorkspaceFormProps, Workspace
       newPaths: [''],
     };
 
-    this.onNameChange   = this.onNameChange.bind(this);
-    this.onClickAddToDB = this.onClickAddToDB.bind(this);
+    this.handleClearForm = this.handleClearForm.bind(this);
+    this.handleNameChange = this.handleNameChange.bind(this);
+    this.handleAddToDB = this.handleAddToDB.bind(this);
 
-    this.onPathsChange  = this.onPathsChange.bind(this);
+    this.handlePathsChange  = this.handlePathsChange.bind(this);
   }
 
-  onNameChange({ target: { value } }: React.ChangeEvent<HTMLInputElement>)
+  handleClearForm()
+  {
+    this.setState({
+      newName: '',
+      newPaths: [''],
+    })
+  }
+
+  handleNameChange({ target: { value } }: React.ChangeEvent<HTMLInputElement>)
   {
     this.setState({ newName: value });
   }
 
-  async onClickAddToDB()
+  async handleAddToDB()
   {
     const { newName, newPaths } = this.state;
     const paths = newPaths.filter((path) => { return path !== '' }) // dont add empty strings
@@ -85,7 +96,7 @@ export class WorkspaceForm extends React.Component<WorkspaceFormProps, Workspace
     }
   }
 
-  onPathsChange(newPaths: string[])
+  handlePathsChange(newPaths: string[])
   {
     this.setState({
       newPaths,
@@ -97,14 +108,26 @@ export class WorkspaceForm extends React.Component<WorkspaceFormProps, Workspace
   {
     const { newName, newPaths } = this.state;
     return (
-      <div className='rounded bg-gray-100'>
-        <div className='p-2 mb-2 space-x-1.5'>
-          <h2>New workspace... {newName}</h2>
-          <input type="text" className='rounded' value={newName} onChange={this.onNameChange}/>
-          <button type="button" onClick={this.onClickAddToDB}>add</button>
+      <div>
+        <div className='p-4'>
+          <div className='mb-4 text-xl text-gray-500 space-x-2'>
+            <FontAwesomeIcon icon={faEdit}/>
+            <span>new workspace</span>
+          </div>
+
+          <input type="text" className='inline-block w-full px-2 py-1 rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' value={newName} placeholder='name' onChange={this.handleNameChange}/>
         </div>
-        <hr/>
-        <MultiplePathPicker pathArray={newPaths} onChange={this.onPathsChange}/>
+        <div className='p-4 bg-gray-100'>
+          <MultiplePathPicker pathArray={newPaths} onChange={this.handlePathsChange}/>
+        </div>
+        <div className='p-2 flex flex-row justify-center text-lg text-gray-400 space-x-4'>
+          <button type="button" className='hover:text-yellow-400' onClick={this.handleClearForm}>
+            <FontAwesomeIcon icon={faUndo}/>
+          </button>
+          <button type="button" className='hover:text-green-400' onClick={this.handleAddToDB}>
+            <FontAwesomeIcon icon={faCheck}/>
+          </button>
+        </div>
       </div>
     );
   }

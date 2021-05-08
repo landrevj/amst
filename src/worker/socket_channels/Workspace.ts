@@ -3,7 +3,7 @@ import { basename, extname } from 'path';
 import { FilterQuery, FindOptions } from '@mikro-orm/core';
 import fg from 'fast-glob';
 import { lookup } from 'mime-types';
-import pluralize from 'pluralize';
+import { throttle } from 'lodash';
 import log from 'electron-log';
 
 import { DB } from '../../db';
@@ -67,7 +67,7 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
 
   // /////////////////////////////////////////////////////////
   // /////////////////////////////////////////////////////////
-  async emitSyncUpdate(workspaceID: number, text: string, success?: boolean)
+  async emitSyncUpdate(workspaceID: number, countDiscovered:number, countAdded: number, success?: boolean)
   {
     let status = SocketRequestStatus.RUNNING;
     if      (success === true)  status = SocketRequestStatus.SUCCESS;
@@ -75,9 +75,11 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
 
     this.getSocket()?.emit(`Workspace_${workspaceID}_sync`, {
       status,
-      data: text,
-    } as SocketResponse<string>);
+      data: [countDiscovered, countAdded],
+    } as SocketResponse<[number, number]>);
   }
+
+  emitThrottledSyncUpdate = throttle(this.emitSyncUpdate, 100);
 
   async syncFiles(request: SocketRequest<number>)
   {
@@ -120,15 +122,14 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
     // respond to inital sync request
     this.getSocket()?.emit(request.responseChannel as string, { status: SocketRequestStatus.SUCCESS } as SocketResponse<void>);
     // emit general sync update message
-    this.emitSyncUpdate(id, 'Started sync...');
 
-    const promises: Promise<number>[] = [];
+    const promises: Promise<[number, number]>[] = [];
 
     const folders = await em.find(Folder, { workspace: id });
     const searchPaths = folders.map(folder => folder.path);
     searchPaths.forEach(folder => {
 
-      const fn = async () => {
+      const fn = async (): Promise<[number, number]> => {
 
         const pathStream = fg.stream('**/*', {
           cwd: folder,
@@ -155,23 +156,23 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
             totalFilesAdded += await WorkspaceChannel.syncPathChunk(id, pathChunk);
             chunkLength = 0;
           }
-          this.emitSyncUpdate(id, `Discovered ${pluralize('file', totalFilesDiscovered, true)} - Added ${pluralize('file', totalFilesAdded, true)} to the workspace`);
+          this.emitThrottledSyncUpdate(id, totalFilesDiscovered, totalFilesAdded);
         }
         if (chunkLength !== 0)
         {
           totalFilesAdded += await WorkspaceChannel.syncPathChunk(id, pathChunk.slice(0, chunkLength));
-          this.emitSyncUpdate(id, `Discovered ${pluralize('file', totalFilesDiscovered, true)} - Added ${pluralize('file', totalFilesAdded, true)} to the workspace`);
+          this.emitThrottledSyncUpdate(id, totalFilesDiscovered, totalFilesAdded);
         }
 
-        return totalFilesAdded;
+        return [totalFilesDiscovered, totalFilesAdded];
       }
 
       promises.push(fn());
 
     });
 
-    const newFileCount = (await Promise.all(promises)).reduce((a,c) => a + c, 0);
-    this.emitSyncUpdate(id, `Added ${pluralize('file', newFileCount, true)} to the workspace!`, true);
+    const newFileCount = (await Promise.all(promises)).reduce((a,c) => [a[0]+c[0], a[1]+c[1]], [0, 0]);
+    this.emitThrottledSyncUpdate(id, newFileCount[0], newFileCount[1], true);
   }
 
   static async syncPathChunk(workspaceID: number, pathChunk: string[])
@@ -194,6 +195,7 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
     const existingFilesOnWorkspace = (await Promise.all(promises)).flat();
     // remove those from those we might need to create new file records for
     existingFilesOnWorkspace.forEach(path => matchSet.delete(path));
+    em.clear();
 
     // get all files that are in the DB already but not associated with the workspace //////////////////
     const pathChunks = chunk(Array.from(matchSet), MATCHED_PATHS_CHUNK_SIZE);
@@ -221,7 +223,8 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
     existingFilesNotOnWorkspace.forEach(file => matchSet.delete(file.fullPath));
 
     // associate the existing files with the current workspace /////////////////////////////////////////
-    await WorkspaceChannel.associateFiles(workspaceID, existingFilesNotOnWorkspace, 'existing files');
+    await WorkspaceChannel.associateFiles(workspaceID, existingFilesNotOnWorkspace);
+    em.clear();
 
     // create new file records /////////////////////////////////////////////////////////////////////////
     const paths = Array.from(matchSet);
@@ -238,33 +241,33 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
       if (mt) file.mimeType = mt;
       // file.md5      = md5File.sync(entry.path);
 
-      em?.persist(file);
+      em.persist(file);
       newFiles[i] = file;
 
       if (i % NEW_PATHS_CHUNK_SIZE === 0)
       {
         // eslint-disable-next-line no-await-in-loop
-        await em?.flush();
-        em?.clear();
+        await em.flush();
+        em.clear();
         // this.emitSyncUpdate(workspaceID, `Importing new files to the DB... (${i + 1} of ${paths.length})`);
       }
     }
-    await em?.flush();
-    em?.clear();
+    await em.flush();
+    em.clear();
 
     // associate the new records with the current workspace
-    await WorkspaceChannel.associateFiles(workspaceID, newFiles, 'new files');
+    await WorkspaceChannel.associateFiles(workspaceID, newFiles);
 
     // return the total number of files we associated to the current workspace
     return existingFilesNotOnWorkspace.length + newFiles.length;
   }
 
-  static async associateFiles(workspaceID: number, files: File[], filesDescription = 'files')
+  static async associateFiles(workspaceID: number, files: File[])// , filesDescription = 'files')
   {
     const promises: Promise<void>[] = [];
 
     const chunks = chunk(files, FILE_ASSOCIATION_CHUNK_SIZE);
-    chunks.forEach((currentChunk, i) => {
+    chunks.forEach(currentChunk => {
       // use an async lambda rather than just making the current function we are in async so
       // we can syncronously build a list of promises for each chunk, then await them all together
       const fn = async () => {

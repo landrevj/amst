@@ -12,7 +12,7 @@ interface WorkspaceListProps
 export function WorkspaceList({ workspaces }: WorkspaceListProps)
 {
   return (
-    <ul>
+    <ul className='space-y-4'>
       {workspaces.map((workspace) =>
       <li key={workspace.id}>
         <WorkspaceWidget workspace={workspace}/>

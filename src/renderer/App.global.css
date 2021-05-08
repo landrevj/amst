@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .animation-running {
+    animation-play-state: running;
+  }
+
+  .animation-paused {
+    animation-play-state: paused;
+  }
+}
+
 /*
  * @NOTE: Prepend a `~` to css file paths that are in your node_modules
  *        See https://github.com/webpack-contrib/sass-loader#imports
@@ -14,7 +24,7 @@ a {
 
 body {
   font-family: Roboto, sans-serif;
-  @apply text-base;
+  @apply text-base text-gray-700;
 }
 
 video:focus,
@@ -80,7 +90,7 @@ input[type='number']::-webkit-outer-spin-button {
   @apply border-0 focus:ring-0;
 }
 .react-select__indicator-separator {
-  display: none;
+  @apply hidden;
 }
 .react-select__indicator {
   @apply p-0 px-1 !important;
@@ -88,7 +98,37 @@ input[type='number']::-webkit-outer-spin-button {
 
 /************************************************************/
 /************************************************************/
+.animate-bg-gradient-shift,
+.animate-bg-gradient-shift-fast {
+  background-size: 400% 400%;
+}
 
-button {
-  @apply rounded bg-gray-300;
+.bg-gradient-conic-loading {
+  width: 100vw;
+  height: 100vw;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -20%) rotate(90deg);
+}
+
+.spinner {
+  @apply inline-block;
+  width: 20px;
+  height: 20px;
+}
+/* https://stephanwagner.me/only-css-loading-spinner */
+.spinner:before {
+  content: '';
+  box-sizing: border-box;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  margin-left: -10px;
+  border-radius: 50%;
+  @apply border-4 border-solid border-gray-300;
+  border-top-color: #fff;
+  @apply animate-spin;
 }

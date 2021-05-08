@@ -2,6 +2,9 @@ import React from 'react';
 import { OpenDialogReturnValue } from 'electron';
 import log from 'electron-log';
 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus, faSearch, faTimes } from '@fortawesome/free-solid-svg-icons';
+
 import { IpcService } from '../../../../utils/ipc';
 
 const ipc = new IpcService();
@@ -87,17 +90,25 @@ export class MultiplePathPicker extends React.Component<MultiplePathPickerProps>
   {
     const { pathArray } = this.props;
     return (
-      <div className='inline-block p-2 m-2 space-y-1.5'>
-        {pathArray.map((path, i) =>
-        // eslint-disable-next-line react/no-array-index-key
-        <div className='space-x-1.5' key={`path-${i}`}>
-          <input type='text' className='rounded' value={path} onChange={this.onPathChange} data-index={i}/>
-          <button type='button' onClick={this.onClickBrowseForPath} data-index={i}>browse</button>
-          <button type='button' className='bg-yellow-300' onClick={this.onClickRemovePath} data-index={i}>X</button>
+      <div>
+        <div className='space-y-2'>
+          {pathArray.map((path, i) =>
+          // eslint-disable-next-line react/no-array-index-key
+          <div className='space-x-2' key={`path-${i}`}>
+            <input type='text' className='px-2 py-1 rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' value={path} placeholder='path' onChange={this.onPathChange} data-index={i}/>
+            <button type='button' className='text-gray-400 hover:text-blue-500' onClick={this.onClickBrowseForPath} data-index={i}>
+              <FontAwesomeIcon icon={faSearch}/>
+            </button>
+            <button type='button' className='text-gray-400 hover:text-red-500' onClick={this.onClickRemovePath} data-index={i}>
+              <FontAwesomeIcon icon={faTimes}/>
+            </button>
+          </div>
+          )}
         </div>
-        )}
-        <hr/>
-        <button type="button" className='' onClick={this.onClickIncrementPath}>add path</button>
+
+        <button type="button" className='mt-4 flex flex-row justify-center w-full bg-transparent group border-dashed border-2 border-gray-300 hover:border-blue-400 rounded-full' onClick={this.onClickIncrementPath}>
+          <FontAwesomeIcon className='m-1.5 inline-block fill-current text-gray-300 group-hover:text-blue-400' icon={faPlus}/>
+        </button>
       </div>
     );
   }
