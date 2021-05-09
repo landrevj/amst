@@ -27,6 +27,14 @@ body {
   @apply text-base text-gray-700;
 }
 
+body::before {
+  z-index: -999999;
+  content: '';
+  background-size: 400% 400%;
+  @apply block fixed w-screen h-screen;
+  @apply animate-bg-gradient-shift bg-gradient-to-tr from-indigo-800 via-blue-500 to-teal-500 filter saturate-[0.7];
+}
+
 video:focus,
 audio:focus {
   outline: none;
@@ -75,10 +83,13 @@ input[type='number']::-webkit-outer-spin-button {
 .react-select__control {
   @apply h-8;
   min-height: 2rem !important;
-  @apply rounded-full border-2 border-gray-400 !important;
+  @apply rounded-full border-2 border-gray-300 !important;
 }
 .react-select__control--is-focused {
   @apply border-blue-600 ring-1 ring-blue-600 !important;
+}
+.react-select__single-value {
+  @apply text-gray-700 !important;
 }
 .react-select__value-container > div:not(.react-select__single-value) {
   @apply m-0 p-0;

@@ -200,7 +200,7 @@ class FileView extends React.Component<FileViewProps, FileViewState>
           </div>
 
           <div className='flex flex-row flex-wrap justify-evenly'>
-            <div className='flex-initial max-w-4xl px-4 py-10'>
+            <div className='flex-initial max-w-full px-4 py-10'>
               <TagList tags={tags} searchTagTuples={query.tags} onTagRemove={this.handleTagRemove}/>
               <div className='flex flex-row mt-5'>
                 <div className='mr-1 px-2 py-1 text-sm rounded-full bg-green-200 border-2 border-solid border-green-200'>new tag</div>
@@ -208,7 +208,7 @@ class FileView extends React.Component<FileViewProps, FileViewState>
               </div>
             </div>
 
-            <div className='flex-initial max-w-4xl px-4 py-10'>
+            <div className='flex-initial max-w-full px-4 py-10'>
               <table className='table-fixed'>
                 <tbody>
                   <tr><td className='text-right font-bold pr-2'>#</td><td className='break-all'>{file.id}</td></tr>

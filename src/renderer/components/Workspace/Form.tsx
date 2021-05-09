@@ -1,6 +1,7 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faEdit, faUndo } from '@fortawesome/free-solid-svg-icons';
+import { faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faTrashAlt } from '@fortawesome/free-regular-svg-icons';
 // import log from 'electron-log';
 
 import Client from '../../../utils/websocket/SocketClient';
@@ -108,27 +109,22 @@ export class WorkspaceForm extends React.Component<WorkspaceFormProps, Workspace
   {
     const { newName, newPaths } = this.state;
     return (
-      <div>
+      <>
         <div className='p-4'>
-          <div className='mb-4 text-xl text-gray-500 space-x-2'>
-            <FontAwesomeIcon icon={faEdit}/>
-            <span>new workspace</span>
-          </div>
-
-          <input type="text" className='inline-block w-full px-2 py-1 rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' value={newName} placeholder='name' onChange={this.handleNameChange}/>
+          <input type="text" className='inline-block w-full text-sm px-2 py-1 rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' value={newName} placeholder='name' onChange={this.handleNameChange}/>
         </div>
         <div className='p-4 bg-gray-100'>
           <MultiplePathPicker pathArray={newPaths} onChange={this.handlePathsChange}/>
         </div>
         <div className='p-2 flex flex-row justify-center text-lg text-gray-400 space-x-4'>
-          <button type="button" className='hover:text-yellow-400' onClick={this.handleClearForm}>
-            <FontAwesomeIcon icon={faUndo}/>
+          <button type="button" className='hover:text-red-400' onClick={this.handleClearForm}>
+            <FontAwesomeIcon icon={faTrashAlt}/>
           </button>
           <button type="button" className='hover:text-green-400' onClick={this.handleAddToDB}>
             <FontAwesomeIcon icon={faCheck}/>
           </button>
         </div>
-      </div>
+      </>
     );
   }
 };

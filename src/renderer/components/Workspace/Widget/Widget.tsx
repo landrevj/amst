@@ -77,7 +77,6 @@ export default class WorkspaceWidget extends React.Component<WorkspaceWidgetProp
 
   async syncStatusListener(response: SocketResponse<[number, number]>)
   {
-    console.log('recieved', Date.now());
     const { status, data } = response;
 
     const searchState  = status === SocketRequestStatus.RUNNING ? SpinnerState.WORKING : SpinnerState.IDLE;
@@ -118,7 +117,7 @@ export default class WorkspaceWidget extends React.Component<WorkspaceWidgetProp
 
     return (
       <div className={`relative p-4 rounded
-        animate-bg-gradient-shift-fast bg-gradient-to-r from-indigo-600 via-blue-400 to-indigo-600 filter saturate-[0.7] ${searchState === SpinnerState.WORKING ? '' : 'animation-paused'}`}>
+        animate-bg-gradient-shift-fast bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600 filter saturate-[0.7] ${searchState === SpinnerState.WORKING ? '' : 'animation-paused'}`}>
         <div className='flex flex-col space-y-4'>
           <div className='relative flex flex-row text-xl text-gray-100'>
 

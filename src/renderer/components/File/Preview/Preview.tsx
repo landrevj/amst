@@ -24,7 +24,7 @@ export default function FilePreview({ file, searchResultIndex }: FilePreviewProp
   let content: JSX.Element;
   if (type === 'image')
   {
-    content = (<img className='min-w-full rounded-md shadow' src={`http://${Client.host}:${Client.port}/files/${file.id}`} alt={file.name}/>);
+    content = (<img className='min-w-full rounded-md' src={`http://${Client.host}:${Client.port}/files/${file.id}`} alt={file.name}/>);
   }
   else
   {

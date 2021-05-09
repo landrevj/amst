@@ -2,7 +2,7 @@ import { faAngleDoubleLeft, faAngleDoubleRight, faAngleLeft, faAngleRight, IconD
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 
-interface PaginationBubblesProps
+interface PaginationButtonsProps
 {
   className?: string;
   width?: number;
@@ -26,9 +26,9 @@ const Button: React.FC<BP> = ({ className, pageFn, inner }: BP) => {
 }
 Button.defaultProps = { className: '' };
 
-export default function PaginationBubbles({ className, width, page, maxPage, prevPage, nextPage, goToPage }: PaginationBubblesProps)
+export default function PaginationButtons({ className, width, page, maxPage, prevPage, nextPage, goToPage }: PaginationButtonsProps)
 {
-  const t = (width || PaginationBubbles.defaultProps.width);
+  const t = (width || PaginationButtons.defaultProps.width);
   const w = Math.min(t, maxPage + 1);
   const hw = Math.trunc(w / 2);
   let pageArr: number[] = Array(w);
@@ -57,7 +57,7 @@ export default function PaginationBubbles({ className, width, page, maxPage, pre
 
       <div className='flex flex-row flex-wrap justify-center space-x-1'>
         {pageArr.map(p => (
-          <Button className={`rounded-full px-2.5 focus:outline-none focus:ring-4 ring-blue-200 ring-opacity-50 ${p === page ? 'bg-blue-200' : 'bg-transparent hover: hover:text-blue-400'}`}
+          <Button className={`px-2.5 focus:outline-none focus:ring-4 ring-blue-200 ring-opacity-50 ${p === page ? 'text-white filter saturate-[.9] bg-gradient-to-tr from-blue-400 to-blue-300' : 'bg-transparent hover: hover:text-blue-400'}`}
                   pageFn={() => { if (p !== page) goToPage(p) }}
                   inner={(p + 1).toString()} key={p}/>)
         )}
@@ -69,7 +69,7 @@ export default function PaginationBubbles({ className, width, page, maxPage, pre
   );
 }
 
-PaginationBubbles.defaultProps = {
+PaginationButtons.defaultProps = {
   className: '',
   width: 5
 };

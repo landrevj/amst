@@ -94,12 +94,12 @@ export class MultiplePathPicker extends React.Component<MultiplePathPickerProps>
         <div className='space-y-2'>
           {pathArray.map((path, i) =>
           // eslint-disable-next-line react/no-array-index-key
-          <div className='space-x-2' key={`path-${i}`}>
-            <input type='text' className='px-2 py-1 rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' value={path} placeholder='path' onChange={this.onPathChange} data-index={i}/>
-            <button type='button' className='text-gray-400 hover:text-blue-500' onClick={this.onClickBrowseForPath} data-index={i}>
+          <div className='flex flex-row space-x-2' key={`path-${i}`}>
+            <input type='text' className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' value={path} placeholder='path' onChange={this.onPathChange} data-index={i}/>
+            <button type='button' className='text-gray-400 hover:text-blue-400' onClick={this.onClickBrowseForPath} data-index={i}>
               <FontAwesomeIcon icon={faSearch}/>
             </button>
-            <button type='button' className='text-gray-400 hover:text-red-500' onClick={this.onClickRemovePath} data-index={i}>
+            <button type='button' className='text-gray-400 hover:text-red-400' onClick={this.onClickRemovePath} data-index={i}>
               <FontAwesomeIcon icon={faTimes}/>
             </button>
           </div>

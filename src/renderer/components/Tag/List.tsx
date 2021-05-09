@@ -42,24 +42,19 @@ export default function TagList({ tags, searchTagTuples, onTagRemove }: TagListP
   if (noneCategory) categories.push(noneCategory);
 
   return (
-    <table className='table-auto'>
-      <tbody>
-        {categories.map(([category, catTags]) =>
-          <tr key={category}>
-            <td className='align-text-top text-right'>
-              <span className='inline-block px-2 text-sm text-center rounded-full bg-blue-200 border-2 border-solid border-blue-200 overflow-ellipsis'>{category}</span>
-            </td>
-            <td className='align-middle'>
-              <div className='flex flex-row flex-wrap'>
-                {catTags.map(tag =>
-                <TagButton tag={tag} highlighted={!!searchTagTuples?.find(t => tagTupleEqualsStub(t, tag))} onRemove={onTagRemove} hideCategory key={tag.id}/>
-                )}
-              </div>
-            </td>
-          </tr>
-        )}
-      </tbody>
-    </table>
+    <div>
+      {categories.map(([category, catTags]) =>
+      <div className='flex flex-row' key={category}>
+        <div className='max-w-[50%]'>
+          <div className='m-0.5 max-w-full overflow-hidden overflow-ellipsis px-2 text-sm text-center rounded-full bg-blue-200 border-2 border-solid border-blue-200'>{category}</div>
+        </div>
+        <div className='flex-grow flex flex-row flex-wrap overflow-hidden'>
+          {catTags.map(tag =>
+          <TagButton tag={tag} highlighted={!!searchTagTuples?.find(t => tagTupleEqualsStub(t, tag))} onRemove={onTagRemove} hideCategory key={tag.id}/>
+          )}
+        </div>
+      </div>)}
+    </div>
   );
 }
 

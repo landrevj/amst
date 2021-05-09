@@ -1,65 +1,47 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
+import { faChevronLeft, faHome, faSearch } from '@fortawesome/free-solid-svg-icons';
 // import log from 'electron-log';
 
 import useFileSearchQuery from '../../components/File/Search/Query/use';
 import FilePreviewList from '../../components/File/Preview/List';
-import FileSearchPanel from '../../components/File/Search/Panel';
-import PaginationBubbles from '../../components/UI/Paginator/Bubbles';
-import ClickToEditInput from '../../components/UI/ClickToEdit/Input';
+import FileSearchForm from '../../components/File/Search/Form';
+import PaginationButtons from '../../components/UI/Paginator/Buttons';
+import PanelCard from '../../components/UI/Panel/Card';
+import PaginationPageInput from '../../components/UI/Paginator/PageInput';
 
 // eslint-disable-next-line import/prefer-default-export
-function FileSearch()
+export default function FileSearch()
 {
   const [files, count, page, maxPage, prevPage, nextPage, goToPage, query] = useFileSearchQuery({ defaultFilesPerPage: 30 });
 
   const paginationWidth = 9;
-  const pagination = <PaginationBubbles className='flex-grow' width={paginationWidth} page={page} maxPage={maxPage} prevPage={prevPage} nextPage={nextPage} goToPage={goToPage}/>;
 
   return (
-    <div className='flex flex-row h-screen'>
-      <FileSearchPanel query={query} files={files} resultCount={count}/>
+    <div className='flex flex-row h-screen p-4 space-x-4'>
+      <div className='flex-none w-72'>
+        <PanelCard icon={faSearch} text='search'>
+          <FileSearchForm query={query} files={files} resultCount={count}/>
+        </PanelCard>
+      </div>
 
-      <div className='flex-grow h-full overflow-y-auto relative p-3'>
+      <div className='flex-grow h-full flex flex-col space-y-4'>
 
-        <div className='flex flex-row'>
-          <Link className='flex-none block rounded group hover:text-blue-400 focus:outline-none focus:ring-4 ring-blue-200 ring-opacity-50' to='/'>
-            <FontAwesomeIcon className='mr-2 fill-current text-gray-600 group-hover:text-blue-400' icon={faChevronLeft}/>home
+        <div className='px-4 py-2 flex flex-row bg-white rounded'>
+          <Link className='flex-none flex flex-col justify-center rounded group text-gray-500 hover:text-blue-400 focus:outline-none focus:ring-4 ring-blue-200 ring-opacity-50' to='/'>
+            <div className='space-x-2'>
+              <FontAwesomeIcon className='group-hover:text-blue-400' icon={faChevronLeft}/>
+              <FontAwesomeIcon className='group-hover:text-blue-400' icon={faHome}/>
+            </div>
           </Link>
-          {pagination}
-          <div className='flex-none space-x-1'>
-
-            <ClickToEditInput
-              inputClassName='text-right'
-              buttonClassName='text-gray-400 hover:text-blue-400'
-              type='text'
-              value={(page + 1).toString()}
-              onSave={(value: string) => goToPage(parseInt(value, 10) - 1)}
-              onValidateSave={(value: string) => {
-                const p = parseInt(value, 10 );
-                if (value !== '' && (p > 0 && p <= maxPage + 1)) return true;
-                return false;
-              }}
-              onValidateChange={(value: string) => {
-                const p = parseInt(value, 10 );
-                if (value === '' || (value.match(/^\d+$/) && p > 0 && p <= maxPage + 1)) return true;
-                return false;
-              }}
-              useContentWidth/>
-
-            <span>/</span>
-            <span>{maxPage + 1}</span>
-          </div>
+          <PaginationButtons className='flex-grow -my-2 mx-2' width={paginationWidth} page={page} maxPage={maxPage} prevPage={prevPage} nextPage={nextPage} goToPage={goToPage}/>
+          <PaginationPageInput className='flex-none my-auto' currentPage={page} maxPage={maxPage} goToPage={goToPage}/>
         </div>
 
-        <FilePreviewList className='my-2 rounded' files={files} query={query}/>
-        {pagination}
+        <FilePreviewList className='flex-grow max-h-full overflow-auto p-4 rounded bg-white' files={files} query={query}/>
 
       </div>
     </div>
   );
 };
-
-export default FileSearch;
