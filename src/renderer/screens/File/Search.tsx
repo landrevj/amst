@@ -19,7 +19,7 @@ export default function FileSearch()
   const paginationWidth = 9;
 
   return (
-    <div className='flex flex-row h-screen p-4 space-x-4'>
+    <div className='flex flex-row h-full p-4 space-x-4'>
       <div className='flex-none w-72'>
         <PanelCard icon={faSearch} text='search'>
           <FileSearchForm query={query} files={files} resultCount={count}/>

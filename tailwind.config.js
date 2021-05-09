@@ -31,6 +31,9 @@ module.exports = {
       zIndex: {
         '-10': '-10',
       },
+      height: {
+        'screen-minus-titlebar': 'calc(100vh - 1.5rem)',
+      }
     }
   },
   plugins: [

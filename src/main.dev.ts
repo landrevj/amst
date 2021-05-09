@@ -78,7 +78,8 @@ const createWindow = async () => {
     height: 728,
     minWidth: 850,
     minHeight: 550,
-    // frame: false,
+    frame: false,
+    backgroundColor: '#fff', // https://github.com/electron/electron/blob/master/docs/faq.md#the-font-looks-blurry-what-is-this-and-what-can-i-do
     icon: getAssetPath('icon.png'),
     webPreferences: {
       nodeIntegration: true,

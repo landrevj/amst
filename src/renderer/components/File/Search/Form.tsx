@@ -240,7 +240,10 @@ class FileSearchForm extends React.Component<FileSearchFormProps, FileSearchForm
           <input type='text' value={mimeType}  name='mimeType'  onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' placeholder='mime type'/>
           <input type='text' value={md5}       name='md5'       onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' placeholder='md5'/>
         </div>
-        {resultCount !== undefined ? <div className={`text-center filter saturate-[.9] ${modifiedQuery ? 'bg-gradient-to-r from-yellow-400 to-yellow-300' : 'bg-gradient-to-r from-blue-400 to-blue-300'}`}><span className='text-sm text-white'>{modifiedQuery ? 'modified' : `${resultCount} results`}</span></div> : <></>}
+        {resultCount !== undefined ?
+        <div className={`text-center filter saturate-[.9] ${modifiedQuery ? 'bg-gradient-to-r from-yellow-400 to-yellow-300' : 'bg-gradient-to-r from-blue-400 to-blue-300'}`}>
+          <span className='text-sm text-white'>{modifiedQuery ? 'modified' : `${resultCount.toLocaleString()} results`}</span>
+        </div> : <></>}
 
         <div className='p-2 flex flex-row justify-center text-lg text-gray-400 space-x-4'>
           <button type="button" className='hover:text-red-400' onClick={this.handleClearForm}>

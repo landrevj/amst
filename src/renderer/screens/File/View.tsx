@@ -165,65 +165,73 @@ class FileView extends React.Component<FileViewProps, FileViewState>
     const md5Button = <button type='button' onClick={this.handleCalculateMD5}>update</button>;
     const timeAgo = new TimeAgo();
     return (
-      <div>
-        <Hotkeys keyName='left,right,a,d' onKeyDown={this.onKeyDown}/>
+      <>
+      <Hotkeys keyName='left,right,a,d' onKeyDown={this.onKeyDown}/>
 
-        <div className='fixed flex w-full h-screen bg-gray-900'>
-          <div className='m-auto'>
-            {content}
-          </div>
-        </div>
-
-
-        <div className='absolute top-full w-full pb-5 bg-gray-100'>
-          <div className='flex flex-row px-3 py-1'>
-            <button type='button' className='h-6 bg-transparent' onClick={prevPage}>
-              <FontAwesomeIcon className='mr-2 fill-current text-gray-600' icon={faChevronLeft}/>
-              prev
-            </button>
-
-            <div className='flex-grow text-center'>
-              <span className='px-2 rounded-full bg-blue-300'>
-                #{file.id} - {page + 1}/{maxPage + 1}
-              </span>
-              <br/>
-              <Link className='inline-block px-2 rounded-full bg-green-300' to={`/file?${parentQuery || ''}`}>
-                <FontAwesomeIcon className='mr-1 -ml-1 my-auto fill-current text-gray-100' icon={faArrowCircleLeft}/>
-                <span>search</span>
-              </Link>
-            </div>
-
-            <button type='button' className='h-6 bg-transparent' onClick={nextPage}>
-              next
-              <FontAwesomeIcon className='ml-2 fill-current text-gray-600' icon={faChevronRight}/>
-            </button>
-          </div>
-
-          <div className='flex flex-row flex-wrap justify-evenly'>
-            <div className='flex-initial max-w-full px-4 py-10'>
-              <TagList tags={tags} searchTagTuples={query.tags} onTagRemove={this.handleTagRemove}/>
-              <div className='flex flex-row mt-5'>
-                <div className='mr-1 px-2 py-1 text-sm rounded-full bg-green-200 border-2 border-solid border-green-200'>new tag</div>
-                <TagForm fileID={file.id} onSubmit={this.handleTagFormSubmit}/>
-              </div>
-            </div>
-
-            <div className='flex-initial max-w-full px-4 py-10'>
-              <table className='table-fixed'>
-                <tbody>
-                  <tr><td className='text-right font-bold pr-2'>#</td><td className='break-all'>{file.id}</td></tr>
-                  <tr><td className='text-right font-bold pr-2'>name</td><td className='break-all'>{file.name}</td></tr>
-                  <tr><td className='text-right font-bold pr-2'>extension</td><td className='break-all'>{file.extension}</td></tr>
-                  <tr><td className='text-right font-bold pr-2'>mime</td><td className='break-all'>{file.mimeType || 'unknown'}</td></tr>
-                  <tr><td className='text-right font-bold pr-2'>md5</td><td className='break-all'>{file.md5 || md5Button}</td></tr>
-                  <tr><td className='text-right font-bold pr-2'>imported</td><td className='break-all'>{timeAgo.format(Date.parse(file.createdAt))}</td></tr>
-                  <tr><td className='text-right font-bold pr-2'>path</td><td className='break-all'>{file.fullPath}</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+      <div className='-z-10 fixed flex w-full h-screen-minus-titlebar bg-gray-900'>
+        <div className='m-auto'>
+          {content}
         </div>
       </div>
+
+      <div className='h-full overflow-auto'>
+        <div className='block h-full w-screen pointer-events-none'/>
+
+        <div className='w-full p-4 pt-0'>
+
+          <div className='w-full p-4 bg-gray-100 rounded'>
+            <div className='flex flex-row'>
+              <button type='button' className='h-6 bg-transparent' onClick={prevPage}>
+                <FontAwesomeIcon className='mr-2 fill-current text-gray-600' icon={faChevronLeft}/>
+                <span>prev</span>
+              </button>
+
+              <div className='flex-grow text-center'>
+                <span className='px-2 rounded-full bg-blue-300'>
+                  #{file.id} - {page + 1}/{maxPage + 1}
+                </span>
+                <br/>
+                <Link className='inline-block px-2 rounded-full bg-green-300' to={`/file?${parentQuery || ''}`}>
+                  <FontAwesomeIcon className='mr-1 -ml-1 my-auto fill-current text-gray-100' icon={faArrowCircleLeft}/>
+                  <span>search</span>
+                </Link>
+              </div>
+
+              <button type='button' className='h-6 bg-transparent' onClick={nextPage}>
+                <span>next</span>
+                <FontAwesomeIcon className='ml-2 fill-current text-gray-600' icon={faChevronRight}/>
+              </button>
+            </div>
+
+            <div className='flex flex-row flex-wrap justify-evenly'>
+              <div className='flex-initial max-w-full px-4 py-10'>
+                <TagList tags={tags} searchTagTuples={query.tags} onTagRemove={this.handleTagRemove}/>
+                <div className='flex flex-row mt-5'>
+                  <div className='mr-1 px-2 py-1 text-sm rounded-full bg-green-200 border-2 border-solid border-green-200'>new tag</div>
+                  <TagForm fileID={file.id} onSubmit={this.handleTagFormSubmit}/>
+                </div>
+              </div>
+
+              <div className='flex-initial max-w-full px-4 py-10'>
+                <table className='table-fixed'>
+                  <tbody>
+                    <tr><td className='text-right font-bold pr-2'>#</td><td className='break-all'>{file.id}</td></tr>
+                    <tr><td className='text-right font-bold pr-2'>name</td><td className='break-all'>{file.name}</td></tr>
+                    <tr><td className='text-right font-bold pr-2'>extension</td><td className='break-all'>{file.extension}</td></tr>
+                    <tr><td className='text-right font-bold pr-2'>mime</td><td className='break-all'>{file.mimeType || 'unknown'}</td></tr>
+                    <tr><td className='text-right font-bold pr-2'>md5</td><td className='break-all'>{file.md5 || md5Button}</td></tr>
+                    <tr><td className='text-right font-bold pr-2'>imported</td><td className='break-all'>{timeAgo.format(Date.parse(file.createdAt))}</td></tr>
+                    <tr><td className='text-right font-bold pr-2'>path</td><td className='break-all'>{file.fullPath}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+      </>
     );
   }
 }

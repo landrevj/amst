@@ -2,6 +2,7 @@
 
 import { IpcChannelInterface, registerIpcChannels } from '../utils/ipc';
 import { AppPathChannel, DialogChannel } from './ipc_channels';
+import { RendererWindowChannel } from './ipc_channels/RendererWindow';
 
 // eslint-disable-next-line import/prefer-default-export
 export async function main()
@@ -9,6 +10,7 @@ export async function main()
   const ipcChannels: IpcChannelInterface[] = [
     new AppPathChannel(),
     new DialogChannel(),
+    new RendererWindowChannel(),
   ];
   registerIpcChannels(ipcChannels);
 }

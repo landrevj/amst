@@ -70,7 +70,7 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
   {
     const { workspaces } = this.state;
     return (
-      <div className='h-screen absolute inset-0 p-4 bg-transparent'>
+      <div className='p-4 h-full'>
         <div className='h-full flex flex-row justify-center space-x-4'>
           <div className='flex-none w-72'>
             <PanelCard icon={faEdit} text='new workspace'>

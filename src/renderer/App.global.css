@@ -51,6 +51,16 @@ input[type='number']::-webkit-outer-spin-button {
   margin: 0;
 }
 
+.titlebar {
+  z-index: 999999;
+  -webkit-user-select: none;
+  -webkit-app-region: drag;
+}
+
+.titlebar .no-drag {
+  -webkit-app-region: no-drag;
+}
+
 /************************************************************/
 /************************************************************/
 /* html {
