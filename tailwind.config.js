@@ -33,6 +33,9 @@ module.exports = {
       },
       height: {
         'screen-minus-titlebar': 'calc(100vh - 1.5rem)',
+      },
+      margin: {
+        'screen-minus-titlebar': 'calc(100vh - 1.5rem)'
       }
     }
   },

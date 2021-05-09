@@ -146,7 +146,7 @@ class FileView extends React.Component<FileViewProps, FileViewState>
     if (!file) return ( <span>Loading...</span> );
 
     const { type } = mimeRegex(file.mimeType || '');
-    let content: JSX.Element = <></>;
+    let content: JSX.Element | undefined;
     if (type === 'image') content = <img className='max-h-screen' src={`http://${Client.host}:${Client.port}/files/${file.id}`} alt={file.name}/>;
     if (type === 'video')
     {
@@ -168,18 +168,18 @@ class FileView extends React.Component<FileViewProps, FileViewState>
       <>
       <Hotkeys keyName='left,right,a,d' onKeyDown={this.onKeyDown}/>
 
-      <div className='-z-10 fixed flex w-full h-screen-minus-titlebar bg-gray-900'>
-        <div className='m-auto'>
-          {content}
-        </div>
-      </div>
 
-      <div className='h-full overflow-auto'>
-        <div className='block h-full w-screen pointer-events-none'/>
+      <div className='h-full overflow-auto bg-gray-900'>
+        {content ?
+        <div className='sticky top-0 flex w-full h-screen-minus-titlebar'>
+          <div className='m-auto'>
+            {content}
+          </div>
+        </div> : <></>}
 
-        <div className='w-full p-4 pt-0'>
+        <div className={`w-full p-4 ${content ? 'pt-0' : ''}`}>
 
-          <div className='w-full p-4 bg-gray-100 rounded'>
+          <div className='relative w-full p-4 bg-gray-100 rounded'>
             <div className='flex flex-row'>
               <button type='button' className='h-6 bg-transparent' onClick={prevPage}>
                 <FontAwesomeIcon className='mr-2 fill-current text-gray-600' icon={faChevronLeft}/>

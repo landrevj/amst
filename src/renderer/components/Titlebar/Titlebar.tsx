@@ -33,7 +33,7 @@ export default function Titlebar({ title, className }: TitlebarProps)
         <button type='button' onClick={() => handleWindowAction('maximize')} className='flex-grow h-full hover:bg-white hover:bg-opacity-10 focus:ring-0'>
           <FontAwesomeIcon icon={faWindowMaximize}/>
         </button>
-        <button type='button' onClick={() => handleWindowAction('close')} className='flex-grow h-full hover:bg-red-500 hover:bg-opacity-50 focus:ring-0 text-base'>
+        <button type='button' onClick={() => handleWindowAction('close')} className='flex-grow h-full hover:bg-red-500 hover:bg-opacity-70 focus:ring-0 text-base'>
           <div className='flex flex-row justify-center'>
             <FontAwesomeIcon icon={faTimes}/>
           </div>
