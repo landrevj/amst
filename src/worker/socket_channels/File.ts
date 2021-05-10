@@ -95,8 +95,24 @@ export class FileChannel extends EntityChannel<File>
       }
       if (tags)
       {
-        const havingString = Array(tags.length).fill('sum(t.name = ? and t.category = ?)').join(` ${andOr || 'and'} `);
-        const flatTags = tags.flat();
+        const havingStringArr: string[] = Array(tags.length);
+        const queryTags: ([string] | [string, string])[] = Array(tags.length);
+
+        tags.forEach((tag, i) => {
+          if (tag[1] === '')
+          {
+            havingStringArr[i] = 'sum(t.name = ?)';
+            queryTags[i] = [tag[0]];
+          }
+          else
+          {
+            havingStringArr[i] = 'sum(t.name = ? and t.category = ?)';
+            queryTags[i] = tag;
+          }
+        });
+
+        const havingString = havingStringArr.join(` ${andOr || 'and'} `);
+        const flatTags = queryTags.flat();
 
         qbBoth.forEach(e => {
           e.leftJoin('f.tags', 't')

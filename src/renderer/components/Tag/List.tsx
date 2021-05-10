@@ -30,7 +30,7 @@ function coalesceTags(tags: TagStub[]): TagCategoryObject
 function tagTupleEqualsStub(tuple: TagTuple, stub: TagStub)
 {
   const [name, catOrEmptyString] = tuple;
-  return (catOrEmptyString === stub.category && name === stub.name);
+  return ((catOrEmptyString === '' || catOrEmptyString === stub.category) && name === stub.name);
 }
 
 export default function TagList({ tags, searchTagTuples, onTagRemove }: TagListProps)
@@ -39,6 +39,7 @@ export default function TagList({ tags, searchTagTuples, onTagRemove }: TagListP
   const categories = Object.entries(coalesceTags(tags)).sort((a, b) => a[0].localeCompare(b[0]));
   const noneCategoryIndex = categories.findIndex(c => c[0] === NONE_CATEGORY_TEXT);
   const noneCategory = noneCategoryIndex !== -1 ? categories.splice(noneCategoryIndex, 1)[0] : undefined;
+
   if (noneCategory) categories.push(noneCategory);
 
   return (
