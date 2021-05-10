@@ -11,10 +11,11 @@ import PaginationButtons from '../../components/UI/Paginator/Buttons';
 import { Card } from '../../components/UI/Card';
 import PaginationPageInput from '../../components/UI/Paginator/PageInput';
 
-// eslint-disable-next-line import/prefer-default-export
 export default function FileSearch()
 {
-  const [files, count, page, maxPage, prevPage, nextPage, goToPage, query] = useFileSearchQuery({ defaultFilesPerPage: 30 });
+  const [files, count, page, maxPage, prevPage, nextPage, goToPage, query,, setParentQuery] = useFileSearchQuery({ defaultFilesPerPage: 30 });
+
+  setParentQuery(query);
 
   const paginationWidth = 9;
 

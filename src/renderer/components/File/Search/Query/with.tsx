@@ -21,6 +21,7 @@ export interface WithFileSearchQueryProps
 
   query: FileSearchQuery;
   parentQuery?: FileSearchQuery;
+  setParentQuery: (fsq: FileSearchQuery) => void;
 }
 
 // TODO: this with HMR might cause wdm to enter a recompile loop
@@ -33,9 +34,9 @@ const withFileSearchQuery = (options: Readonly<Options>) => <T extends WithFileS
 
   const WrappedComponent: React.FC<Omit<T, keyof WithFileSearchQueryProps>> = (props: Omit<T, keyof WithFileSearchQueryProps>) => {
     //
-    const [files, count, page, maxPage, prevPage, nextPage, goToPage, query, parentQuery] = useFileSearchQuery(options);
+    const [files, count, page, maxPage, prevPage, nextPage, goToPage, query, parentQuery, setParentQuery] = useFileSearchQuery(options);
 
-    return <Component {...(props as T)} files={files} count={count} page={page} maxPage={maxPage} prevPage={prevPage} nextPage={nextPage} goToPage={goToPage} query={query} parentQuery={parentQuery}/>;
+    return <Component {...(props as T)} files={files} count={count} page={page} maxPage={maxPage} prevPage={prevPage} nextPage={nextPage} goToPage={goToPage} query={query} parentQuery={parentQuery} setParentQuery={setParentQuery}/>;
   };
 
   WrappedComponent.displayName = `withFileSearchQuery(${displayName})`;

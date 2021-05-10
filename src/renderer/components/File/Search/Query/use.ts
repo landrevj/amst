@@ -10,6 +10,7 @@ import { SocketRequestStatus } from '../../../../../utils/websocket';
 
 import { FileStub } from '../../../../../db/entities';
 import FileSearchQuery from './Query';
+import { PARENT_FILE_SEARCH_QUERY } from '../../../../SessionStorageKeys';
 
 export interface Options
 {
@@ -17,21 +18,17 @@ export interface Options
   defaultFilesPerPage?: number,
 }
 
-export interface LocationState
+export default function useFileSearchQuery(options: Readonly<Options>): [FileStub[], number, number, number, () => void, () => void, (p: number) => void, FileSearchQuery, FileSearchQuery | undefined, (fsq: FileSearchQuery) => void]
 {
-  parentQuery: FileSearchQuery;
-}
+  const location = useLocation();
 
-export default function useFileSearchQuery(options: Readonly<Options>): [FileStub[], number, number, number, () => void, () => void, (p: number) => void, FileSearchQuery, FileSearchQuery | undefined]
-{
-  const location = useLocation<LocationState | undefined>();
-  const [parentQuery] = useState<FileSearchQuery | undefined>(location.state?.parentQuery);
+  const sessionQueryString = window.sessionStorage.getItem(PARENT_FILE_SEARCH_QUERY);
+  const [parentQuery] = useState<FileSearchQuery | undefined>(sessionQueryString ? new FileSearchQuery(JSON.parse(sessionQueryString)) : undefined);
 
   const [files,   setFiles]   = useState<FileStub[]>([]);
   const [count,   setCount]   = useState(0);
   const [page,    setPage]    = useState(0);
   const [maxPage, setMaxPage] = useState(0);
-  // console.log(location);
 
   const query = useMemo(() => new FileSearchQuery(location.search, options.defaultFilesPerPage), [location.search, options.defaultFilesPerPage]);
 
@@ -81,5 +78,7 @@ export default function useFileSearchQuery(options: Readonly<Options>): [FileStu
     history.push(`${location.pathname}?${sqs}`);
   };
 
-  return [files, count, page, maxPage, prevPage, nextPage, goToPage, query, parentQuery];
+  const setParentQuery = (fsq: FileSearchQuery) => window.sessionStorage.setItem(PARENT_FILE_SEARCH_QUERY, JSON.stringify(fsq));
+
+  return [files, count, page, maxPage, prevPage, nextPage, goToPage, query, parentQuery, setParentQuery];
 }
