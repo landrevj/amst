@@ -9,7 +9,7 @@ import { WorkspaceForm, WorkspaceList } from '../../components/Workspace';
 
 import { SocketRequestStatus } from '../../../utils/websocket';
 import '../../App.global.css';
-import PanelCard from '../../components/UI/Panel/Card';
+import { Card } from '../../components/UI/Card';
 
 interface HomeState
 {
@@ -73,13 +73,13 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
       <div className='p-4 h-full'>
         <div className='h-full flex flex-row justify-center space-x-4'>
           <div className='flex-none w-72'>
-            <PanelCard icon={faEdit} text='new workspace'>
+            <Card icon={faEdit} text='new workspace'>
               <WorkspaceForm onSubmit={this.onSubmitWorkspaceForm}/>
-            </PanelCard>
+            </Card>
           </div>
-          <div className='overflow-auto flex-grow space-y-2 bg-white p-4 rounded'>
+          <Card empty={!workspaces.length} className='flex-grow p-4'>
             <WorkspaceList workspaces={workspaces}/>
-          </div>
+          </Card>
         </div>
       </div>
     );

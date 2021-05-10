@@ -18,6 +18,7 @@ import TagForm from '../../components/Tag/Form';
 import { mimeRegex } from '../../../utils';
 import TagList from '../../components/Tag/List';
 import withFileSearchQuery, { WithFileSearchQueryProps } from '../../components/File/Search/Query/with';
+import { Card } from '../../components/UI/Card';
 
 interface FileViewRouteParams
 {
@@ -179,7 +180,7 @@ class FileView extends React.Component<FileViewProps, FileViewState>
 
         <div className={`w-full p-4 ${content ? 'pt-0' : ''}`}>
 
-          <div className='relative w-full p-4 bg-gray-100 rounded'>
+          <Card className='relative w-full p-4'>
             <div className='flex flex-row'>
               <button type='button' className='h-6 bg-transparent' onClick={prevPage}>
                 <FontAwesomeIcon className='mr-2 fill-current text-gray-600' icon={faChevronLeft}/>
@@ -226,7 +227,7 @@ class FileView extends React.Component<FileViewProps, FileViewState>
                 </table>
               </div>
             </div>
-          </div>
+          </Card>
 
         </div>
 
