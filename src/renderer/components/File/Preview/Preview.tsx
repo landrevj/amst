@@ -32,7 +32,7 @@ export default function FilePreview({ file, searchResultIndex }: FilePreviewProp
   }
 
   return (
-    <figure key={file.id} className='m-1 w-44 max-h-60 flex-auto'>
+    <figure key={file.id} className='w-44 max-h-60 flex-auto'>
       <Link
         className='block h-full rounded-md'
         to={{ pathname: `/file/${file.id}`,

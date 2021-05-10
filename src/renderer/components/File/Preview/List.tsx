@@ -17,7 +17,7 @@ export default function FilePreviewList({ files, query, className }: FilePreview
   const indexStart = (query?.page && query?.limit) ? query.page * query.limit : 0;
 
   return (
-    <Card empty={files.length === 0} className={`md:flex-row flex-wrap place-content-start ${className}`}>
+    <Card empty={files.length === 0} className={`md:flex-row flex-wrap place-content-start gap-2 ${className}`}>
       {files.map((file, i) =>
       <FilePreview file={file} searchResultIndex={indexStart + i} key={file.id}/>
       )}
