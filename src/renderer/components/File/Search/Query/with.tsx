@@ -11,6 +11,7 @@ import useFileSearchQuery, { Options } from './use';
 export interface WithFileSearchQueryProps
 {
   files: FileStub[];
+  loading: boolean;
   count: number;
   page: number;
   maxPage: number;
@@ -34,9 +35,9 @@ const withFileSearchQuery = (options: Readonly<Options>) => <T extends WithFileS
 
   const WrappedComponent: React.FC<Omit<T, keyof WithFileSearchQueryProps>> = (props: Omit<T, keyof WithFileSearchQueryProps>) => {
     //
-    const [files, count, page, maxPage, prevPage, nextPage, goToPage, query, parentQuery, setParentQuery] = useFileSearchQuery(options);
+    const [files, loading, count, page, maxPage, prevPage, nextPage, goToPage, query, parentQuery, setParentQuery] = useFileSearchQuery(options);
 
-    return <Component {...(props as T)} files={files} count={count} page={page} maxPage={maxPage} prevPage={prevPage} nextPage={nextPage} goToPage={goToPage} query={query} parentQuery={parentQuery} setParentQuery={setParentQuery}/>;
+    return <Component {...(props as T)} files={files} loading={loading} count={count} page={page} maxPage={maxPage} prevPage={prevPage} nextPage={nextPage} goToPage={goToPage} query={query} parentQuery={parentQuery} setParentQuery={setParentQuery}/>;
   };
 
   WrappedComponent.displayName = `withFileSearchQuery(${displayName})`;

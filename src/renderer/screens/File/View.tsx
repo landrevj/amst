@@ -4,9 +4,8 @@ import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
 import Hotkeys from 'react-hot-keys';
 import { HotkeysEvent } from 'hotkeys-js';
-import TimeAgo from 'javascript-time-ago';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowCircleLeft, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { faArrowCircleLeft, faChevronLeft, faChevronRight, faImage } from '@fortawesome/free-solid-svg-icons';
 import log from 'electron-log';
 
 
@@ -19,6 +18,7 @@ import { mimeRegex } from '../../../utils';
 import TagList from '../../components/Tag/List';
 import withFileSearchQuery, { WithFileSearchQueryProps } from '../../components/File/Search/Query/with';
 import { Card } from '../../components/UI/Card';
+import FilePropertyTable from '../../components/File/PropertyTable';
 
 interface FileViewRouteParams
 {
@@ -49,7 +49,7 @@ class FileView extends React.Component<FileViewProps, FileViewState>
 
     this.handleTagFormSubmit = this.handleTagFormSubmit.bind(this);
     this.handleTagRemove = this.handleTagRemove.bind(this);
-    this.handleCalculateMD5 = this.handleCalculateMD5.bind(this);
+    this.handleUpdateMD5 = this.handleUpdateMD5.bind(this);
 
     this.onKeyDown = this.onKeyDown.bind(this);
   }
@@ -83,20 +83,12 @@ class FileView extends React.Component<FileViewProps, FileViewState>
     }
   }
 
-  async handleCalculateMD5()
+  handleUpdateMD5(md5: string)
   {
     const { file } = this.state;
     if (!file) return;
 
-    const response = await Client.send<string>('File', { action: 'calculateMD5', params: file.id });
-    const success  = response.status === SocketRequestStatus.SUCCESS;
-    if (!success || !response.data)
-    {
-      log.error(`An error occurred while calculating MD5 for file with id: ${file.id}`);
-      return;
-    }
-
-    const newFile: FileStub = { ...file, md5: response.data };
+    const newFile: FileStub = { ...file, md5 };
     this.setState({ file: newFile });
   }
 
@@ -142,29 +134,41 @@ class FileView extends React.Component<FileViewProps, FileViewState>
 
   render()
   {
-    const { page, maxPage, prevPage, nextPage, query, parentQuery } = this.props;
+    const { loading, page, maxPage, prevPage, nextPage, query, parentQuery } = this.props;
     const { file, tags } = this.state;
-    if (!file) return ( <span>Loading...</span> );
+    if (!file && !loading) return (<span>no file</span>)
 
-    const { type } = mimeRegex(file.mimeType || '');
+
     let content: JSX.Element | undefined;
-    if (type === 'image') content = <img className='max-h-screen' src={`http://${Client.host}:${Client.port}/files/${file.id}`} alt={file.name}/>;
-    if (type === 'video')
+    if (file && !loading)
+    {
+      const { type } = mimeRegex(file.mimeType || '');
+      if (type === 'image') content = <img className='max-h-screen' src={`http://${Client.host}:${Client.port}/files/${file.id}`} alt={file.name}/>;
+      if (type === 'video')
+      {
+        content = (
+          // we set the key here so the video will always update the video source when the file changes
+          // this wasnt an issue initially but at some point it became one. idk what happened
+          // but it would update the source in the html but the video would still be the same
+          <video className='max-h-screen' key={file.id} controls>
+            <source src={`http://${Client.host}:${Client.port}/files/${file.id}`}/>
+            Something wasnt supported!
+          </video>
+        );
+      }
+      if (type === 'audio') content = <audio controls src={`http://${Client.host}:${Client.port}/files/${file.id}`} />;
+    }
+    else
     {
       content = (
-        // we set the key here so the video will always update the video source when the file changes
-        // this wasnt an issue initially but at some point it became one. idk what happened
-        // but it would update the source in the html but the video would still be the same
-        <video className='max-h-screen' key={file.id} controls>
-          <source src={`http://${Client.host}:${Client.port}/files/${file.id}`}/>
-          Something wasnt supported!
-        </video>
-      );
+        <Card className='w-[65vw] h-[55vh] bg-gradient-to-tr from-indigo-800 via-blue-500 to-teal-500 filter saturate-[0.75] animate-fade-in'>
+          <div className='absolute w-full h-full text-white p-10 animate-pulse'>
+            <FontAwesomeIcon className='!w-full !h-full' icon={faImage}/>
+          </div>
+        </Card>
+      )
     }
-    if (type === 'audio') content = <audio controls src={`http://${Client.host}:${Client.port}/files/${file.id}`} />;
 
-    const md5Button = <button type='button' onClick={this.handleCalculateMD5}>update</button>;
-    const timeAgo = new TimeAgo();
     return (
       <>
       <Hotkeys keyName='left,right,a,d' onKeyDown={this.onKeyDown}/>
@@ -188,6 +192,7 @@ class FileView extends React.Component<FileViewProps, FileViewState>
               </button>
 
               <div className='flex-grow text-center'>
+                {file && !loading ? <>
                 <span className='px-2 rounded-full bg-blue-300'>
                   #{file.id} - {page + 1}/{maxPage + 1}
                 </span>
@@ -196,6 +201,9 @@ class FileView extends React.Component<FileViewProps, FileViewState>
                   <FontAwesomeIcon className='mr-1 -ml-1 my-auto fill-current text-gray-100' icon={faArrowCircleLeft}/>
                   <span>search</span>
                 </Link>
+                </>
+                :
+                <div className='animate-fade-in'><span className='text-base-loading inline-block w-36'/></div>}
               </div>
 
               <button type='button' className='h-6 bg-transparent' onClick={nextPage}>
@@ -206,25 +214,16 @@ class FileView extends React.Component<FileViewProps, FileViewState>
 
             <div className='flex flex-row flex-wrap justify-evenly'>
               <div className='flex-initial max-w-full px-4 py-10'>
-                <TagList tags={tags} searchTagTuples={query.tags} onTagRemove={this.handleTagRemove}/>
+                <TagList tags={tags} searchTagTuples={query.tags} onTagRemove={this.handleTagRemove} loading={loading}/>
+                {file && !loading ?
                 <div className='flex flex-row mt-5'>
                   <div className='mr-1 px-2 py-1 text-sm rounded-full bg-green-200 border-2 border-solid border-green-200'>new tag</div>
                   <TagForm fileID={file.id} onSubmit={this.handleTagFormSubmit}/>
-                </div>
+                </div> : <></>}
               </div>
 
               <div className='flex-initial max-w-full px-4 py-10'>
-                <table className='table-fixed'>
-                  <tbody>
-                    <tr><td className='text-right font-bold pr-2'>#</td><td className='break-all'>{file.id}</td></tr>
-                    <tr><td className='text-right font-bold pr-2'>name</td><td className='break-all'>{file.name}</td></tr>
-                    <tr><td className='text-right font-bold pr-2'>extension</td><td className='break-all'>{file.extension}</td></tr>
-                    <tr><td className='text-right font-bold pr-2'>mime</td><td className='break-all'>{file.mimeType || 'unknown'}</td></tr>
-                    <tr><td className='text-right font-bold pr-2'>md5</td><td className='break-all'>{file.md5 || md5Button}</td></tr>
-                    <tr><td className='text-right font-bold pr-2'>imported</td><td className='break-all'>{timeAgo.format(Date.parse(file.createdAt))}</td></tr>
-                    <tr><td className='text-right font-bold pr-2'>path</td><td className='break-all'>{file.fullPath}</td></tr>
-                  </tbody>
-                </table>
+                <FilePropertyTable file={file} loading={loading} updateMD5={this.handleUpdateMD5}/>
               </div>
             </div>
           </Card>

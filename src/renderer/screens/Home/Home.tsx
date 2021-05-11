@@ -77,7 +77,7 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
               <WorkspaceForm onSubmit={this.onSubmitWorkspaceForm}/>
             </Card>
           </div>
-          <Card empty={!workspaces.length} className='flex-grow p-4'>
+          <Card empty={!workspaces.length} translucent='dashed' className='flex-grow'>
             <WorkspaceList workspaces={workspaces}/>
           </Card>
         </div>

@@ -10,6 +10,7 @@ import { MultiplePathPicker } from '../UI/MultiplePathPicker/MultiplePathPicker'
 
 import { SocketRequestStatus } from '../../../utils/websocket';
 import { isNumberArray } from '../../../utils';
+import { CardSection, CardFooter } from '../UI/Card';
 
 interface WorkspaceFormProps
 {
@@ -110,20 +111,20 @@ export class WorkspaceForm extends React.Component<WorkspaceFormProps, Workspace
     const { newName, newPaths } = this.state;
     return (
       <>
-        <div className='p-4'>
+        <CardSection>
           <input type="text" className='inline-block w-full text-sm px-2 py-1 rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' value={newName} placeholder='name' onChange={this.handleNameChange}/>
-        </div>
-        <div className='p-4 bg-gray-100'>
+        </CardSection>
+        <CardSection className='bg-gray-100'>
           <MultiplePathPicker pathArray={newPaths} onChange={this.handlePathsChange}/>
-        </div>
-        <div className='p-2 flex flex-row justify-center text-lg text-gray-400 space-x-4'>
+        </CardSection>
+        <CardFooter className='flex flex-row justify-center text-lg text-gray-400 space-x-4'>
           <button type="button" className='hover:text-red-400' onClick={this.handleClearForm}>
             <FontAwesomeIcon icon={faTrashAlt}/>
           </button>
           <button type="button" className='hover:text-green-400' onClick={this.handleAddToDB}>
             <FontAwesomeIcon icon={faCheck}/>
           </button>
-        </div>
+        </CardFooter>
       </>
     );
   }

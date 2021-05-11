@@ -18,13 +18,14 @@ export interface Options
   defaultFilesPerPage?: number,
 }
 
-export default function useFileSearchQuery(options: Readonly<Options>): [FileStub[], number, number, number, () => void, () => void, (p: number) => void, FileSearchQuery, FileSearchQuery | undefined, (fsq: FileSearchQuery) => void]
+export default function useFileSearchQuery(options: Readonly<Options>): [FileStub[], boolean, number, number, number, () => void, () => void, (p: number) => void, FileSearchQuery, FileSearchQuery | undefined, (fsq: FileSearchQuery) => void]
 {
   const location = useLocation();
 
   const sessionQueryString = window.sessionStorage.getItem(PARENT_FILE_SEARCH_QUERY);
   const [parentQuery] = useState<FileSearchQuery | undefined>(sessionQueryString ? new FileSearchQuery(JSON.parse(sessionQueryString)) : undefined);
 
+  const [loading, setLoading] = useState(false);
   const [files,   setFiles]   = useState<FileStub[]>([]);
   const [count,   setCount]   = useState(0);
   const [page,    setPage]    = useState(0);
@@ -35,10 +36,12 @@ export default function useFileSearchQuery(options: Readonly<Options>): [FileStu
   useEffect(() => {
     async function loadFiles()
     {
+      setLoading(true);
       const fileResponse = await Client.send<{ files: FileStub[], count: number | undefined }>('File', { action: 'search', params: query });
       const fileSuccess  = fileResponse.status === SocketRequestStatus.SUCCESS;
       if (!(fileSuccess && fileResponse.data))
       {
+        setLoading(false);
         log.error(`Failed to get files for workspace with given id: ${query.workspaceID}`);
         return;
       };
@@ -52,6 +55,7 @@ export default function useFileSearchQuery(options: Readonly<Options>): [FileStu
       setPage(query.page || 0);
       // compute the length of the 'search results array' and then subtract one to get the largest index
       setMaxPage(Math.ceil((newCount || 0) / (query.limit || options.defaultFilesPerPage || FileSearchQuery.DEFAULT_FILES_PER_PAGE)) - 1);
+      setLoading(false);
     }
     loadFiles();
   }, [query, options.defaultFilesPerPage]);
@@ -80,5 +84,5 @@ export default function useFileSearchQuery(options: Readonly<Options>): [FileStu
 
   const setParentQuery = (fsq: FileSearchQuery) => window.sessionStorage.setItem(PARENT_FILE_SEARCH_QUERY, JSON.stringify(fsq));
 
-  return [files, count, page, maxPage, prevPage, nextPage, goToPage, query, parentQuery, setParentQuery];
+  return [files, loading, count, page, maxPage, prevPage, nextPage, goToPage, query, parentQuery, setParentQuery];
 }

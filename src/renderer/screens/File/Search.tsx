@@ -13,7 +13,7 @@ import PaginationPageInput from '../../components/UI/Paginator/PageInput';
 
 export default function FileSearch()
 {
-  const [files, count, page, maxPage, prevPage, nextPage, goToPage, query,, setParentQuery] = useFileSearchQuery({ defaultFilesPerPage: 30 });
+  const [files, loading, count, page, maxPage, prevPage, nextPage, goToPage, query,, setParentQuery] = useFileSearchQuery({ defaultFilesPerPage: 30 });
 
   setParentQuery(query);
 
@@ -40,7 +40,9 @@ export default function FileSearch()
           <PaginationPageInput className='flex-none my-auto' currentPage={page} maxPage={maxPage} goToPage={goToPage}/>
         </Card>
 
-        <FilePreviewList className='flex-grow max-h-full overflow-auto p-4 rounded bg-white' files={files} query={query}/>
+        <Card empty={!loading && files.length === 0} className='flex-grow max-h-full overflow-auto p-4'>
+          <FilePreviewList loading={loading} files={files} query={query}/>
+        </Card>
 
       </div>
     </div>

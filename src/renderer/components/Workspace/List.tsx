@@ -12,12 +12,10 @@ interface WorkspaceListProps
 export function WorkspaceList({ workspaces }: WorkspaceListProps)
 {
   return (
-    <ul className='space-y-4'>
+    <div className='flex flex-row flex-wrap place-content-start gap-2'>
       {workspaces.map((workspace) =>
-      <li key={workspace.id}>
-        <WorkspaceWidget workspace={workspace}/>
-      </li>
+      <WorkspaceWidget workspace={workspace} key={workspace.id}/>
       )}
-    </ul>
+    </div>
   );
 }

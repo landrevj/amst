@@ -1,4 +1,4 @@
-import { app, BrowserWindow, IpcMainEvent } from 'electron';
+import { BrowserWindow, IpcMainEvent } from 'electron';
 import { IpcChannelInterface, IpcRequest } from "../../utils/ipc/IpcChannel";
 
 export type RendererWindowOptions = 'minimize' | 'maximize' | 'close';

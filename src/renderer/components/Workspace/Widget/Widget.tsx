@@ -8,6 +8,7 @@ import { FolderStub, WorkspaceStub } from '../../../../db/entities';
 import { isNumberArray } from '../../../../utils';
 import FolderList from '../../Folder/List';
 import { SocketResponse, SocketRequestStatus } from '../../../../utils/websocket';
+import { Card } from '../../UI/Card';
 
 interface WorkspaceWidgetProps
 {
@@ -116,34 +117,32 @@ export default class WorkspaceWidget extends React.Component<WorkspaceWidgetProp
     }
 
     return (
-      <div className={`relative p-4 rounded
-        animate-bg-gradient-shift-fast bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600 filter saturate-[0.7] ${searchState === SpinnerState.WORKING ? '' : 'animation-paused'}`}>
-        <div className='flex flex-col space-y-4'>
-          <div className='relative flex flex-row text-xl text-gray-100'>
+      <Card className='flex-1 relative lg:min-w-[33%] min-w-full max-w-1/2 space-y-4'>
 
-            <Link to={`/file?workspaceID=${workspace.id}`}>{workspace.name}</Link>
-            <div className='flex-grow'/>
-            {statusDiv}
-            {searchState === SpinnerState.WORKING ?
-            <div>
-              <div className='inline-block float-right relative'>
-                <div className='spinner'/>
-              </div>
+        <div className='relative flex flex-row text-xl'>
+
+          <Link to={`/file?workspaceID=${workspace.id}`}>{workspace.name}</Link>
+          <div className='flex-grow'/>
+          {statusDiv}
+          {searchState === SpinnerState.WORKING ?
+          <div>
+            <div className='inline-block float-right relative'>
+              <div className='spinner'/>
             </div>
-            :
-            <button type='button' className='float-right text-white' onClick={this.handleClickSync}>
-              <FontAwesomeIcon icon={faSyncAlt}/>
-            </button>
-            }
-
           </div>
+          :
+          <button type='button' className='float-right' onClick={this.handleClickSync}>
+            <FontAwesomeIcon icon={faSyncAlt}/>
+          </button>
+          }
 
-          <div className='z-0 p-4 bg-gray-100 rounded'>
-            <FolderList folders={folders}/>
-          </div>
         </div>
 
-      </div>
+        <div className='z-0 p-4 bg-gray-100 rounded'>
+          <FolderList folders={folders}/>
+        </div>
+
+      </Card>
     );
   }
 

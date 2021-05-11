@@ -10,6 +10,18 @@
   .animation-paused {
     animation-play-state: paused;
   }
+
+  .bg-clip-text-webkit {
+    -webkit-background-clip: text;
+  }
+
+  .text-base-loading {
+    @apply h-6 rounded-full bg-gray-200 animate-pulse;
+  }
+
+  .text-sm-loading {
+    @apply h-[19px] rounded-full text-transparent bg-gray-200 animate-pulse;
+  }
 }
 
 /*
@@ -81,6 +93,10 @@ input[type='number']::-webkit-outer-spin-button {
   @apply rounded-full border-4 border-solid border-transparent;
   box-shadow: inset 0 0 14px 14px #757575bf;
 }
+.scrollbar-light::-webkit-scrollbar-thumb {
+  @apply rounded-full border-4 border-solid border-transparent;
+  box-shadow: inset 0 0 14px 14px #ffffffbf;
+}
 
 ::-webkit-scrollbar-button {
   display: none;
@@ -150,6 +166,6 @@ input[type='number']::-webkit-outer-spin-button {
   margin-left: -10px;
   border-radius: 50%;
   @apply border-4 border-solid border-gray-300;
-  border-top-color: #fff;
+  border-top-color: #404040;
   @apply animate-spin;
 }

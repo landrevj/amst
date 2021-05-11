@@ -15,6 +15,7 @@ import TagInput from '../../Tag/Input';
 import { updateState } from '../../../../utils';
 import FileSearchQuery, { IFileSearchQuery } from './Query';
 import { SocketRequestStatus } from '../../../../utils/websocket';
+import { CardFooter, CardSection } from '../../UI/Card';
 
 type OptionType = { value: string, label: string };
 
@@ -212,11 +213,11 @@ class FileSearchForm extends React.Component<FileSearchFormProps, FileSearchForm
 
     return (
       <>
-        <div className='p-4'>
+        <CardSection>
           <AsyncSelect<OptionType> cacheOptions defaultOptions loadOptions={this.handleLoadWorkspaceSelect} value={workspaceSelectValue} onChange={this.handleWorkspaceSelectChange} className='react-select-container' classNamePrefix='react-select'/>
-        </div>
+        </CardSection>
 
-        <div className='p-4 bg-gray-100 space-y-4'>
+        <CardSection className='p-4 bg-gray-100 space-y-4'>
           <TagInput className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' onSubmit={this.handleTagInputSubmit} allowReservedCategoryPrefixes/>
 
           <div className='p-2 flex flex-row flex-wrap justify-center bg-white rounded-lg border-solid border-gray-200 border-2'>
@@ -231,21 +232,22 @@ class FileSearchForm extends React.Component<FileSearchFormProps, FileSearchForm
             )
           : <span><FontAwesomeIcon className='text-gray-300' icon={faBan}/></span>}
           </div>
-        </div>
+        </CardSection>
 
-        <div className='p-4 space-y-2 bg-gray-200'>
+        <CardSection className='p-4 space-y-2 bg-gray-200'>
           <input type='text' value={name}      name='name'      onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' placeholder='name'/>
           <input type='text' value={extension} name='extension' onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' placeholder='extension'/>
           <input type='text' value={fullPath}  name='fullPath'  onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' placeholder='path'/>
           <input type='text' value={mimeType}  name='mimeType'  onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' placeholder='mime type'/>
           <input type='text' value={md5}       name='md5'       onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' placeholder='md5'/>
-        </div>
+        </CardSection>
+
         {resultCount !== undefined ?
-        <div className={`text-center filter saturate-[.9] ${modifiedQuery ? 'bg-gradient-to-r from-yellow-400 to-yellow-300' : 'bg-gradient-to-r from-blue-400 to-blue-300'}`}>
+        <div className={`-mx-4 text-center filter saturate-[.9] ${modifiedQuery ? 'bg-gradient-to-r from-yellow-400 to-yellow-300' : 'bg-gradient-to-r from-blue-400 to-blue-300'}`}>
           <span className='text-sm text-white'>{modifiedQuery ? 'modified' : `${resultCount.toLocaleString()} results`}</span>
         </div> : <></>}
 
-        <div className='p-2 flex flex-row justify-center text-lg text-gray-400 space-x-4'>
+        <CardFooter className='flex flex-row justify-center text-lg text-gray-400 space-x-4'>
           <button type="button" className='hover:text-red-400' onClick={this.handleClearForm}>
             <FontAwesomeIcon icon={faTrashAlt}/>
           </button>
@@ -255,7 +257,7 @@ class FileSearchForm extends React.Component<FileSearchFormProps, FileSearchForm
           <button type="button" className='hover:text-green-400' onClick={this.handleSearchButtonClick}>
             <FontAwesomeIcon icon={faCheck}/>
           </button>
-        </div>
+        </CardFooter>
 
 
       </>
