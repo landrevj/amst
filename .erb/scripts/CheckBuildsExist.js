@@ -30,7 +30,7 @@ if (!fs.existsSync(workerRendererPath)) {
   );
 }
 
-function getRendererPath(name: string)
+function getRendererPath(name)
 {
   return path.join( __dirname, '..', '..', 'src', 'dist', `${name}.renderer.prod.js` );
 }
