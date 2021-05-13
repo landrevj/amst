@@ -205,10 +205,10 @@ export default class WorkspaceWidget extends React.Component<WorkspaceWidgetProp
         <div className='flex-grow'/>
 
         <CardFooter buttons>
-          <button type="button" className='hover:text-red-400' onClick={this.handleOpenDeleteModal} >
+          <button type="button" className='hover:text-red-400 disabled:text-gray-200' onClick={this.handleOpenDeleteModal} disabled={searchState === SpinnerState.WORKING}>
             <FontAwesomeIcon icon={faTrashAlt}/>
           </button>
-          <button type='button' className='hover:text-blue-400 disabled:text-gray-300' onClick={this.handleClickSync} disabled={searchState === SpinnerState.WORKING}>
+          <button type='button' className='hover:text-blue-400 disabled:text-gray-200' onClick={this.handleClickSync} disabled={searchState === SpinnerState.WORKING}>
             <FontAwesomeIcon icon={faSyncAlt}/>
           </button>
         </CardFooter>
