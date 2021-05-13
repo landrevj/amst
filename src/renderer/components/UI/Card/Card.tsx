@@ -1,14 +1,10 @@
-import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import React from 'react';
 import CardEmpty from './Empty';
 
-import PanelHeader from './Header';
 
 interface CardProps
 {
   flexDirection?: 'row' | 'col';
-  icon?: IconProp;
-  text?: string;
   empty?: boolean;
   transparent?: boolean;
   translucent?: boolean | 'dashed';
@@ -16,9 +12,8 @@ interface CardProps
   children?: React.ReactNode;
 }
 
-export default function Card({ flexDirection = 'col', icon, text, empty, transparent, translucent, className, children }: CardProps)
+export default function Card({ flexDirection = 'col', empty, transparent, translucent, className, children }: CardProps)
 {
-  const header = icon && text ? <PanelHeader icon={icon} text={text}/> : <></>;
   let bgStyle = 'bg-white';
   let emptyStyle: 'light' | 'dark' = 'dark';
   if (transparent)
@@ -41,7 +36,6 @@ export default function Card({ flexDirection = 'col', icon, text, empty, transpa
       ${transparent || translucent ? 'scrollbar-light' : ''} ${className}`}>
 
       <CardEmpty visible={empty === undefined ? false : empty} color={emptyStyle}/>
-      {header}
       {children}
     </div>
   );
@@ -49,8 +43,6 @@ export default function Card({ flexDirection = 'col', icon, text, empty, transpa
 
 Card.defaultProps = {
   flexDirection: 'col',
-  icon: undefined,
-  text: undefined,
   empty: false,
   transparent: false,
   translucent: false,

@@ -9,11 +9,12 @@ import { WorkspaceForm, WorkspaceList } from '../../components/Workspace';
 
 import { SocketRequestStatus } from '../../../utils/websocket';
 import '../../App.global.css';
-import { Card } from '../../components/UI/Card';
+import { Card, CardHeader } from '../../components/UI/Card';
 
 interface HomeState
 {
   workspaces: WorkspaceStub[];
+  loading: boolean;
 }
 
 // eslint-disable-next-line import/prefer-default-export
@@ -26,10 +27,11 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
 
     this.state = {
       workspaces: [],
+      loading: true,
     };
 
-    this.onClickResetDB        = this.onClickResetDB.bind(this);
-    this.onSubmitWorkspaceForm = this.onSubmitWorkspaceForm.bind(this);
+    this.handleDeleteWorkspace = this.handleDeleteWorkspace.bind(this);
+    this.handleSubmitWorkspaceForm = this.handleSubmitWorkspaceForm.bind(this);
   }
 
   async componentDidMount()
@@ -40,25 +42,19 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
     {
       this.setState({
         workspaces,
+        loading: false,
       });
     }
-    else log.error(`Home.tsx: Failed to load Workspaces.`);
+    else
+    {
+      log.error(`Home.tsx: Failed to load Workspaces.`);
+      this.setState({
+        loading: false,
+      })
+    }
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  async onClickResetDB()
-  {
-    const { workspaces } = this.state;
-    const workspaceIDs = workspaces.map(workspace => workspace.id);
-
-    const response = await Client.send('Workspace', { action: 'destroy', params: workspaceIDs });
-    const removed = response.status === SocketRequestStatus.SUCCESS;
-    if (removed) this.setState({
-      workspaces: [],
-    });
-  }
-
-  onSubmitWorkspaceForm(newWorkspace: WorkspaceStub)
+  handleSubmitWorkspaceForm(newWorkspace: WorkspaceStub)
   {
     const { workspaces } = this.state;
     this.setState({
@@ -66,19 +62,34 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
     });
   }
 
-  render()
+  async handleDeleteWorkspace(id: number)
   {
     const { workspaces } = this.state;
+
+    const response = await Client.send('Workspace', { action: 'destroy', params: id });
+    const success = response.status === SocketRequestStatus.SUCCESS;
+    if (!success) return;
+
+    const where = workspaces.findIndex(w => w.id === id);
+    workspaces.splice(where, 1);
+    this.setState({ workspaces });
+  }
+
+
+  render()
+  {
+    const { workspaces, loading } = this.state;
     return (
       <div className='p-4 h-full'>
         <div className='h-full flex flex-row justify-center space-x-4'>
           <div className='flex-none w-72'>
-            <Card icon={faEdit} text='new workspace'>
-              <WorkspaceForm onSubmit={this.onSubmitWorkspaceForm}/>
+            <Card>
+              <CardHeader icon={faEdit} text='new workspace'/>
+              <WorkspaceForm onSubmit={this.handleSubmitWorkspaceForm}/>
             </Card>
           </div>
-          <Card empty={!workspaces.length} translucent='dashed' className='flex-grow'>
-            <WorkspaceList workspaces={workspaces}/>
+          <Card empty={!loading && !workspaces.length} translucent className='flex-grow'>
+            <WorkspaceList workspaces={workspaces} loading={loading} onDelete={this.handleDeleteWorkspace}/>
           </Card>
         </div>
       </div>

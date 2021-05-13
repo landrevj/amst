@@ -11,6 +11,7 @@ import { Workspace, File, Folder } from '../../db/entities';
 import { chunk } from '../../utils';
 import { SocketRequest, SocketRequestStatus, SocketResponse } from '../../utils/websocket';
 import { EntityChannel } from './Entity';
+import { ExtensionPercentagesGraphData } from '../../renderer/components/UI/Graphs/ExtensionPercentages';
 
 const                  CHUNK_SIZE = 250;
 const   PATH_DISCOVERY_CHUNK_SIZE = CHUNK_SIZE * 10;
@@ -62,6 +63,41 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
   {
     this.handleAction(request, (ids) => {
       return this.destroy(ids);
+    });
+  }
+
+  // /////////////////////////////////////////////////////////
+  // /////////////////////////////////////////////////////////
+  async fileStats(request: SocketRequest<number>)
+  {
+    this.handleAction(request, async (id) => {
+      const em = DB.getNewEM();
+      if (!em)
+      {
+        this.emitFailure(request);
+        return [-1, -1];
+      }
+
+      const count = await em.count(File, { workspaces: id })
+
+      // https://stackoverflow.com/a/37303878
+      const counts: ExtensionPercentagesGraphData = await em.createQueryBuilder(File, 'f')
+        .select(['f.extension', 'count(f.extension) as extension_count', 'count(f.extension) * 100.0 / sum(count(f.extension)) over () as extension_percent'])
+        .leftJoin('f.workspaces', 'w')
+        .where({ workspaces: id })
+        .groupBy('f.extension')
+        .orderBy({ 'count(f.extension)': 'desc' })
+        .limit(10)
+        .execute('all');
+
+      const totalInCounts = counts.reduce((a, c) => a + c.extension_count, 0);
+      const otherCount = count - totalInCounts;
+      const totalCountPercent = (totalInCounts / count) * 100.0;
+      const otherPercent = 100.0 - totalCountPercent;
+
+      if (otherCount) counts.push({ extension: 'other', extension_count: otherCount, extension_percent: otherPercent });
+
+      return [count, counts];
     });
   }
 
@@ -158,7 +194,7 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
           }
           this.emitThrottledSyncUpdate(id, totalFilesDiscovered, totalFilesAdded);
         }
-        if (chunkLength !== 0)
+        if (chunkLength !== 0) // if still have some files which need to get synced
         {
           totalFilesAdded += await WorkspaceChannel.syncPathChunk(id, pathChunk.slice(0, chunkLength));
           this.emitThrottledSyncUpdate(id, totalFilesDiscovered, totalFilesAdded);
@@ -311,6 +347,9 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
         break;
       case 'destroy':
         this.destroyAction(request);
+        break;
+      case 'file-stats':
+        this.fileStats(request);
         break;
       case 'syncFiles':
         this.syncFiles(request);

@@ -5,21 +5,34 @@ import { FolderStub } from '../../../db/entities';
 
 interface FolderListProps
 {
-  folders: FolderStub[];
+  folders?: FolderStub[];
+  loading?: boolean;
 }
 
-export default function FolderList({ folders }: FolderListProps)
+export default function FolderList({ folders, loading }: FolderListProps)
 {
   // console.log(folders);
 
-  if (!folders.length) return <p>Loading...</p>;
-
-  return (
+  return !loading && folders ? (
     <ul>
       {folders.map((folder) =>
       <li key={folder.id}>
         {folder.path}
       </li>)}
     </ul>
+  ) : (
+    <ul className='space-y-2'>
+      <li>
+        <div className='p-2 bg-gray-300 rounded-full w-80 animate-pulse'/>
+      </li>
+      <li>
+        <div className='p-2 bg-gray-300 rounded-full w-40 animate-pulse'/>
+      </li>
+    </ul>
   );
 }
+
+FolderList.defaultProps = {
+  folders: [],
+  loading: undefined,
+};

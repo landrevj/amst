@@ -8,7 +8,7 @@ import useFileSearchQuery from '../../components/File/Search/Query/use';
 import FilePreviewList from '../../components/File/Preview/List';
 import FileSearchForm from '../../components/File/Search/Form';
 import PaginationButtons from '../../components/UI/Paginator/Buttons';
-import { Card } from '../../components/UI/Card';
+import { Card, CardHeader } from '../../components/UI/Card';
 import PaginationPageInput from '../../components/UI/Paginator/PageInput';
 
 export default function FileSearch()
@@ -22,7 +22,8 @@ export default function FileSearch()
   return (
     <div className='flex flex-row h-full p-4 space-x-4'>
       <div className='flex-none w-72'>
-        <Card icon={faSearch} text='search'>
+        <Card>
+          <CardHeader icon={faSearch} text='search'/>
           <FileSearchForm query={query} files={files} resultCount={count}/>
         </Card>
       </div>

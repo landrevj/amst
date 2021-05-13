@@ -213,11 +213,11 @@ class FileSearchForm extends React.Component<FileSearchFormProps, FileSearchForm
 
     return (
       <>
-        <CardSection>
+        <CardSection fullWidth>
           <AsyncSelect<OptionType> cacheOptions defaultOptions loadOptions={this.handleLoadWorkspaceSelect} value={workspaceSelectValue} onChange={this.handleWorkspaceSelectChange} className='react-select-container' classNamePrefix='react-select'/>
         </CardSection>
 
-        <CardSection className='p-4 bg-gray-100 space-y-4'>
+        <CardSection fullWidth className='p-4 bg-gray-100 space-y-4'>
           <TagInput className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' onSubmit={this.handleTagInputSubmit} allowReservedCategoryPrefixes/>
 
           <div className='p-2 flex flex-row flex-wrap justify-center bg-white rounded-lg border-solid border-gray-200 border-2'>
@@ -234,7 +234,7 @@ class FileSearchForm extends React.Component<FileSearchFormProps, FileSearchForm
           </div>
         </CardSection>
 
-        <CardSection className='p-4 space-y-2 bg-gray-200'>
+        <CardSection fullWidth className='p-4 space-y-2 bg-gray-200'>
           <input type='text' value={name}      name='name'      onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' placeholder='name'/>
           <input type='text' value={extension} name='extension' onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' placeholder='extension'/>
           <input type='text' value={fullPath}  name='fullPath'  onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' placeholder='path'/>
@@ -247,7 +247,7 @@ class FileSearchForm extends React.Component<FileSearchFormProps, FileSearchForm
           <span className='text-sm text-white'>{modifiedQuery ? 'modified' : `${resultCount.toLocaleString()} results`}</span>
         </div> : <></>}
 
-        <CardFooter className='flex flex-row justify-center text-lg text-gray-400 space-x-4'>
+        <CardFooter buttons>
           <button type="button" className='hover:text-red-400' onClick={this.handleClearForm}>
             <FontAwesomeIcon icon={faTrashAlt}/>
           </button>

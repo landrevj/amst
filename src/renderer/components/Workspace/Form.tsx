@@ -111,13 +111,13 @@ export class WorkspaceForm extends React.Component<WorkspaceFormProps, Workspace
     const { newName, newPaths } = this.state;
     return (
       <>
-        <CardSection>
+        <CardSection fullWidth>
           <input type="text" className='inline-block w-full text-sm px-2 py-1 rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' value={newName} placeholder='name' onChange={this.handleNameChange}/>
         </CardSection>
-        <CardSection className='bg-gray-100'>
+        <CardSection fullWidth className='bg-gray-100'>
           <MultiplePathPicker pathArray={newPaths} onChange={this.handlePathsChange}/>
         </CardSection>
-        <CardFooter className='flex flex-row justify-center text-lg text-gray-400 space-x-4'>
+        <CardFooter buttons>
           <button type="button" className='hover:text-red-400' onClick={this.handleClearForm}>
             <FontAwesomeIcon icon={faTrashAlt}/>
           </button>

@@ -13,7 +13,7 @@ interface TagListProps
 {
   tags: TagStub[];
   searchTagTuples?: TagTuple[]; // special tags to highlight, e.g. you could provide tags used in a search and the list will highlight those tags if they show up
-  onTagRemove?: (id: number) => void;
+  handleTagRemove?: (id: number) => void;
   loading?: boolean;
 }
 
@@ -35,7 +35,7 @@ function tagTupleEqualsStub(tuple: TagTuple, stub: TagStub)
   return ((catOrEmptyString === '' || catOrEmptyString === stub.category) && name === stub.name);
 }
 
-export default function TagList({ tags, searchTagTuples, onTagRemove, loading }: TagListProps)
+export default function TagList({ tags, searchTagTuples, handleTagRemove, loading }: TagListProps)
 {
   if (loading)
   {
@@ -74,7 +74,7 @@ export default function TagList({ tags, searchTagTuples, onTagRemove, loading }:
         </div>
         <div className='flex-grow flex flex-row flex-wrap overflow-hidden'>
           {catTags.map(tag =>
-          <TagButton tag={tag} highlighted={!!searchTagTuples?.find(t => tagTupleEqualsStub(t, tag))} onRemove={onTagRemove} hideCategory key={tag.id}/>
+          <TagButton tag={tag} highlighted={!!searchTagTuples?.find(t => tagTupleEqualsStub(t, tag))} onRemove={handleTagRemove} hideCategory key={tag.id}/>
           )}
         </div>
       </div>)}
@@ -84,6 +84,6 @@ export default function TagList({ tags, searchTagTuples, onTagRemove, loading }:
 
 TagList.defaultProps = {
   searchTagTuples: undefined,
-  onTagRemove: undefined,
+  handleTagRemove: undefined,
   loading: undefined,
 }

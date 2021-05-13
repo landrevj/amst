@@ -91,11 +91,11 @@ input[type='number']::-webkit-outer-spin-button {
 
 ::-webkit-scrollbar-thumb {
   @apply rounded-full border-4 border-solid border-transparent;
-  box-shadow: inset 0 0 14px 14px #757575bf;
+  box-shadow: inset 0 0 14px 14px #00000055;
 }
 .scrollbar-light::-webkit-scrollbar-thumb {
   @apply rounded-full border-4 border-solid border-transparent;
-  box-shadow: inset 0 0 14px 14px #ffffffbf;
+  box-shadow: inset 0 0 14px 14px #ffffff77;
 }
 
 ::-webkit-scrollbar-button {
