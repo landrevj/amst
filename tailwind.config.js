@@ -8,6 +8,10 @@ module.exports = {
   ],
   theme: {
     extend: {
+      screens: {
+        '3xl': '1792px',
+        '4xl': '2408px',
+      },
       colors: {
         gray: colors.trueGray,
         cyan: colors.cyan,

@@ -64,13 +64,34 @@ export default class FilePropertyTable extends React.Component<FilePropertyTable
     return (
       <table className='table-fixed'>
         <tbody>
-          <tr><td className='text-right font-bold pr-2'>#</td><td className='break-all'>{file.id}</td></tr>
-          <tr><td className='text-right font-bold pr-2'>name</td><td className='break-all'>{file.name}</td></tr>
-          <tr><td className='text-right font-bold pr-2'>extension</td><td className='break-all'>{file.extension}</td></tr>
-          <tr><td className='text-right font-bold pr-2'>mime</td><td className='break-all'>{file.mimeType || 'unknown'}</td></tr>
-          <tr><td className='text-right font-bold pr-2'>md5</td><td className='break-all'>{file.md5 || md5Button}</td></tr>
-          <tr><td className='text-right font-bold pr-2'>imported</td><td className='break-all'>{timeAgo.format(Date.parse(file.createdAt))}</td></tr>
-          <tr><td className='text-right font-bold pr-2'>path</td><td className='break-all'>{file.fullPath}</td></tr>
+          <tr>
+            <th className='text-right align-top font-bold pr-2'>#</th>
+            <td className='break-all'>{file.id}</td>
+          </tr>
+          <tr>
+            <th className='text-right align-top font-bold pr-2'>name</th>
+            <td className='break-all'>{file.name}</td>
+          </tr>
+          <tr>
+            <th className='text-right align-top font-bold pr-2'>extension</th>
+            <td className='break-all'>{file.extension}</td>
+          </tr>
+          <tr>
+            <th className='text-right align-top font-bold pr-2'>mime</th>
+            <td className='break-all'>{file.mimeType || 'unknown'}</td>
+          </tr>
+          <tr>
+            <th className='text-right align-top font-bold pr-2'>md5</th>
+            <td className='break-all'>{file.md5 || md5Button}</td>
+          </tr>
+          <tr>
+            <th className='text-right align-top font-bold pr-2'>imported</th>
+            <td className='break-all'>{timeAgo.format(Date.parse(file.createdAt))}</td>
+          </tr>
+          <tr>
+            <th className='text-right align-top font-bold pr-2'>path</th>
+            <td className='break-all'>{file.fullPath}</td>
+          </tr>
         </tbody>
       </table>
     );

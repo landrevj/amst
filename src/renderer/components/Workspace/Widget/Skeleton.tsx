@@ -9,7 +9,7 @@ import ExtensionPercentagesGraph from '../../UI/Graphs/ExtensionPercentages';
 export default function WorkspaceWidgetSkeleton()
 {
   return (
-  <Card className='flex-1 relative xl:min-w-[33%] min-w-full max-w-1/2'>
+  <Card className='relative'>
 
     <div className='relative flex flex-row text-xl place-items-center'>
       <div className='p-3 bg-gray-400 rounded-full w-40 animate-pulse'/>
@@ -17,7 +17,7 @@ export default function WorkspaceWidgetSkeleton()
       <div className='p-2 bg-gray-300 rounded-full w-20 animate-pulse'/>
     </div>
 
-    <CardSection fullWidth className='flex flex-col gap-4 p-4'>
+    <CardSection fullWidth className='flex flex-col gap-4 p-4 pb-0'>
       <CardSection headerIcon={faFolder} className='bg-gray-100'>
         <FolderList loading/>
       </CardSection>

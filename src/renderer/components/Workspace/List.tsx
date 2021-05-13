@@ -13,16 +13,15 @@ interface WorkspaceListProps
 
 export function WorkspaceList({ workspaces, loading, onDelete }: WorkspaceListProps)
 {
-  return !loading && workspaces ? (
-    <div className='flex flex-row flex-wrap place-content-start gap-2'>
-      {workspaces.map((workspace) =>
-      <WorkspaceWidget workspace={workspace} key={workspace.id} onDelete={onDelete}/>
-      )}
-    </div>
-  ) : (
-    <div className='flex flex-row flex-wrap place-content-start gap-2'>
-      <WorkspaceWidgetSkeleton/>
-      <WorkspaceWidgetSkeleton/>
+  return (
+    <div className='grid grid-cols-1 xl:grid-cols-2 3xl:grid-cols-3 gap-2'>
+      { !loading && workspaces ?
+      workspaces.map((workspace) =>
+        <WorkspaceWidget workspace={workspace} key={workspace.id} onDelete={onDelete}/>
+      ) : (<>
+        <WorkspaceWidgetSkeleton/>
+        <WorkspaceWidgetSkeleton/>
+      </>)}
     </div>
   );
 }

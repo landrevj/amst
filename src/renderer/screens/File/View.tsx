@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import Hotkeys from 'react-hot-keys';
 import { HotkeysEvent } from 'hotkeys-js';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowCircleLeft, faChevronLeft, faChevronRight, faImage } from '@fortawesome/free-solid-svg-icons';
+import { faArrowCircleLeft, faChevronLeft, faChevronRight, faFile, faImage, faTags } from '@fortawesome/free-solid-svg-icons';
 import log from 'electron-log';
 
 
@@ -17,7 +17,7 @@ import TagForm from '../../components/Tag/Form';
 import { mimeRegex } from '../../../utils';
 import TagList from '../../components/Tag/List';
 import withFileSearchQuery, { WithFileSearchQueryProps } from '../../components/File/Search/Query/with';
-import { Card } from '../../components/UI/Card';
+import { Card, CardSection } from '../../components/UI/Card';
 import FilePropertyTable from '../../components/File/PropertyTable';
 
 interface FileViewRouteParams
@@ -144,7 +144,7 @@ class FileView extends React.Component<FileViewProps, FileViewState>
     {
       const { type } = mimeRegex(file.mimeType || '');
       if (type === 'image') content = <img className='max-h-screen' src={`http://${Client.host}:${Client.port}/files/${file.id}`} alt={file.name}/>;
-      if (type === 'video')
+      else if (type === 'video')
       {
         content = (
           // we set the key here so the video will always update the video source when the file changes
@@ -156,7 +156,7 @@ class FileView extends React.Component<FileViewProps, FileViewState>
           </video>
         );
       }
-      if (type === 'audio') content = <audio controls src={`http://${Client.host}:${Client.port}/files/${file.id}`} />;
+      else if (type === 'audio') content = <audio controls src={`http://${Client.host}:${Client.port}/files/${file.id}`} />;
     }
     else
     {
@@ -174,17 +174,16 @@ class FileView extends React.Component<FileViewProps, FileViewState>
       <Hotkeys keyName='left,right,a,d' onKeyDown={this.onKeyDown}/>
 
 
-      <div className='h-full overflow-auto bg-gray-900'>
+      <div className='h-full overflow-auto bg-gray-900 scrollbar-light'>
         {content ?
-        <div className='sticky top-0 flex w-full h-screen-minus-titlebar'>
-          <div className='m-auto'>
-            {content}
-          </div>
+        <div className='sticky top-0 flex justify-center place-items-center w-full h-screen-minus-titlebar'>
+          {content}
         </div> : <></>}
 
         <div className={`w-full p-4 ${content ? 'pt-0' : ''}`}>
 
-          <Card className='relative w-full p-4'>
+          <Card className='relative w-full space-y-4'>
+
             <div className='flex flex-row'>
               <button type='button' className='h-6 bg-transparent' onClick={prevPage}>
                 <FontAwesomeIcon className='mr-2 fill-current text-gray-600' icon={faChevronLeft}/>
@@ -212,19 +211,21 @@ class FileView extends React.Component<FileViewProps, FileViewState>
               </button>
             </div>
 
-            <div className='flex flex-row flex-wrap justify-evenly'>
-              <div className='flex-initial max-w-full px-4 py-10'>
+            <div className='flex lg:flex-row flex-col flex-wrap gap-4'>
+
+              <CardSection className='bg-gray-100 flex-1' headerIcon={faTags}>
                 <TagList tags={tags} searchTagTuples={query.tags} handleTagRemove={this.handleTagRemove} loading={loading}/>
                 {file && !loading ?
                 <div className='flex flex-row mt-5'>
                   <div className='mr-1 px-2 py-1 text-sm rounded-full bg-green-200 border-2 border-solid border-green-200'>new tag</div>
                   <TagForm fileID={file.id} onSubmit={this.handleTagFormSubmit}/>
                 </div> : <></>}
-              </div>
+              </CardSection>
 
-              <div className='flex-initial max-w-full px-4 py-10'>
+              <CardSection className='bg-gray-100 flex-1' headerIcon={faFile}>
                 <FilePropertyTable file={file} loading={loading} updateMD5={this.handleUpdateMD5}/>
-              </div>
+              </CardSection>
+
             </div>
           </Card>
 

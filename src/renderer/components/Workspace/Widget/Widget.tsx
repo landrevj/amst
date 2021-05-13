@@ -32,6 +32,7 @@ interface WorkspaceWidgetState
   fileCount?: number,
   fileExtensionData?: ExtensionPercentagesGraphData;
   deleteModalOpen: boolean;
+  loadingFileStats: boolean;
 }
 
 export default class WorkspaceWidget extends React.Component<WorkspaceWidgetProps, WorkspaceWidgetState>
@@ -53,6 +54,7 @@ export default class WorkspaceWidget extends React.Component<WorkspaceWidgetProp
       searchState: SpinnerState.IDLE,
       status: '',
       deleteModalOpen: false,
+      loadingFileStats: false,
     };
 
     this.handleClickSync = this.handleClickSync.bind(this);
@@ -101,15 +103,21 @@ export default class WorkspaceWidget extends React.Component<WorkspaceWidgetProp
 
   async loadFileStats()
   {
+    this.setState({ loadingFileStats: true });
     const { workspace: { id } } = this.props;
     const response = await Client.send<[number, ExtensionPercentagesGraphData]>('Workspace', { action: 'file-stats', params: id });
-    if (response.status === SocketRequestStatus.FAILURE || !response.data) return;
+    if (response.status === SocketRequestStatus.FAILURE || !response.data)
+    {
+      this.setState({ loadingFileStats: false });
+      return;
+    }
 
     const [count, data] = response.data;
 
     this.setState({
       fileCount: count,
       fileExtensionData: data,
+      loadingFileStats: false,
     })
   }
 
@@ -129,7 +137,7 @@ export default class WorkspaceWidget extends React.Component<WorkspaceWidgetProp
   render()
   {
     const { workspace, onDelete } = this.props;
-    const { folders, searchState, status, fileCount, fileExtensionData, deleteModalOpen } = this.state;
+    const { folders, searchState, status, fileCount, fileExtensionData, deleteModalOpen, loadingFileStats } = this.state;
 
     let statusDiv = (
       <div className='flex flex-row text-base text-gray-500 space-x-4'>
@@ -164,7 +172,7 @@ export default class WorkspaceWidget extends React.Component<WorkspaceWidgetProp
     }
 
     return (
-      <Card className='flex-1 relative xl:min-w-[33%] min-w-full max-w-1/2'>
+      <Card className='relative'>
 
         <div className='relative flex flex-row text-xl'>
 
@@ -182,22 +190,22 @@ export default class WorkspaceWidget extends React.Component<WorkspaceWidgetProp
 
         </div>
 
-        <CardSection fullWidth className='flex flex-col gap-4 p-4'>
+        <CardSection fullWidth className='flex flex-col gap-4 p-4 pb-0'>
           <CardSection headerIcon={faFolder} className='bg-gray-100'>
             <FolderList folders={folders}/>
           </CardSection>
 
           <CardSection headerIcon={faDatabase} className='bg-gray-100'>
             <div className='mt-2'>
-              <ExtensionPercentagesGraph data={fileExtensionData}/>
+              <ExtensionPercentagesGraph loading={loadingFileStats} data={fileExtensionData}/>
             </div>
           </CardSection>
         </CardSection>
 
-        <div className='flex-grow flex-1 inline'/>
+        <div className='flex-grow'/>
 
         <CardFooter buttons>
-          <button type="button" className='hover:text-red-400' onClick={this.handleOpenDeleteModal}>
+          <button type="button" className='hover:text-red-400' onClick={this.handleOpenDeleteModal} >
             <FontAwesomeIcon icon={faTrashAlt}/>
           </button>
           <button type='button' className='hover:text-blue-400 disabled:text-gray-300' onClick={this.handleClickSync} disabled={searchState === SpinnerState.WORKING}>
