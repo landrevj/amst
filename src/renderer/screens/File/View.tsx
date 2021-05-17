@@ -16,15 +16,17 @@ import { SocketRequestStatus } from '../../../utils/websocket';
 import TagForm from '../../components/Tag/Form';
 import { mimeRegex } from '../../../utils';
 import TagList from '../../components/Tag/List';
-import withFileSearchQuery, { WithFileSearchQueryProps } from '../../components/File/Search/Query/with';
+import withSearchQuery, { WithSearchQueryProps } from '../../components/UI/Search/Query/with';
 import { Card, CardSection } from '../../components/UI/Card';
 import FilePropertyTable from '../../components/File/PropertyTable';
+import FileSearchQuery, { IFileSearchQuery } from '../../components/File/Search/Query';
+import { PARENT_FILE_SEARCH_QUERY } from '../../SessionStorageKeys';
 
 interface FileViewRouteParams
 {
   id: string;
 }
-type FileViewProps = WithFileSearchQueryProps & RouteComponentProps<FileViewRouteParams>;
+type FileViewProps = WithSearchQueryProps<IFileSearchQuery, FileStub, FileSearchQuery> & RouteComponentProps<FileViewRouteParams>;
 
 interface FileViewState
 {
@@ -41,8 +43,8 @@ class FileView extends React.Component<FileViewProps, FileViewState>
     super(props);
 
     // const { match: { params: { id } } } = this.props;
-    const { files } = this.props;
-    const file = files[0] || undefined;
+    const { results } = this.props;
+    const file = results[0] || undefined;
     this.state = {
       file,
       tags: [],
@@ -58,8 +60,8 @@ class FileView extends React.Component<FileViewProps, FileViewState>
 
   async componentDidUpdate(prevProps: FileViewProps)
   {
-    const { files } = this.props;
-    if (prevProps.files[0] !== files[0]) this.loadFile();
+    const { results } = this.props;
+    if (prevProps.results[0] !== results[0]) this.loadFile();
   }
 
   async handleTagFormSubmit(newTag: TagStub)
@@ -116,8 +118,8 @@ class FileView extends React.Component<FileViewProps, FileViewState>
 
   async loadFile()
   {
-    const { files } = this.props;
-    const file = files[0] || undefined;
+    const { results } = this.props;
+    const file = results[0] || undefined;
 
     const response = await Client.send<FileStub[]>('File', { action: 'read', params: [file.id, { populate: ['tags', 'managedGroups', 'groupMemberships.group'] }] });
     const success  = response.status === SocketRequestStatus.SUCCESS;
@@ -249,4 +251,4 @@ class FileView extends React.Component<FileViewProps, FileViewState>
   }
 }
 
-export default withFileSearchQuery({ defaultFilesPerPage: 1 })(FileView);
+export default withSearchQuery<IFileSearchQuery, FileStub, FileSearchQuery>(FileSearchQuery, { parentQuerySessionKey: PARENT_FILE_SEARCH_QUERY, defaultFilesPerPage: 1 })(FileView);

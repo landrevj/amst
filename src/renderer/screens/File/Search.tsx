@@ -4,16 +4,19 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faHome, faSearch } from '@fortawesome/free-solid-svg-icons';
 // import log from 'electron-log';
 
-import useFileSearchQuery from '../../components/File/Search/Query/use';
+import useSearchQuery from '../../components/UI/Search/Query/use';
 import FilePreviewList from '../../components/File/Preview/List';
 import FileSearchForm from '../../components/File/Search/Form';
 import PaginationButtons from '../../components/UI/Paginator/Buttons';
 import { Card, CardHeader } from '../../components/UI/Card';
 import PaginationPageInput from '../../components/UI/Paginator/PageInput';
+import FileSearchQuery, { IFileSearchQuery } from '../../components/File/Search/Query';
+import { PARENT_FILE_SEARCH_QUERY } from '../../SessionStorageKeys';
+import { FileStub } from '../../../db/entities';
 
 export default function FileSearch()
 {
-  const [files, loading, count, page, maxPage, prevPage, nextPage, goToPage, query,, setParentQuery] = useFileSearchQuery({ defaultFilesPerPage: 30 });
+  const [results, loading, count, page, maxPage, prevPage, nextPage, goToPage, query,, setParentQuery] = useSearchQuery<IFileSearchQuery, FileStub, FileSearchQuery>(FileSearchQuery, { parentQuerySessionKey: PARENT_FILE_SEARCH_QUERY, defaultFilesPerPage: 30 });
 
   setParentQuery(query);
 
@@ -24,7 +27,7 @@ export default function FileSearch()
       <div className='flex-none w-72'>
         <Card>
           <CardHeader icon={faSearch} text='search'/>
-          <FileSearchForm query={query} files={files} resultCount={count}/>
+          <FileSearchForm query={query} files={results} resultCount={count}/>
         </Card>
       </div>
 
@@ -41,8 +44,8 @@ export default function FileSearch()
           <PaginationPageInput className='flex-none my-auto' currentPage={page} maxPage={maxPage} goToPage={goToPage}/>
         </Card>
 
-        <Card empty={!loading && files.length === 0} className='flex-grow max-h-full overflow-auto p-4'>
-          <FilePreviewList loading={loading} files={files} query={query}/>
+        <Card empty={!loading && results.length === 0} className='flex-grow max-h-full overflow-auto p-4'>
+          <FilePreviewList loading={loading} files={results} query={query}/>
         </Card>
 
       </div>

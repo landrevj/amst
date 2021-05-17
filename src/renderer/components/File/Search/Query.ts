@@ -1,5 +1,11 @@
+import log from 'electron-log';
 import QueryString from 'query-string';
-import { TagTuple } from '../../../Tag';
+
+import Client from '../../../../utils/websocket/SocketClient';
+import { SocketRequestStatus } from '../../../../utils/websocket';
+import { FileStub } from '../../../../db/entities';
+import { TagTuple } from '../../Tag';
+import { SearchQuery } from '../../UI/Search/Query';
 
 export interface IFileSearchQuery
 {
@@ -24,7 +30,7 @@ export interface IFileSearchQuery
 // then set the tags to a JSON.stringified version rather than the TagTuple[] in the original type
 type IFileSearchQueryStringified = Omit<IFileSearchQuery, 'tags'> & { tags?: string };
 
-export default class FileSearchQuery implements IFileSearchQuery
+export default class FileSearchQuery extends SearchQuery<IFileSearchQuery, FileStub> implements IFileSearchQuery
 {
   static DEFAULT_FILES_PER_PAGE = 20;
 
@@ -40,20 +46,22 @@ export default class FileSearchQuery implements IFileSearchQuery
   public tags?: TagTuple[];
   public andOr?: 'and' | 'or';
 
-  // pagination
-  public limit?: number;
-  public page?: number;
-
-  constructor(query: IFileSearchQuery);
-  constructor(query: string, defaultFilesPerPage?: number);
-  constructor(query: IFileSearchQuery | string, defaultFilesPerPage: number = FileSearchQuery.DEFAULT_FILES_PER_PAGE)
+  // constructor(query: IFileSearchQuery);
+  // constructor(query: string, defaultFilesPerPage?: number);
+  constructor(query: IFileSearchQuery | string, defaultFilesPerPage?: number)
   {
-    if (typeof query === 'string') this.loadQuery(query, defaultFilesPerPage);
-    else Object.assign(this, query);
+    super();
+    this.loadQuery(query, defaultFilesPerPage);
   }
 
-  public loadQuery(search: string, defaultFilesPerPage?: number): FileSearchQuery
+  public loadQuery(search: IFileSearchQuery | string, defaultFilesPerPage?: number): FileSearchQuery
   {
+    if (typeof search !== 'string')
+    {
+      Object.assign(this, search);
+      return this;
+    }
+
     const qs = QueryString.parse(search);
 
     // query-string properties are of type string | string[] | null
@@ -61,7 +69,7 @@ export default class FileSearchQuery implements IFileSearchQuery
     // can ask for the result to return as the first element in an array if 'thing' was a singular string
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const helper = (thing: string | string[] | null, fn?: (e: string) => any, returnArray?: boolean) => {
-      if (Array.isArray(thing) && fn)       return thing.map(fn);
+      if (Array.isArray(thing) && fn) return thing.map(fn);
       if (typeof thing === 'string')
       {
         if (fn) return returnArray ? [fn(thing)] : fn(thing);
@@ -90,6 +98,23 @@ export default class FileSearchQuery implements IFileSearchQuery
     this.limit = helper(qs.limit, l => parseInt(l, 10)) || defaultFilesPerPage || FileSearchQuery.DEFAULT_FILES_PER_PAGE;
 
     return this;
+  }
+
+  public async getResults()
+  {
+    const fileResponse = await Client.send<{ files: FileStub[], count: number | undefined }>('File', { action: 'search', params: this.props });
+    const fileSuccess  = fileResponse.status === SocketRequestStatus.SUCCESS;
+    if (!(fileSuccess && fileResponse.data))
+    {
+      log.error(`Failed to get files for workspace with given id: ${this.workspaceID}`);
+      return [[], undefined] as [FileStub[], number | undefined];
+    };
+
+    const { data } = fileResponse;
+    const newFiles = data.files;
+    const newCount = data.count;
+
+    return [newFiles, newCount] as [FileStub[], number | undefined];
   }
 
   public toString(): string
