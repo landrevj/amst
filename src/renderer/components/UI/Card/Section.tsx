@@ -18,7 +18,7 @@ export default function CardSection({ header, headerIcon, fullWidth, className, 
   let headerDiv = <></>;
   if (fullWidth && addHeader)
   {
-    headerDiv = <p className='text-sm italic mb-4 text-gray-500 border-b-2 border-solid border-gray-200'>
+    headerDiv = <p className='text-sm italic mb-4 text-gray-500 border-b-2 border-solid border-gray-300'>
       {icon}
       {header}
     </p>;

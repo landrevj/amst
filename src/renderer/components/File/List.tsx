@@ -14,7 +14,7 @@ export default function FileList({ files }: FileListProps)
     <ul>
       {files.map((file) =>
       <li key={file.id}>
-        {file.name}, {file.extension}, {file.fullPath}, {file.createdAt}
+        {file.name}, {file.extension}, {file.filePath}, {file.createdAt}
       </li>)}
     </ul>
   );

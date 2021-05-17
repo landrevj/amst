@@ -97,7 +97,7 @@ export default class FileSearchQuery implements IFileSearchQuery
     // query-string doesnt handle stringifying nested arrays properly so we just use JSON.stringify instead
     // then parse it back above in loadQuery. makes the links a bit ugly but it works
     const t = { ...(this as IFileSearchQueryStringified) };
-    if (this.tags && this.tags.length) t.tags = JSON.stringify(this.tags);
+    if (this.tags?.length) t.tags = JSON.stringify(this.tags);
     const qs = QueryString.stringify(t);
     return qs;
   }

@@ -2,10 +2,11 @@
 import { Entity, ManyToMany, OneToMany, Property, Collection, Unique } from '@mikro-orm/core'
 
 // eslint-disable-next-line import/no-cycle
-import { Workspace, WorkspaceStub, Tag, TagStub } from './index';
+import { Workspace, WorkspaceStub, Tag, TagStub, Group, GroupStub, GroupMember, GroupMemberStub } from './index';
 import { BaseEntity, BaseEntityStub } from './BaseEntity';
 
 @Entity()
+@Unique({ properties: ['filePath', 'archivePath'] })
 export class File extends BaseEntity
 {
 
@@ -16,8 +17,10 @@ export class File extends BaseEntity
   extension!: string;
 
   @Property({ type: 'string' })
-  @Unique()
-  fullPath!: string;
+  filePath!: string;
+
+  @Property({ type: 'string' })
+  archivePath!: string;
 
   @Property({ type: 'string', nullable: true })
   mimeType?: string;
@@ -31,12 +34,19 @@ export class File extends BaseEntity
   @OneToMany({ entity: () => Tag, mappedBy: 'file', orphanRemoval: true })
   tags = new Collection<Tag>(this);
 
-  constructor(name: string, extension: string, fullPath: string)
+  @OneToMany({ entity: () => Group, mappedBy: 'parentFile' })
+  managedGroups = new Collection<Group>(this);
+
+  @OneToMany({ entity: () => GroupMember, mappedBy: 'file', orphanRemoval: true })
+  groupMemberships = new Collection<GroupMember>(this);
+
+  constructor(name: string, extension: string, fullPath: string, archivePath = '')
   {
     super();
-    this.name      = name;
-    this.extension = extension;
-    this.fullPath  = fullPath;
+    this.name        = name;
+    this.extension   = extension;
+    this.filePath    = fullPath;
+    this.archivePath = archivePath;
   }
 
 }
@@ -45,7 +55,10 @@ export interface FileStub extends BaseEntityStub
 {
   name: string;
   extension: string;
-  fullPath: string;
+  filePath: string;
+  archivePath: string;
+  managedGroups: GroupStub[];
+  groupMemberships: GroupMemberStub[];
   mimeType?: string;
   md5?: string;
   workspaces?: WorkspaceStub[];

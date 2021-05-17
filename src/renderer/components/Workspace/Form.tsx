@@ -1,16 +1,17 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faFileArchive, faFilter, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
 import { faTrashAlt } from '@fortawesome/free-regular-svg-icons';
 // import log from 'electron-log';
 
 import Client from '../../../utils/websocket/SocketClient';
 import { WorkspaceStub, FolderStub } from '../../../db/entities';
-import { MultiplePathPicker } from '../UI/MultiplePathPicker/MultiplePathPicker';
+import { MultiplePathPicker } from '../UI/Inputs/MultiplePathPicker/MultiplePathPicker';
 
 import { SocketRequestStatus } from '../../../utils/websocket';
 import { isNumberArray } from '../../../utils';
 import { CardSection, CardFooter } from '../UI/Card';
+import Switch from '../UI/Inputs/Switch';
 
 interface WorkspaceFormProps
 {
@@ -21,6 +22,8 @@ interface WorkspaceFormState
 {
   newName: string;
   newPaths: string[];
+  searchArchives: boolean;
+  groupArchiveContents: boolean;
 }
 
 // eslint-disable-next-line import/prefer-default-export
@@ -34,6 +37,8 @@ export class WorkspaceForm extends React.Component<WorkspaceFormProps, Workspace
     this.state = {
       newName: '',
       newPaths: [''],
+      searchArchives: false,
+      groupArchiveContents: false,
     };
 
     this.handleClearForm = this.handleClearForm.bind(this);
@@ -41,6 +46,8 @@ export class WorkspaceForm extends React.Component<WorkspaceFormProps, Workspace
     this.handleAddToDB = this.handleAddToDB.bind(this);
 
     this.handlePathsChange  = this.handlePathsChange.bind(this);
+    this.handleSearchArchivesChange = this.handleSearchArchivesChange.bind(this);
+    this.handleGroupArchiveContentsChange = this.handleGroupArchiveContentsChange.bind(this);
   }
 
   handleClearForm()
@@ -48,7 +55,9 @@ export class WorkspaceForm extends React.Component<WorkspaceFormProps, Workspace
     this.setState({
       newName: '',
       newPaths: [''],
-    })
+      searchArchives: false,
+      groupArchiveContents: false,
+    });
   }
 
   handleNameChange({ target: { value } }: React.ChangeEvent<HTMLInputElement>)
@@ -58,14 +67,14 @@ export class WorkspaceForm extends React.Component<WorkspaceFormProps, Workspace
 
   async handleAddToDB()
   {
-    const { newName, newPaths } = this.state;
+    const { newName, newPaths, searchArchives, groupArchiveContents } = this.state;
     const paths = newPaths.filter((path) => { return path !== '' }) // dont add empty strings
 
     // TODO: use validations instead
     if (newName === '') return; // workspaces must have a name
     if (paths.length < 1) return; // must have at least one path
 
-    const response = await Client.send<WorkspaceStub>('Workspace', { action: 'create', params: [newName, newPaths] });
+    const response = await Client.send<WorkspaceStub>('Workspace', { action: 'create', params: [newName, newPaths, searchArchives, groupArchiveContents] });
     const success = response.status === SocketRequestStatus.SUCCESS;
 
     // if we got a workspace back from the transaction then we can add it to the state
@@ -91,10 +100,7 @@ export class WorkspaceForm extends React.Component<WorkspaceFormProps, Workspace
       const { onSubmit } = this.props;
       onSubmit(workspace);
 
-      this.setState({
-        newName: '',
-        newPaths: [''],
-      });
+      this.handleClearForm();
     }
   }
 
@@ -106,9 +112,24 @@ export class WorkspaceForm extends React.Component<WorkspaceFormProps, Workspace
     // log.info(newPaths);
   }
 
+  handleSearchArchivesChange(switchState: boolean)
+  {
+    this.setState({
+      searchArchives: switchState,
+      groupArchiveContents: false,
+    });
+  }
+
+  handleGroupArchiveContentsChange(switchState: boolean)
+  {
+    this.setState({
+      groupArchiveContents: switchState,
+    });
+  }
+
   render()
   {
-    const { newName, newPaths } = this.state;
+    const { newName, newPaths, searchArchives, groupArchiveContents } = this.state;
     return (
       <>
         <CardSection fullWidth>
@@ -116,6 +137,20 @@ export class WorkspaceForm extends React.Component<WorkspaceFormProps, Workspace
         </CardSection>
         <CardSection fullWidth className='bg-gray-100'>
           <MultiplePathPicker pathArray={newPaths} onChange={this.handlePathsChange}/>
+        </CardSection>
+        <CardSection fullWidth header='options' headerIcon={faFilter} className='bg-gray-200 space-y-2' >
+          <Switch checked={searchArchives} id='search-archives' onChange={this.handleSearchArchivesChange}>
+            <span className='ml-2'>
+              search within zip archives
+              <FontAwesomeIcon className='fill-current text-gray-400 ml-2' icon={faFileArchive}/>
+            </span>
+          </Switch>
+          <Switch checked={groupArchiveContents} disabled={!searchArchives} id='group-archives' onChange={this.handleGroupArchiveContentsChange}>
+            <span className='ml-2'>
+              group archive contents
+              <FontAwesomeIcon className='fill-current text-gray-400 ml-2' icon={faLayerGroup}/>
+            </span>
+          </Switch>
         </CardSection>
         <CardFooter buttons>
           <button type="button" className='hover:text-red-400' onClick={this.handleClearForm}>

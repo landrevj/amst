@@ -3,5 +3,7 @@
 export * from './Tag';
 export * from './File';
 export * from './Folder';
+export * from './Group';
+export * from './GroupMember';
 export * from './Workspace';
 export * from './BaseEntity';

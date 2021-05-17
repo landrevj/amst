@@ -19,10 +19,18 @@ export class Workspace extends BaseEntity
   @OneToMany({ entity: () => Folder, mappedBy: 'workspace', orphanRemoval: true })
   folders = new Collection<Folder>(this);
 
-  constructor(name: string)
+  @Property({ type: 'boolean' })
+  searchArchives = false;
+
+  @Property({ type: 'boolean' })
+  groupArchiveContents = false;
+
+  constructor(name: string, searchArchives = false, groupArchiveContents = false)
   {
     super();
     this.name = name;
+    this.searchArchives = searchArchives;
+    this.groupArchiveContents = searchArchives ? groupArchiveContents : false;
   }
 
 }
@@ -32,4 +40,6 @@ export interface WorkspaceStub extends BaseEntityStub
   name: string;
   files?: FileStub[] | number[];
   folders?: FolderStub[] | number[];
+  searchArchives: boolean;
+  groupArchiveContents: boolean;
 }

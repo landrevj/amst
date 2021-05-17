@@ -5,12 +5,12 @@ import { Link } from 'react-router-dom';
 import Hotkeys from 'react-hot-keys';
 import { HotkeysEvent } from 'hotkeys-js';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowCircleLeft, faChevronLeft, faChevronRight, faFile, faImage, faTags } from '@fortawesome/free-solid-svg-icons';
+import { faArrowCircleLeft, faChevronLeft, faChevronRight, faFile, faImage, faLayerGroup, faTags } from '@fortawesome/free-solid-svg-icons';
 import log from 'electron-log';
 
 
 import Client from '../../../utils/websocket/SocketClient';
-import { FileStub, TagStub } from '../../../db/entities';
+import { FileStub, GroupStub, TagStub } from '../../../db/entities';
 
 import { SocketRequestStatus } from '../../../utils/websocket';
 import TagForm from '../../components/Tag/Form';
@@ -31,6 +31,7 @@ interface FileViewState
   // id: number;
   file?: FileStub;
   tags: TagStub[];
+  groups: GroupStub[];
 }
 
 class FileView extends React.Component<FileViewProps, FileViewState>
@@ -45,6 +46,7 @@ class FileView extends React.Component<FileViewProps, FileViewState>
     this.state = {
       file,
       tags: [],
+      groups: [],
     };
 
     this.handleTagFormSubmit = this.handleTagFormSubmit.bind(this);
@@ -117,7 +119,7 @@ class FileView extends React.Component<FileViewProps, FileViewState>
     const { files } = this.props;
     const file = files[0] || undefined;
 
-    const response = await Client.send<TagStub[]>('Tag', { action: 'read', params: [{ file: { id: file.id } }] });
+    const response = await Client.send<FileStub[]>('File', { action: 'read', params: [file.id, { populate: ['tags', 'managedGroups', 'groupMemberships.group'] }] });
     const success  = response.status === SocketRequestStatus.SUCCESS;
     if (!success || !response.data)
     {
@@ -125,18 +127,21 @@ class FileView extends React.Component<FileViewProps, FileViewState>
       return;
     }
 
-    const tags = response.data;
+    const f = response.data[0];
+    const g = [...(f.managedGroups), ...(f.groupMemberships.map(m => m.group))];
+
     this.setState({
       file,
-      tags,
+      tags: f.tags || [],
+      groups: g,
     });
   }
 
   render()
   {
     const { loading, page, maxPage, prevPage, nextPage, query, parentQuery } = this.props;
-    const { file, tags } = this.state;
-    if (!file && !loading) return (<span>no file</span>)
+    const { file, tags, groups } = this.state;
+    // if (!file && !loading) return (<span>no file</span>)
 
 
     let content: JSX.Element | undefined;
@@ -174,7 +179,7 @@ class FileView extends React.Component<FileViewProps, FileViewState>
       <Hotkeys keyName='left,right,a,d' onKeyDown={this.onKeyDown}/>
 
 
-      <div className='h-full overflow-auto bg-gray-900 scrollbar-light'>
+      <div className={`h-full overflow-auto ${content ? 'bg-gray-900' : ''} scrollbar-light transition-colors`}>
         {content ?
         <div className='sticky top-0 flex justify-center place-items-center w-full h-screen-minus-titlebar'>
           {content}
@@ -211,18 +216,25 @@ class FileView extends React.Component<FileViewProps, FileViewState>
               </button>
             </div>
 
-            <div className='flex lg:flex-row flex-col flex-wrap gap-4'>
+            <div className='grid grid-cols-1 lg:grid-cols-2 3xl:grid-cols-3 gap-4'>
 
-              <CardSection className='bg-gray-100 flex-1' headerIcon={faTags}>
-                <TagList tags={tags} searchTagTuples={query.tags} handleTagRemove={this.handleTagRemove} loading={loading}/>
-                {file && !loading ?
-                <div className='flex flex-row mt-5'>
-                  <div className='mr-1 px-2 py-1 text-sm rounded-full bg-green-200 border-2 border-solid border-green-200'>new tag</div>
-                  <TagForm fileID={file.id} onSubmit={this.handleTagFormSubmit}/>
-                </div> : <></>}
+              <CardSection className='bg-gray-100' headerIcon={faTags}>
+                <div className='space-y-4'>
+                  <TagList tags={tags} searchTagTuples={query.tags} handleTagRemove={this.handleTagRemove} loading={loading}/>
+                  {file && !loading ?
+                  <div className='flex flex-row'>
+                    <div className='mr-1 px-2 py-1 text-sm rounded-full bg-green-200 border-2 border-solid border-green-200'>new tag</div>
+                    <TagForm fileID={file.id} onSubmit={this.handleTagFormSubmit}/>
+                  </div> : <></>}
+                </div>
               </CardSection>
 
-              <CardSection className='bg-gray-100 flex-1' headerIcon={faFile}>
+              <CardSection className='bg-gray-100' headerIcon={faLayerGroup}>
+                {/* eslint-disable-next-line react/no-array-index-key */}
+                {groups.map((g, i) => <p key={i}>{g.name}</p>)}
+              </CardSection>
+
+              <CardSection className='bg-gray-100' headerIcon={faFile}>
                 <FilePropertyTable file={file} loading={loading} updateMD5={this.handleUpdateMD5}/>
               </CardSection>
 

@@ -5,7 +5,7 @@ import log from 'electron-log';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faSearch, faTimes } from '@fortawesome/free-solid-svg-icons';
 
-import { IpcService } from '../../../../utils/ipc';
+import { IpcService } from '../../../../../utils/ipc';
 
 const ipc = new IpcService();
 

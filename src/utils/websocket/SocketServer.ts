@@ -1,6 +1,7 @@
 import { createServer, IncomingMessage, ServerResponse } from "http";
 import { Server, Socket } from 'socket.io';
 import send from 'send';
+import StreamZip from "node-stream-zip";
 // import log from 'electron-log';
 
 import { DB } from '../../db';
@@ -28,7 +29,17 @@ async function fileRequestListener(req: IncomingMessage, res: ServerResponse)
     if (file)
     {
       // log.verbose(`SocketServer.ts: Sending file with id ${fileID}`);
-      send(req, encodeURIComponent(file.fullPath), {}).pipe(res);
+      if (file.archivePath !== '')
+      {
+        // eslint-disable-next-line new-cap
+        const zip = new StreamZip.async({ file: file.filePath });
+        const stm = await zip.stream(file.archivePath);
+        stm.pipe(res);
+        stm.on('end', () => zip.close());
+        return;
+      }
+
+      send(req, encodeURIComponent(file.filePath), {}).pipe(res);
       return;
     }
   }

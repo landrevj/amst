@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBan, faCheck, faDatabase, faExclamationTriangle, faFolder, faPlus, faSearch, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import { faCopy, faTrashAlt } from '@fortawesome/free-regular-svg-icons';
@@ -11,6 +10,7 @@ import FolderList from '../../Folder/List';
 import { SocketResponse, SocketRequestStatus } from '../../../../utils/websocket';
 import { Card, CardFooter, CardHeader, CardModal, CardSection } from '../../UI/Card';
 import ExtensionPercentagesGraph, { ExtensionPercentagesGraphData } from '../../UI/Graphs/ExtensionPercentages';
+import { WorkspaceFlagButtons } from '../index';
 
 interface WorkspaceWidgetProps
 {
@@ -140,12 +140,10 @@ export default class WorkspaceWidget extends React.Component<WorkspaceWidgetProp
     const { folders, searchState, status, fileCount, fileExtensionData, deleteModalOpen, loadingFileStats } = this.state;
 
     let statusDiv = (
-      <div className='flex flex-row text-base text-gray-500 space-x-4'>
-        <div className='flex justify-center'>
-          <div className='my-auto'>
-            <FontAwesomeIcon className='mr-1' icon={faCopy}/>
-            <span>{(fileCount || 0).toLocaleString()}</span>
-          </div>
+      <div className='flex flex-row place-items-center text-base text-gray-500 space-x-4'>
+        <div>
+          <FontAwesomeIcon className='mr-1' icon={faCopy}/>
+          <span>{(fileCount || 0).toLocaleString()}</span>
         </div>
       </div>
     );
@@ -153,42 +151,36 @@ export default class WorkspaceWidget extends React.Component<WorkspaceWidgetProp
     if (typeof status !== 'string')
     {
       const [totalDiscovered, totalAdded] = status;
-      statusDiv = (
-        <div className='flex flex-row text-base text-gray-500 space-x-4'>
-          <div className='flex justify-center'>
-            <div className='my-auto'>
-              <FontAwesomeIcon className='mr-1' icon={faSearch}/>
-              <span>{totalDiscovered.toLocaleString()}</span>
-            </div>
+      statusDiv = (<>
+        <div className='flex flex-row place-items-center text-base text-gray-500 space-x-4'>
+          <div>
+            <FontAwesomeIcon className='mr-1' icon={faSearch}/>
+            <span>{totalDiscovered.toLocaleString()}</span>
           </div>
-          <div className='flex justify-center'>
-            <div className='my-auto'>
-              <FontAwesomeIcon className='mr-1' icon={faPlus}/>
-              <span>{totalAdded.toLocaleString()}</span>
-            </div>
+          <div>
+            <FontAwesomeIcon className='mr-1' icon={faPlus}/>
+            <span>{totalAdded.toLocaleString()}</span>
           </div>
         </div>
-      );
+        {searchState === SpinnerState.WORKING ?
+        <div className='ml-4'>
+          <div className='inline-block float-right relative'>
+            <div className='spinner'/>
+          </div>
+        </div>
+        : null
+        }
+      </>);
     }
 
     return (
       <Card className='relative'>
 
-        <div className='relative flex flex-row text-xl'>
-
-          <Link to={`/file?workspaceID=${workspace.id}`}>{workspace.name}</Link>
+        <CardHeader text={workspace.name} linkTo={`/file?workspaceID=${workspace.id}`} className='relative'>
           <div className='flex-grow'/>
+          <WorkspaceFlagButtons workspace={workspace} className='mr-5'/>
           {statusDiv}
-          {searchState === SpinnerState.WORKING ?
-          <div className='ml-4'>
-            <div className='inline-block float-right relative'>
-              <div className='spinner'/>
-            </div>
-          </div>
-          : null
-          }
-
-        </div>
+        </CardHeader>
 
         <CardSection fullWidth className='flex flex-col gap-4 p-4 pb-0'>
           <CardSection headerIcon={faFolder} className='bg-gray-100'>

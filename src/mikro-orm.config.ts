@@ -4,7 +4,7 @@ import { Migration } from '@mikro-orm/migrations';
 import { SqliteDriver } from '@mikro-orm/sqlite';
 import { join, basename } from 'path';
 
-import { Tag, File, Folder, Workspace, BaseEntity } from './db/entities';
+import { Tag, File, Folder, Workspace, BaseEntity, GroupMember, Group } from './db/entities';
 
 // ///////////////////////////////////////////
 // static importing all migrations for webpack
@@ -33,7 +33,7 @@ const migrationsList = Object.keys(migrations).map((migrationName) => ({
 const options: Options<SqliteDriver> = {
   type: 'sqlite',
   dbName: join(__dirname, 'db/dev_database.sqlite'),
-  entities: [Workspace, File, Tag, Folder, BaseEntity], // order can matter here: https://mikro-orm.io/docs/installation#possible-issues-with-circular-dependencies
+  entities: [Workspace, File, Tag, Group, GroupMember, Folder, BaseEntity], // order can matter here: https://mikro-orm.io/docs/installation#possible-issues-with-circular-dependencies
   discovery: { disableDynamicFileAccess: true },
   debug: process.env.NODE_ENV === 'development',
   migrations: {

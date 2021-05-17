@@ -140,7 +140,7 @@ export class FileChannel extends EntityChannel<File>
       if (fullPath && fullPath !== '')
       {
         qbBoth.forEach(e => {
-          e.where({ fullPath: like(fullPath) }, '$and');
+          e.where({ filePath: like(fullPath) }, '$and');
         });
       }
 
@@ -179,7 +179,7 @@ export class FileChannel extends EntityChannel<File>
       const file = await em?.findOne(File, id);
       if (!file) return undefined;
 
-      const md5 = md5File.sync(file.fullPath);
+      const md5 = md5File.sync(file.filePath);
       file.md5  = md5;
       em.flush();
 

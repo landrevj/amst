@@ -1,13 +1,15 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable import/prefer-default-export */
 import { basename, extname } from 'path';
 import { FilterQuery, FindOptions } from '@mikro-orm/core';
 import fg from 'fast-glob';
+import StreamZip from 'node-stream-zip';
 import { lookup } from 'mime-types';
-import { throttle } from 'lodash';
+import { difference, flattenDeep, throttle, values } from 'lodash';
 import log from 'electron-log';
 
 import { DB } from '../../db';
-import { Workspace, File, Folder } from '../../db/entities';
+import { Workspace, File, Folder, Group, GroupMember } from '../../db/entities';
 import { chunk } from '../../utils';
 import { SocketRequest, SocketRequestStatus, SocketResponse } from '../../utils/websocket';
 import { EntityChannel } from './Entity';
@@ -18,6 +20,8 @@ const   PATH_DISCOVERY_CHUNK_SIZE = CHUNK_SIZE * 10;
 const    MATCHED_PATHS_CHUNK_SIZE = CHUNK_SIZE;
 const FILE_ASSOCIATION_CHUNK_SIZE = CHUNK_SIZE;
 const        NEW_PATHS_CHUNK_SIZE = CHUNK_SIZE;
+
+const ALLOWED_ZIP_EXTENSIONS = new Set(['zip', 'cbz']);
 
 export class WorkspaceChannel extends EntityChannel<Workspace>
 {
@@ -30,10 +34,10 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
   // /////////////////////////////////////////////////////////
   // //////////////////////// ACTIONS ////////////////////////
   // /////////////////////////////////////////////////////////
-  async createAction(request: SocketRequest<[string, string[]]>)
+  async createAction(request: SocketRequest<[string, string[], boolean, boolean]>)
   {
-    this.handleAction(request, ([name, paths]) => {
-      return this.create([name], newWorkspace => {
+    this.handleAction(request, ([name, paths, searchArchives, groupArchiveContents]) => {
+      return this.create([name, searchArchives, groupArchiveContents], newWorkspace => {
 
         paths.forEach(path => {
           const folder = new Folder(path);
@@ -147,7 +151,6 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
     if (!request.params) return;
     const id = request.params;
 
-
     const em = DB.getNewEM();
     if (!em)
     {
@@ -158,6 +161,10 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
     // respond to inital sync request
     this.getSocket()?.emit(request.responseChannel as string, { status: SocketRequestStatus.SUCCESS } as SocketResponse<void>);
     // emit general sync update message
+
+    const workspace = await em.findOne(Workspace, id);
+    const searchArchives = workspace?.searchArchives;
+    const groupArchiveContents = workspace?.groupArchiveContents;
 
     const promises: Promise<[number, number]>[] = [];
 
@@ -176,14 +183,18 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
           suppressErrors: true,
         });
 
-        const pathChunk: string[] = Array(PATH_DISCOVERY_CHUNK_SIZE);
+        const pathChunk: [string, string][] = Array(PATH_DISCOVERY_CHUNK_SIZE);
+        for (let i = 0; i < PATH_DISCOVERY_CHUNK_SIZE; i += 1) pathChunk[i] = new Array(2) as [string, string];
+
+        const archivePaths: [string, StreamZip.ZipEntry[]][] = [];
         let chunkLength = 0;
         let totalFilesDiscovered = 0;
         let totalFilesAdded = 0;
-        // eslint-disable-next-line no-restricted-syntax
         for await (const filePath of pathStream)
         {
-          pathChunk[chunkLength] = filePath as string;
+          const fp = filePath as string;
+          pathChunk[chunkLength][0] = fp;
+          pathChunk[chunkLength][1] = '';
           chunkLength += 1;
           totalFilesDiscovered += 1;
 
@@ -193,12 +204,44 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
             chunkLength = 0;
           }
           this.emitThrottledSyncUpdate(id, totalFilesDiscovered, totalFilesAdded);
+
+          // if the file happens to be a zip file then parse the files within it as well
+          if (searchArchives && ALLOWED_ZIP_EXTENSIONS.has(extname(fp).slice(1)))
+          {
+            // rude
+            // eslint-disable-next-line new-cap
+            const zip = new StreamZip.async({ file: fp });
+            const entries = values(await zip.entries()).filter(e => !e.isDirectory);
+            for (const entry of entries)
+            {
+              const afp = entry.name;
+              pathChunk[chunkLength][0] = fp;
+              pathChunk[chunkLength][1] = afp;
+              chunkLength += 1;
+              totalFilesDiscovered += 1;
+
+              // if we hit the chunk size we still send the chunk off to be persisted
+              if (chunkLength === PATH_DISCOVERY_CHUNK_SIZE)
+              {
+                // eslint-disable-next-line no-await-in-loop
+                totalFilesAdded += await WorkspaceChannel.syncPathChunk(id, pathChunk);
+                chunkLength = 0;
+              }
+              this.emitThrottledSyncUpdate(id, totalFilesDiscovered, totalFilesAdded);
+            }
+            await zip.close();
+            // WorkspaceChannel.updateArchiveGroup(fp, entries);
+            archivePaths.push([fp, entries]);
+          }
+
         }
-        if (chunkLength !== 0) // if still have some files which need to get synced
+        if (chunkLength !== 0) // if we still have some files which need to get synced
         {
           totalFilesAdded += await WorkspaceChannel.syncPathChunk(id, pathChunk.slice(0, chunkLength));
           this.emitThrottledSyncUpdate(id, totalFilesDiscovered, totalFilesAdded);
         }
+
+        if (groupArchiveContents) archivePaths.forEach(([filePath, entries]) => WorkspaceChannel.updateArchiveGroup(filePath, entries.map(e => e.name)));
 
         return [totalFilesDiscovered, totalFilesAdded];
       }
@@ -211,30 +254,37 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
     this.emitThrottledSyncUpdate(id, newFileCount[0], newFileCount[1], true);
   }
 
-  static async syncPathChunk(workspaceID: number, pathChunk: string[])
+  static async syncPathChunk(workspaceID: number, pathChunk: [string, string][])
   {
     const em = DB.getNewEM();
     if (!em) return 0;
 
-    const matchSet = new Set(pathChunk); // <- c
+    const matchDict: { [path: string]: [string, string] } = {}; // <- c
+    pathChunk.forEach(c => { matchDict[c.join('\\')] = c });
 
     // get all files already on the workspace //////////////////////////////////////////////////////////
-    const promises: Promise<string[]>[] = [];
-    chunk(pathChunk, MATCHED_PATHS_CHUNK_SIZE * 2).forEach(c => {
+    const promises: Promise<[string, string][]>[] = [];
+    chunk(pathChunk, MATCHED_PATHS_CHUNK_SIZE * 2).forEach(paths => {
       const fn = async () => {
-        const fromDB = await em.find(File, { fullPath: c, workspaces: { id: workspaceID } });
+        const fromDB = await em.createQueryBuilder(File, 'f')
+          .select('*')
+          .leftJoin('f.workspaces', 'w')
+          .where(`(f.file_path, f.archive_path) in (values ${paths.map(() => '(?,?)').join(',')})`, flattenDeep(paths))
+          .andWhere({ workspaces: workspaceID })
+          .getResult();
+
         em.clear();
-        return fromDB.map(file => file.fullPath);
+        return fromDB.map(file => [file.filePath, file.archivePath]) as [string, string][];
       };
       promises.push(fn());
     });
     const existingFilesOnWorkspace = (await Promise.all(promises)).flat();
     // remove those from those we might need to create new file records for
-    existingFilesOnWorkspace.forEach(path => matchSet.delete(path));
+    existingFilesOnWorkspace.forEach(path => delete matchDict[path.join('\\')]);
     em.clear();
 
     // get all files that are in the DB already but not associated with the workspace //////////////////
-    const pathChunks = chunk(Array.from(matchSet), MATCHED_PATHS_CHUNK_SIZE);
+    const pathChunks = chunk(values(matchDict), MATCHED_PATHS_CHUNK_SIZE);
     const queryPromises: Promise<File[]>[] = [];
 
     pathChunks.forEach(paths => {
@@ -244,7 +294,7 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
       const eQB = tempEM.createQueryBuilder(File, 'f')
         .select('*')
         .leftJoin('f.workspaces', 'w')
-        .where({ fullPath: paths })
+        .where(`(f.file_path, f.archive_path) in (values ${paths.map(() => '(?,?)').join(',')})`, flattenDeep(paths))
         .groupBy('f.id')
         .having('sum(w.id = ?) = 0 or sum(w.id = ?) is NULL', [workspaceID, workspaceID]);
 
@@ -256,24 +306,26 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
     // this.emitSyncUpdate(workspaceID, `Found ${existingFilesNotOnWorkspace.length} pre-existing ${pluralize('file', existingFilesNotOnWorkspace.length)} in the DB...`);
 
     // remove existing files from those we might need to create new records for ////////////////////////
-    existingFilesNotOnWorkspace.forEach(file => matchSet.delete(file.fullPath));
+    existingFilesNotOnWorkspace.forEach(file => delete matchDict[[file.filePath, file.archivePath].join('\\')]);
 
     // associate the existing files with the current workspace /////////////////////////////////////////
     await WorkspaceChannel.associateFiles(workspaceID, existingFilesNotOnWorkspace);
     em.clear();
 
     // create new file records /////////////////////////////////////////////////////////////////////////
-    const paths = Array.from(matchSet);
+    const paths = values(matchDict);
     const newFiles: File[] = Array(paths.length);
     for (let i = 0; i < paths.length; i += 1)
     {
       const path = paths[i];
 
-      const ext = extname(path); // extname returns extensions with the dot if there was an extension
-      const file = new File(basename(path, ext), ext.slice(1), path); // so we slice it before persisting it. ("".slice(1) is "")
+      const actualPath = path[1] !== '' ? path[1] : path[0]; // if the archive path is present we should be working on that
+
+      const ext = extname(actualPath); // extname returns extensions with the dot if there was an extension
+      const file = new File(basename(actualPath, ext), ext.slice(1), path[0], path[1]); // so we slice it before persisting it. ("".slice(1) is "")
 
       // calculate some metadata
-      const mt = lookup(path);
+      const mt = lookup(actualPath);
       if (mt) file.mimeType = mt;
       // file.md5      = md5File.sync(entry.path);
 
@@ -325,6 +377,61 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
     });
 
     await Promise.all(promises); // await all so we dont return until each chunk has persisted
+  }
+
+  static async updateArchiveGroup(filePath: string, archiveFilePaths: string[])
+  {
+    log.info(filePath, archiveFilePaths);
+    const em = DB.getNewEM();
+    if (!em) return;
+
+    const file = await em.findOne(File, { filePath }, ['managedGroups.members.file']);
+    log.info('file', file);
+    if (!file) return;
+
+    const groups = file.managedGroups.getItems();
+    if (groups.length === 0)
+    {
+      log.info('creating group');
+      const g = new Group(file.name, file);
+      file.managedGroups.add(g);
+      groups.push(g);
+    }
+
+    log.info('groups', groups);
+
+    await Promise.all(groups.map(async group => {
+      const memberFilePaths = group.members.getItems().map(member => member.file.archivePath);
+      const missingFilePaths = difference(archiveFilePaths, memberFilePaths);
+      log.info('memberFiles', memberFilePaths);
+      log.info('missingFilePaths', missingFilePaths);
+
+      const missingFiles = await WorkspaceChannel.chunkedCallback(missingFilePaths, CHUNK_SIZE, missingFileChunk => {
+        const tem = DB.getNewEM();
+        if (!tem) return new Promise(resolve => resolve([]));
+
+        const missing = tem.find(File, { filePath, archivePath: missingFileChunk });
+        tem.clear();
+        return missing;
+      });
+      log.info('missingFiles', missingFiles);
+
+      if (missingFiles.length)
+      {
+        missingFiles.forEach(f => group.members.add(new GroupMember(group, f)));
+        await em.persistAndFlush(group);
+      }
+    }));
+  }
+
+  static async chunkedCallback<T, U>(arr: T[], chunkSize: number, callback: (chnk: T[]) => Promise<U[]>)
+  {
+    // const promises: Promise<U[]>[] = [];
+    const promises = chunk(arr, chunkSize).map(c => {
+      return callback(c);
+    });
+
+    return (await Promise.all(promises)).flat();
   }
 
   // /////////////////////////////////////////////////////////
