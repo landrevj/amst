@@ -3,7 +3,7 @@ import log from 'electron-log';
 
 import DB from '../db/DB';
 import Server from '../utils/websocket/SocketServer';
-import { FileChannel, FolderChannel, TagChannel, WorkspaceChannel } from './socket_channels';
+import { FileChannel, FolderChannel, GroupChannel, TagChannel, WorkspaceChannel } from './socket_channels';
 
 // eslint-disable-next-line import/prefer-default-export
 export async function main()
@@ -22,6 +22,7 @@ export async function main()
   Server.init([
     new TagChannel(),
     new FileChannel(),
+    new GroupChannel(),
     new FolderChannel(),
     new WorkspaceChannel(),
   ]);

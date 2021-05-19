@@ -5,18 +5,18 @@ import { faChevronLeft, faFile, faHome, faLayerGroup, faSearch } from '@fortawes
 // import log from 'electron-log';
 
 import useSearchQuery from '../../components/UI/Search/Query/use';
-import FilePreviewList from '../../components/File/Preview/List';
-import FileSearchForm from '../../components/File/Search/Form';
+import GroupSearchForm from '../../components/Group/Search/Form';
 import PaginationButtons from '../../components/UI/Paginator/Buttons';
 import { Card, CardHeader } from '../../components/UI/Card';
 import PaginationPageInput from '../../components/UI/Paginator/PageInput';
-import FileSearchQuery, { IFileSearchQuery } from '../../components/File/Search/Query';
-import { PARENT_FILE_SEARCH_QUERY } from '../../SessionStorageKeys';
-import { FileStub } from '../../../db/entities';
+import GroupSearchQuery, { IGroupSearchQuery } from '../../components/Group/Search/Query';
+import { PARENT_GROUP_SEARCH_QUERY } from '../../SessionStorageKeys';
+import { GroupStub } from '../../../db/entities';
+import GroupPreviewList from '../../components/Group/Preview/List';
 
-export default function FileSearch()
+export default function GroupSearch()
 {
-  const [results, loading, count, page, maxPage, prevPage, nextPage, goToPage, query,, setParentQuery] = useSearchQuery<IFileSearchQuery, FileStub, FileSearchQuery>(FileSearchQuery, { parentQuerySessionKey: PARENT_FILE_SEARCH_QUERY, defaultPerPage: 30 });
+  const [results, loading, count, page, maxPage, prevPage, nextPage, goToPage, query,, setParentQuery] = useSearchQuery<IGroupSearchQuery, GroupStub, GroupSearchQuery>(GroupSearchQuery, { parentQuerySessionKey: PARENT_GROUP_SEARCH_QUERY, defaultPerPage: 30 });
 
   setParentQuery(query);
 
@@ -27,18 +27,18 @@ export default function FileSearch()
       <div className='flex-none w-72'>
 
         <div className='flex flex-row -mb-1 bg-white bg-opacity-10 rounded-t'>
-          <div className='text-gray-600 bg-white px-2 py-1 text-sm rounded-t space-x-2'>
+          <Link className='text-gray-500 bg-gray-300 px-2 py-1 text-sm rounded-t space-x-2' to={`/file?workspaceID=${query.workspaceID || ''}`} >
             <FontAwesomeIcon icon={faFile}/>
-            <span>files</span>
-          </div>
-          <Link className='text-gray-500 bg-gray-300 px-2 py-1 text-sm rounded-t space-x-2' to={`/group?workspaceID=${query.workspaceID}`}>
-            <FontAwesomeIcon icon={faLayerGroup}/>
           </Link>
+          <div className='text-gray-600 bg-white px-2 py-1 text-sm rounded-t space-x-2'>
+            <FontAwesomeIcon icon={faLayerGroup}/>
+            <span>groups</span>
+          </div>
         </div>
 
         <Card>
           <CardHeader icon={faSearch} text='search'/>
-          <FileSearchForm query={query} files={results} resultCount={count}/>
+          <GroupSearchForm query={query} groups={results} resultCount={count}/>
         </Card>
       </div>
 
@@ -56,7 +56,7 @@ export default function FileSearch()
         </Card>
 
         <Card empty={!loading && results.length === 0} className='flex-grow'>
-          <FilePreviewList loading={loading} files={results} query={query} QueryConstructor={FileSearchQuery}/>
+          <GroupPreviewList loading={loading} groups={results} query={query}/>
         </Card>
 
       </div>

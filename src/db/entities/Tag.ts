@@ -2,11 +2,11 @@
 import { Entity, ManyToOne, Property, Unique } from '@mikro-orm/core'
 
 // eslint-disable-next-line import/no-cycle
-import { File, FileStub } from './index';
+import { File, FileStub, Group, GroupStub } from './index';
 import { BaseEntity, BaseEntityStub } from './BaseEntity';
 
 @Entity()
-@Unique({ properties: ['name', 'category', 'file'] })
+@Unique({ properties: ['name', 'category', 'file', 'group'] })
 export class Tag extends BaseEntity
 {
 
@@ -18,6 +18,9 @@ export class Tag extends BaseEntity
 
   @ManyToOne(() => File)
   file!: File;
+
+  @ManyToOne(() => Group)
+  group!: Group;
 
   constructor(name: string, category = '')
   {
@@ -32,4 +35,5 @@ export interface TagStub extends BaseEntityStub
   name: string;
   category: string;
   file?: FileStub;
+  group?: GroupStub;
 }

@@ -6,45 +6,41 @@ import { faBan, faCheck, faUndo } from '@fortawesome/free-solid-svg-icons';
 import { faTrashAlt } from '@fortawesome/free-regular-svg-icons';
 import { FilterQuery } from '@mikro-orm/core';
 
-import { FileStub, Workspace, WorkspaceStub } from '../../../../db/entities';
+import { GroupStub, Workspace, WorkspaceStub } from '../../../../db/entities';
 import Client from '../../../../utils/websocket/SocketClient';
 
 import { TagTuple } from '../../Tag';
 import TagButton from '../../Tag/Button';
 import TagInput from '../../Tag/Input';
 import { updateState } from '../../../../utils';
-import FileSearchQuery, { IFileSearchQuery } from './Query';
+import GroupSearchQuery, { IGroupSearchQuery } from './Query';
 import { SocketRequestStatus } from '../../../../utils/websocket';
 import { CardFooter, CardSection } from '../../UI/Card';
 
 type OptionType = { value: string, label: string };
 
-interface FileSearchFormProps extends RouteComponentProps
+interface GroupSearchFormProps extends RouteComponentProps
 {
-  query?: FileSearchQuery;
-  files: FileStub[];
+  query?: GroupSearchQuery;
+  groups: GroupStub[];
   resultCount?: number;
 }
 
-interface FileSearchFormState extends IFileSearchQuery
+interface GroupSearchFormState extends IGroupSearchQuery
 {
   workspaceSelectValue: OptionType;
   workspaceSelectOptions: OptionType[];
   modifiedQuery: boolean;
 }
 
-class FileSearchForm extends React.Component<FileSearchFormProps, FileSearchFormState>
+class GroupSearchForm extends React.Component<GroupSearchFormProps, GroupSearchFormState>
 {
-  constructor(props: FileSearchFormProps)
+  constructor(props: GroupSearchFormProps)
   {
     super(props);
 
     this.state = {
       name: '',
-      extension: '',
-      fullPath: '',
-      mimeType: '',
-      md5: '',
       andOr: 'and',
       workspaceSelectValue: { value: '', label: 'Loading...' },
       workspaceSelectOptions: [],
@@ -67,11 +63,11 @@ class FileSearchForm extends React.Component<FileSearchFormProps, FileSearchForm
 
     // look through the query and set state for each which isnt null
     if (query) Object.entries(query).forEach(e => {
-      if (e[1]) this.setState(updateState(e[0] as keyof IFileSearchQuery, e[1]));
+      if (e[1]) this.setState(updateState(e[0] as keyof IGroupSearchQuery, e[1]));
     });
   }
 
-  async componentDidUpdate(prevProps: FileSearchFormProps, prevState: FileSearchFormState)
+  async componentDidUpdate(prevProps: GroupSearchFormProps, prevState: GroupSearchFormState)
   {
     const { query } = this.props;
 
@@ -112,11 +108,11 @@ class FileSearchForm extends React.Component<FileSearchFormProps, FileSearchForm
   handleSearchButtonClick()
   {
     const { query } = this.props;
-    const { name, extension, fullPath, mimeType, md5, andOr, tags, workspaceID } = this.state;
+    const { name, andOr, tags, workspaceID } = this.state;
 
-    const newQuery = new FileSearchQuery(query?.props || {});
+    const newQuery = new GroupSearchQuery(query?.props || {});
     Object.assign(newQuery, {
-      name, extension, fullPath, mimeType, md5,
+      name,
       tags,
       andOr,
       workspaceID,
@@ -124,17 +120,13 @@ class FileSearchForm extends React.Component<FileSearchFormProps, FileSearchForm
     });
 
     const { history } = this.props;
-    history.push(`/file?${newQuery}`);
+    history.push(`/group?${newQuery}`);
   }
 
   handleClearForm()
   {
     this.setState({
       name: '',
-      extension: '',
-      fullPath: '',
-      mimeType: '',
-      md5: '',
       tags: undefined,
       andOr: 'and',
       modifiedQuery: true,
@@ -152,7 +144,7 @@ class FileSearchForm extends React.Component<FileSearchFormProps, FileSearchForm
   handleStringInputChange({ target: { name, value } }: React.ChangeEvent<HTMLInputElement>)
   {
     this.setState(prevState => ({
-      ...updateState<string, FileSearchFormState>(name as keyof IFileSearchQuery, value)(prevState),
+      ...updateState<string, GroupSearchFormState>(name as keyof IGroupSearchQuery, value)(prevState),
       modifiedQuery: true,
     }));
   }
@@ -198,7 +190,7 @@ class FileSearchForm extends React.Component<FileSearchFormProps, FileSearchForm
     }
   }
 
-  setQuery(query: FileSearchQuery | undefined)
+  setQuery(query: GroupSearchQuery | undefined)
   {
     this.setState({
       ...query?.props,
@@ -209,7 +201,7 @@ class FileSearchForm extends React.Component<FileSearchFormProps, FileSearchForm
   render()
   {
     const { resultCount, query } = this.props;
-    const { name, extension, fullPath, mimeType, md5, tags, andOr, workspaceSelectValue, modifiedQuery } = this.state;
+    const { name, tags, andOr, workspaceSelectValue, modifiedQuery } = this.state;
 
     return (
       <>
@@ -236,10 +228,6 @@ class FileSearchForm extends React.Component<FileSearchFormProps, FileSearchForm
 
         <CardSection fullWidth className='p-4 space-y-2 bg-gray-200'>
           <input type='text' value={name}      name='name'      onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' placeholder='name'/>
-          <input type='text' value={extension} name='extension' onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' placeholder='extension'/>
-          <input type='text' value={fullPath}  name='fullPath'  onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' placeholder='path'/>
-          <input type='text' value={mimeType}  name='mimeType'  onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' placeholder='mime type'/>
-          <input type='text' value={md5}       name='md5'       onChange={this.handleStringInputChange} className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' placeholder='md5'/>
         </CardSection>
 
         {resultCount !== undefined ?
@@ -265,4 +253,4 @@ class FileSearchForm extends React.Component<FileSearchFormProps, FileSearchForm
   }
 }
 
-export default withRouter(FileSearchForm);
+export default withRouter(GroupSearchForm);

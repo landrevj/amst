@@ -1,5 +1,7 @@
 export default abstract class SearchQuery<Props, Results>
 {
+  public abstract readonly route: string;
+
   limit?: number;
   page?: number;
 

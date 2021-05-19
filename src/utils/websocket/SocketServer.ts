@@ -1,5 +1,5 @@
 import { createServer, IncomingMessage, ServerResponse } from "http";
-import { Server, Socket } from 'socket.io';
+import { Server as SocketIOServer, Socket } from 'socket.io';
 import send from 'send';
 import StreamZip from "node-stream-zip";
 // import log from 'electron-log';
@@ -53,7 +53,7 @@ class SocketServer
 {
   private static instance: SocketServer;
 
-  private io: Server | undefined;
+  private io: SocketIOServer | undefined;
   private port: number | undefined;
 
   private constructor() { /* */ }
@@ -61,7 +61,7 @@ class SocketServer
   public init(channels: SocketChannelInterface[], port?: number)
   {
     const httpServer = createServer(fileRequestListener);
-    this.io = new Server(httpServer, {});
+    this.io = new SocketIOServer(httpServer, {});
 
     this.io.on('connection', (socket) => {
       socket.send('worker/index.ts: Connected!');
@@ -88,5 +88,5 @@ class SocketServer
   }
 }
 
-const server = SocketServer.getInstance();
-export default server;
+const Server = SocketServer.getInstance();
+export default Server;

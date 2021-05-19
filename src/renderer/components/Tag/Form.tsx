@@ -7,7 +7,9 @@ import TagInput from './Input';
 
 interface TagFormProps
 {
-  fileID: number;
+  channel: 'File' | 'Group';
+  fileID?: number;
+  groupID?: number;
   onSubmit: (newTag: TagStub) => void;
 }
 
@@ -17,14 +19,25 @@ export default class TagForm extends React.Component<TagFormProps>
   {
     super(props);
 
+    const { channel, fileID, groupID } = this.props;
+
+    if (channel === 'File' && groupID)
+    {
+      throw new Error('Tag/Form.tsx: groupID specified when channel is set to Group');
+    }
+    if (channel === 'Group' && fileID)
+    {
+      throw new Error('Tag/Form.tsx: fileID specified when channel is set to File');
+    }
+
     this.handleTagInputSubmit = this.handleTagInputSubmit.bind(this);
   }
 
   async handleTagInputSubmit(tag: TagTuple)
   {
-    const { fileID, onSubmit } = this.props;
+    const { channel, fileID, groupID, onSubmit } = this.props;
 
-    const response = await Client.send<TagStub>('File', { action: 'addTag', params: [fileID, ...tag] });
+    const response = await Client.send<TagStub>(channel, { action: 'addTag', params: [fileID || groupID, ...tag] });
     const success  = response.status === SocketRequestStatus.SUCCESS;
 
     if (success && response.data) onSubmit(response.data);

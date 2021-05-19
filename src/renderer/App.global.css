@@ -103,7 +103,7 @@ input[type='number']::-webkit-outer-spin-button {
 }
 /************************************************************/
 /************************************************************/
-.react-select-container {
+.react-select_container {
   @apply text-sm;
 }
 .react-select__control {

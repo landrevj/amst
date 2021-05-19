@@ -58,5 +58,5 @@ class SocketClient
   }
 }
 
-const client = SocketClient.getInstance();
-export default client;
+const Client = SocketClient.getInstance();
+export default Client;

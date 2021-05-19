@@ -10,16 +10,16 @@ export interface Options
 {
   parentQuerySessionKey: string;
   // how many files appear in one page of a search
-  defaultFilesPerPage?: number;
+  defaultPerPage?: number;
 }
 
-export default function useSearchQuery<Props, Results, QueryType extends SearchQuery<Props, Results>>(QueryObject: new (q: Props | string, d?: number) => QueryType, options: Readonly<Options>)
+export default function useSearchQuery<Props, Results, QueryType extends SearchQuery<Props, Results>>(QueryConstructor: new (q: Props | string, d?: number) => QueryType, options: Readonly<Options>)
 : [Results[], boolean, number, number, number, () => void, () => void, (p: number) => void, QueryType, QueryType | undefined, (sq: QueryType) => void]
 {
   const location = useLocation();
 
   const sessionQueryString = window.sessionStorage.getItem(options.parentQuerySessionKey);
-  const [parentQuery] = useState<QueryType | undefined>(sessionQueryString ? new QueryObject(JSON.parse(sessionQueryString)) : undefined);
+  const [parentQuery] = useState<QueryType | undefined>(sessionQueryString ? new QueryConstructor(JSON.parse(sessionQueryString)) : undefined);
 
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<Results[]>([]);
@@ -27,7 +27,7 @@ export default function useSearchQuery<Props, Results, QueryType extends SearchQ
   const [page,    setPage]    = useState(0);
   const [maxPage, setMaxPage] = useState(0);
 
-  const query = useMemo(() => new QueryObject(location.search, options.defaultFilesPerPage), [location.search, options.defaultFilesPerPage, QueryObject]);
+  const query = useMemo(() => new QueryConstructor(location.search, options.defaultPerPage), [location.search, options.defaultPerPage, QueryConstructor]);
 
   useEffect(() => {
     async function loadResults()
@@ -40,30 +40,30 @@ export default function useSearchQuery<Props, Results, QueryType extends SearchQ
       setCount(newCount || 0);
       setPage(query.page || 0);
       // compute the length of the 'search results array' and then subtract one to get the largest index
-      setMaxPage(Math.ceil((newCount || 0) / (query.limit || options.defaultFilesPerPage || 20)) - 1);
+      setMaxPage(Math.ceil((newCount || 0) / (query.limit || options.defaultPerPage || 20)) - 1);
       setLoading(false);
     }
     loadResults();
-  }, [query, options.defaultFilesPerPage]);
+  }, [query, options.defaultPerPage]);
 
 
   const history = useHistory();
   const prevPage = () => {
     if (page <= 0) return;
 
-    const pqs = new QueryObject(query.props);
+    const pqs = new QueryConstructor(query.props);
     pqs.page = page - 1;
     history.push(`${location.pathname}?${pqs}`);
   };
   const nextPage = () => {
     if (page >= maxPage) return;
 
-    const nqs = new QueryObject(query.props);
+    const nqs = new QueryConstructor(query.props);
     nqs.page = page + 1;
     history.push(`${location.pathname}?${nqs}`);
   };
   const goToPage = (p: number) => {
-    const sqs = new QueryObject(query.props);
+    const sqs = new QueryConstructor(query.props);
     sqs.page = p;
     history.push(`${location.pathname}?${sqs}`);
   };

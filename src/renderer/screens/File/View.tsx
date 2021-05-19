@@ -226,7 +226,7 @@ class FileView extends React.Component<FileViewProps, FileViewState>
                   {file && !loading ?
                   <div className='flex flex-row'>
                     <div className='mr-1 px-2 py-1 text-sm rounded-full bg-green-200 border-2 border-solid border-green-200'>new tag</div>
-                    <TagForm fileID={file.id} onSubmit={this.handleTagFormSubmit}/>
+                    <TagForm channel='File' fileID={file.id} onSubmit={this.handleTagFormSubmit}/>
                   </div> : <></>}
                 </div>
               </CardSection>
@@ -251,4 +251,4 @@ class FileView extends React.Component<FileViewProps, FileViewState>
   }
 }
 
-export default withSearchQuery<IFileSearchQuery, FileStub, FileSearchQuery>(FileSearchQuery, { parentQuerySessionKey: PARENT_FILE_SEARCH_QUERY, defaultFilesPerPage: 1 })(FileView);
+export default withSearchQuery<IFileSearchQuery, FileStub, FileSearchQuery>(FileSearchQuery, { parentQuerySessionKey: PARENT_FILE_SEARCH_QUERY, defaultPerPage: 1 })(FileView);

@@ -3,18 +3,14 @@ import QueryString from 'query-string';
 
 import Client from '../../../../utils/websocket/SocketClient';
 import { SocketRequestStatus } from '../../../../utils/websocket';
-import { FileStub } from '../../../../db/entities';
+import { GroupStub } from '../../../../db/entities';
 import { TagTuple } from '../../Tag';
 import { SearchQuery } from '../../UI/Search/Query';
 
-export interface IFileSearchQuery
+export interface IGroupSearchQuery
 {
   // property queries
   name?: string;
-  extension?: string;
-  fullPath?: string;
-  mimeType?: string;
-  md5?: string;
 
   // join queries
   workspaceID?: number;
@@ -28,34 +24,28 @@ export interface IFileSearchQuery
 
 // when we stringify it we want to be able to load the old query in one go,
 // then set the tags to a JSON.stringified version rather than the TagTuple[] in the original type
-type IFileSearchQueryStringified = Omit<IFileSearchQuery, 'tags'> & { tags?: string };
+type IGroupSearchQueryStringified = Omit<IGroupSearchQuery, 'tags'> & { tags?: string };
 
-export default class FileSearchQuery extends SearchQuery<IFileSearchQuery, FileStub> implements IFileSearchQuery
+export default class GroupSearchQuery extends SearchQuery<IGroupSearchQuery, GroupStub> implements IGroupSearchQuery
 {
-  static DEFAULT_FILES_PER_PAGE = 20;
-  public readonly route = 'file';
+  static DEFAULT_GROUPS_PER_PAGE = 20;
+  public readonly route = 'group';
 
   // property queries
   public name?: string;
-  public extension?: string;
-  public fullPath?: string;
-  public mimeType?: string;
-  public md5?: string;
 
   // join queries
   public workspaceID?: number;
   public tags?: TagTuple[];
   public andOr?: 'and' | 'or';
 
-  // constructor(query: IFileSearchQuery);
-  // constructor(query: string, defaultFilesPerPage?: number);
-  constructor(query: IFileSearchQuery | string, defaultFilesPerPage?: number)
+  constructor(query: IGroupSearchQuery | string, defaultFilesPerPage?: number)
   {
     super();
     this.loadQuery(query, defaultFilesPerPage);
   }
 
-  public loadQuery(search: IFileSearchQuery | string, defaultFilesPerPage?: number): FileSearchQuery
+  public loadQuery(search: IGroupSearchQuery | string, defaultFilesPerPage?: number): GroupSearchQuery
   {
     if (typeof search !== 'string')
     {
@@ -81,12 +71,7 @@ export default class FileSearchQuery extends SearchQuery<IFileSearchQuery, FileS
       return thing;
     };
 
-    // these are always strings so just cast them
-    this.name      = qs.name      ? qs.name      as string : '';
-    this.extension = qs.extension ? qs.extension as string : '';
-    this.fullPath  = qs.fullPath  ? qs.fullPath  as string : '';
-    this.mimeType  = qs.mimeType  ? qs.mimeType  as string : '';
-    this.md5       = qs.md5       ? qs.md5       as string : '';
+    this.name = qs.name ? qs.name as string : '';
 
     // these need to be parsed from strings
     this.workspaceID = helper(qs.workspaceID, id => parseInt(id, 10));
@@ -96,40 +81,40 @@ export default class FileSearchQuery extends SearchQuery<IFileSearchQuery, FileS
 
     // these need to be parsed and have defaults
     this.page =  helper(qs.page, p => parseInt(p, 10)) || 0;
-    this.limit = helper(qs.limit, l => parseInt(l, 10)) || defaultFilesPerPage || FileSearchQuery.DEFAULT_FILES_PER_PAGE;
+    this.limit = helper(qs.limit, l => parseInt(l, 10)) || defaultFilesPerPage || GroupSearchQuery.DEFAULT_GROUPS_PER_PAGE;
 
     return this;
   }
 
   public async getResults()
   {
-    const fileResponse = await Client.send<{ files: FileStub[], count: number | undefined }>('File', { action: 'search', params: this.props });
-    const fileSuccess  = fileResponse.status === SocketRequestStatus.SUCCESS;
-    if (!(fileSuccess && fileResponse.data))
+    const response = await Client.send<{ groups: GroupStub[], count: number | undefined }>('Group', { action: 'search', params: this.props });
+    const success  = response.status === SocketRequestStatus.SUCCESS;
+    if (!(success && response.data))
     {
       log.error(`Failed to get files for workspace with given id: ${this.workspaceID}`);
-      return [[], undefined] as [FileStub[], number | undefined];
+      return [[], undefined] as [GroupStub[], number | undefined];
     };
 
-    const { data } = fileResponse;
-    const newFiles = data.files;
+    const { data } = response;
+    const newGroups = data.groups;
     const newCount = data.count;
 
-    return [newFiles, newCount] as [FileStub[], number | undefined];
+    return [newGroups, newCount] as [GroupStub[], number | undefined];
   }
 
   public toString(): string
   {
     // query-string doesnt handle stringifying nested arrays properly so we just use JSON.stringify instead
     // then parse it back above in loadQuery. makes the links a bit ugly but it works
-    const t = { ...(this as IFileSearchQueryStringified) };
+    const t = { ...(this as IGroupSearchQueryStringified) };
     if (this.tags?.length) t.tags = JSON.stringify(this.tags);
     const qs = QueryString.stringify(t);
     return qs;
   }
 
-  get props(): IFileSearchQuery
+  get props(): IGroupSearchQuery
   {
-    return this as IFileSearchQuery;
+    return this as IGroupSearchQuery;
   }
 }
