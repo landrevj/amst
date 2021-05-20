@@ -13,8 +13,25 @@ export interface Options
   defaultPerPage?: number;
 }
 
-export default function useSearchQuery<Props, Results, QueryType extends SearchQuery<Props, Results>>(QueryConstructor: new (q: Props | string, d?: number) => QueryType, options: Readonly<Options>)
-: [Results[], boolean, number, number, number, () => void, () => void, (p: number) => void, QueryType, QueryType | undefined, (sq: QueryType) => void]
+export interface SearchQueryProps<Props, Results, QueryType extends SearchQuery<Props, Results>>
+{
+  results:        Results[];
+  loading:        boolean;
+  count:          number;
+  page:           number;
+  maxPage:        number;
+  prevPage:       () => void;
+  nextPage:       () => void;
+  goToPage:       (p: number) => void;
+  query:          QueryType;
+  parentQuery:    QueryType | undefined;
+  setParentQuery: (sq: QueryType) => void;
+};
+
+export default function useSearchQuery
+<Props, Results, QueryType extends SearchQuery<Props, Results>>
+(QueryConstructor: new (q: Props | string, d?: number) => QueryType, options: Readonly<Options>)
+: SearchQueryProps<Props, Results, QueryType>
 {
   const location = useLocation();
 
@@ -71,5 +88,5 @@ export default function useSearchQuery<Props, Results, QueryType extends SearchQ
 
   const setParentQuery = (sq: QueryType) => window.sessionStorage.setItem(options.parentQuerySessionKey, JSON.stringify(sq));
 
-  return [results, loading, count, page, maxPage, prevPage, nextPage, goToPage, query, parentQuery, setParentQuery];
+  return { results, loading, count, page, maxPage, prevPage, nextPage, goToPage, query, parentQuery, setParentQuery };
 }

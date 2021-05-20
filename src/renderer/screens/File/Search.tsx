@@ -16,7 +16,7 @@ import { FileStub } from '../../../db/entities';
 
 export default function FileSearch()
 {
-  const [results, loading, count, page, maxPage, prevPage, nextPage, goToPage, query,, setParentQuery] =
+  const { results, loading, count, page, maxPage, prevPage, nextPage, goToPage, query, setParentQuery } =
   useSearchQuery<IFileSearchQuery, FileStub, FileSearchQuery>(FileSearchQuery, {
     parentQuerySessionKey: PARENT_FILE_SEARCH_QUERY,
     defaultPerPage: 30

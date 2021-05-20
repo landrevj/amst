@@ -16,7 +16,7 @@ import { SocketRequestStatus } from '../../../utils/websocket';
 import TagForm from '../../components/Tag/Form';
 import { mimeRegex } from '../../../utils';
 import TagList from '../../components/Tag/List';
-import withSearchQuery, { WithSearchQueryProps } from '../../components/UI/Search/Query/with';
+import { withSearchQuery, SearchQueryProps } from '../../components/UI/Search/Query';
 import { Card, CardSection } from '../../components/UI/Card';
 import FilePropertyTable from '../../components/File/PropertyTable';
 import FileSearchQuery, { IFileSearchQuery } from '../../components/File/Search/Query';
@@ -26,7 +26,7 @@ interface FileViewRouteParams
 {
   id: string;
 }
-type FileViewProps = WithSearchQueryProps<IFileSearchQuery, FileStub, FileSearchQuery> & RouteComponentProps<FileViewRouteParams>;
+type FileViewProps = SearchQueryProps<IFileSearchQuery, FileStub, FileSearchQuery> & RouteComponentProps<FileViewRouteParams>;
 
 interface FileViewState
 {

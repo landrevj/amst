@@ -1,3 +1,3 @@
 export * from './Query';
 export * from './use';
-export * from './with';
+export { default as withSearchQuery } from './with';

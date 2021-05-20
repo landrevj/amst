@@ -16,7 +16,7 @@ import Client from '../../../utils/websocket/SocketClient';
 import { GroupMemberStub, GroupStub, TagStub } from '../../../db/entities';
 
 import { SocketRequestStatus } from '../../../utils/websocket';
-import withSearchQuery, { WithSearchQueryProps } from '../../components/UI/Search/Query/with';
+import { withSearchQuery, SearchQueryProps } from '../../components/UI/Search/Query';
 import { PARENT_GROUP_SEARCH_QUERY } from '../../SessionStorageKeys';
 import GroupSearchQuery, { IGroupSearchQuery } from '../../components/Group/Search/Query';
 import TagList from '../../components/Tag/List';
@@ -31,7 +31,7 @@ interface GroupViewRouteParams
 {
   id: string;
 }
-type GroupViewProps = WithSearchQueryProps<IGroupSearchQuery, GroupStub, GroupSearchQuery> & RouteComponentProps<GroupViewRouteParams>;
+type GroupViewProps = SearchQueryProps<IGroupSearchQuery, GroupStub, GroupSearchQuery> & RouteComponentProps<GroupViewRouteParams>;
 
 interface GroupViewState
 {

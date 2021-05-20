@@ -16,7 +16,7 @@ import GroupPreviewList from '../../components/Group/Preview/List';
 
 export default function GroupSearch()
 {
-  const [results, loading, count, page, maxPage, prevPage, nextPage, goToPage, query,, setParentQuery] =
+  const { results, loading, count, page, maxPage, prevPage, nextPage, goToPage, query, setParentQuery } =
   useSearchQuery<IGroupSearchQuery, GroupStub, GroupSearchQuery>(GroupSearchQuery, {
     parentQuerySessionKey: PARENT_GROUP_SEARCH_QUERY,
     defaultPerPage: 30,
