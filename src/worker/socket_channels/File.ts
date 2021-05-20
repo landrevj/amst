@@ -82,8 +82,8 @@ export class FileChannel extends EntityChannel<File>
 
       const {
         name, extension, fullPath, mimeType, md5,
-        workspaceID, tags, andOr,
-        page, limit,
+        workspaceID, groupID, tags, andOr,
+        page, limit, order
       } = q;
 
       if (workspaceID)
@@ -91,6 +91,14 @@ export class FileChannel extends EntityChannel<File>
         qbBoth.forEach(e => {
           e.leftJoin('f.workspaces', 'w')
            .where({ 'w.id': workspaceID });
+        });
+      }
+      if (groupID)
+      {
+        qbBoth.forEach(e => {
+          e.leftJoin('f.groupMemberships', 'gm')
+           .where({ 'gm.group_id': groupID })
+           .orderBy({ 'gm.position': order || QueryOrder.ASC });
         });
       }
       if (tags)
@@ -158,7 +166,7 @@ export class FileChannel extends EntityChannel<File>
         });
       }
 
-      qb.orderBy({ id: QueryOrder.DESC });
+      if (groupID === undefined) qb.orderBy({ id: order || QueryOrder.ASC });
       qb.limit(limit, (page && limit) ? page * limit : 0); // pagination
 
       const files = await qb.getResult();

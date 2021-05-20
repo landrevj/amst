@@ -1,13 +1,14 @@
 import log from 'electron-log';
 import QueryString from 'query-string';
+import { QueryOrder } from '@mikro-orm/core';
 
 import Client from '../../../../utils/websocket/SocketClient';
 import { SocketRequestStatus } from '../../../../utils/websocket';
 import { FileStub } from '../../../../db/entities';
 import { TagTuple } from '../../Tag';
-import { SearchQuery } from '../../UI/Search/Query';
+import { SearchQuery, ISearchQuery } from '../../UI/Search/Query';
 
-export interface IFileSearchQuery
+export interface IFileSearchQuery extends ISearchQuery
 {
   // property queries
   name?: string;
@@ -18,12 +19,9 @@ export interface IFileSearchQuery
 
   // join queries
   workspaceID?: number;
+  groupID?: number;
   tags?: TagTuple[];
-  andOr?: 'and' | 'or',
-
-  // pagination
-  limit?: number;
-  page?: number;
+  andOr?: 'AND' | 'OR',
 }
 
 // when we stringify it we want to be able to load the old query in one go,
@@ -44,8 +42,9 @@ export default class FileSearchQuery extends SearchQuery<IFileSearchQuery, FileS
 
   // join queries
   public workspaceID?: number;
+  public groupID?: number;
   public tags?: TagTuple[];
-  public andOr?: 'and' | 'or';
+  public andOr?: 'AND' | 'OR';
 
   // constructor(query: IFileSearchQuery);
   // constructor(query: string, defaultFilesPerPage?: number);
@@ -87,12 +86,14 @@ export default class FileSearchQuery extends SearchQuery<IFileSearchQuery, FileS
     this.fullPath  = qs.fullPath  ? qs.fullPath  as string : '';
     this.mimeType  = qs.mimeType  ? qs.mimeType  as string : '';
     this.md5       = qs.md5       ? qs.md5       as string : '';
+    this.order     = qs.order     ? qs.order     as QueryOrder : QueryOrder.ASC;
 
     // these need to be parsed from strings
     this.workspaceID = helper(qs.workspaceID, id => parseInt(id, 10));
+    this.groupID = helper(qs.groupID, id => parseInt(id, 10));
     // we dont trust query-string to stringify this properly so we move it around as as a string with JSON.stringify
     this.tags = qs.tags && JSON.parse(qs.tags as string);
-    this.andOr = qs.andOr && qs.andOr === 'or' ? 'or' : 'and';
+    this.andOr = qs.andOr && qs.andOr === 'OR' ? 'OR' : 'AND';
 
     // these need to be parsed and have defaults
     this.page =  helper(qs.page, p => parseInt(p, 10)) || 0;

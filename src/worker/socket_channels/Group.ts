@@ -82,7 +82,7 @@ export class GroupChannel extends EntityChannel<Group>
       const {
         name,
         workspaceID, tags, andOr,
-        page, limit,
+        page, limit, order
       } = q;
 
       if (workspaceID)
@@ -131,7 +131,7 @@ export class GroupChannel extends EntityChannel<Group>
         });
       }
 
-      qb.orderBy({ id: QueryOrder.DESC });
+      qb.orderBy({ id: order || QueryOrder.ASC });
       qb.limit(limit, (page && limit) ? page * limit : 0); // pagination
 
 

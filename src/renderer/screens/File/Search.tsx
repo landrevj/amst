@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faFile, faHome, faLayerGroup, faSearch } from '@fortawesome/free-solid-svg-icons';
@@ -16,9 +16,13 @@ import { FileStub } from '../../../db/entities';
 
 export default function FileSearch()
 {
-  const [results, loading, count, page, maxPage, prevPage, nextPage, goToPage, query,, setParentQuery] = useSearchQuery<IFileSearchQuery, FileStub, FileSearchQuery>(FileSearchQuery, { parentQuerySessionKey: PARENT_FILE_SEARCH_QUERY, defaultPerPage: 30 });
+  const [results, loading, count, page, maxPage, prevPage, nextPage, goToPage, query,, setParentQuery] =
+  useSearchQuery<IFileSearchQuery, FileStub, FileSearchQuery>(FileSearchQuery, {
+    parentQuerySessionKey: PARENT_FILE_SEARCH_QUERY,
+    defaultPerPage: 30
+  });
 
-  setParentQuery(query);
+  useEffect(() => setParentQuery(query), [query, setParentQuery]);
 
   const paginationWidth = 9;
 
@@ -31,7 +35,7 @@ export default function FileSearch()
             <FontAwesomeIcon icon={faFile}/>
             <span>files</span>
           </div>
-          <Link className='text-gray-500 bg-gray-300 px-2 py-1 text-sm rounded-t space-x-2' to={`/group?workspaceID=${query.workspaceID}`}>
+          <Link className='text-gray-500 bg-gray-300 px-2 py-1 text-sm rounded-t space-x-2' to={`/group?workspaceID=${query.workspaceID || ''}&order=DESC`}>
             <FontAwesomeIcon icon={faLayerGroup}/>
           </Link>
         </div>

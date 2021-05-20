@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import Hotkeys from 'react-hot-keys';
 import { HotkeysEvent } from 'hotkeys-js';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowCircleLeft, faChevronLeft, faChevronRight, faFile, faImage, faLayerGroup, faTags } from '@fortawesome/free-solid-svg-icons';
+import { faArrowCircleLeft, faChevronLeft, faChevronRight, faFile, faImage, faLayerGroup, faPlus, faTags } from '@fortawesome/free-solid-svg-icons';
 import log from 'electron-log';
 
 
@@ -141,23 +141,23 @@ class FileView extends React.Component<FileViewProps, FileViewState>
 
   render()
   {
-    const { loading, page, maxPage, prevPage, nextPage, query, parentQuery } = this.props;
+    const { loading, page, maxPage, prevPage, nextPage, query, parentQuery, history } = this.props;
     const { file, tags, groups } = this.state;
     // if (!file && !loading) return (<span>no file</span>)
-
+    console.log(history)
 
     let content: JSX.Element | undefined;
     if (file && !loading)
     {
       const { type } = mimeRegex(file.mimeType || '');
-      if (type === 'image') content = <img className='max-h-screen' src={`http://${Client.host}:${Client.port}/files/${file.id}`} alt={file.name}/>;
+      if (type === 'image') content = <img className='max-h-full' src={`http://${Client.host}:${Client.port}/files/${file.id}`} alt={file.name}/>;
       else if (type === 'video')
       {
         content = (
           // we set the key here so the video will always update the video source when the file changes
           // this wasnt an issue initially but at some point it became one. idk what happened
           // but it would update the source in the html but the video would still be the same
-          <video className='max-h-screen' key={file.id} controls>
+          <video className='max-h-full' key={file.id} controls>
             <source src={`http://${Client.host}:${Client.port}/files/${file.id}`}/>
             Something wasnt supported!
           </video>
@@ -199,13 +199,14 @@ class FileView extends React.Component<FileViewProps, FileViewState>
 
               <div className='flex-grow text-center'>
                 {file && !loading ? <>
-                <span className='px-2 rounded-full bg-blue-300'>
-                  #{file.id} - {page + 1}/{maxPage + 1}
+                <span className='px-2 rounded-full bg-gray-300'>
+                  #{file.id}
                 </span>
                 <br/>
-                <Link className='inline-block px-2 rounded-full bg-green-300' to={`/file?${parentQuery || ''}`}>
+                <Link className='inline-block px-2 rounded-full text-white filter saturate-[.9] bg-gradient-to-tr from-blue-400 to-blue-300' to={`/file?${parentQuery || ''}`}>
                   <FontAwesomeIcon className='mr-1 -ml-1 my-auto fill-current text-gray-100' icon={faArrowCircleLeft}/>
                   <span>search</span>
+                  <span> | ({page + 1}/{maxPage + 1})</span>
                 </Link>
                 </>
                 :
@@ -224,8 +225,10 @@ class FileView extends React.Component<FileViewProps, FileViewState>
                 <div className='space-y-4'>
                   <TagList tags={tags} searchTagTuples={query.tags} handleTagRemove={this.handleTagRemove} loading={loading}/>
                   {file && !loading ?
-                  <div className='flex flex-row'>
-                    <div className='mr-1 px-2 py-1 text-sm rounded-full bg-green-200 border-2 border-solid border-green-200'>new tag</div>
+                  <div className='flex flex-row gap-1'>
+                    <span className='flex place-items-center px-2.5 text-sm rounded-full text-white filter saturate-[.9] bg-gradient-to-r from-green-400 to-green-300'>
+                      <FontAwesomeIcon icon={faPlus}/>
+                    </span>
                     <TagForm channel='File' fileID={file.id} onSubmit={this.handleTagFormSubmit}/>
                   </div> : <></>}
                 </div>

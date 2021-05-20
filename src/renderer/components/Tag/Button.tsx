@@ -19,7 +19,7 @@ export default function TagButton({ tag, fontClassName, highlighted, hideCategor
   const n = <span className={`max-w-full overflow-hidden overflow-ellipsis ${(!hideCategory && (tag.category !== '')) ? 'pl-1' : ''}`}>{tag.name}</span>;
 
   return (
-    <div className={`m-0.5 px-2 max-w-full ${fontClassName} flex flex-row overflow-hidden rounded-full bg-gray-100 border-2 border-solid border-gray-300 ${highlighted && 'border-indigo-300 bg-indigo-100'}`}>
+    <div className={`px-2 max-w-full ${fontClassName} flex flex-row overflow-hidden rounded-full bg-gray-100 border-2 border-solid border-gray-300 ${highlighted && 'border-indigo-300 bg-indigo-100'}`}>
       {!hideCategory && (tag.category !== '') && c}
       {n}
       <FontAwesomeIcon className={`ml-1 -mr-1 my-auto fill-current text-gray-400 hover:text-red-500 ${highlighted && 'text-indigo-400'}`} icon={faTimesCircle} onClick={() => { if(onRemove) onRemove(tag.id) }}/>

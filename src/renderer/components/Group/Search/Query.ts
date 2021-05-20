@@ -1,13 +1,14 @@
 import log from 'electron-log';
 import QueryString from 'query-string';
+import { QueryOrder } from '@mikro-orm/core';
 
 import Client from '../../../../utils/websocket/SocketClient';
 import { SocketRequestStatus } from '../../../../utils/websocket';
 import { GroupStub } from '../../../../db/entities';
 import { TagTuple } from '../../Tag';
-import { SearchQuery } from '../../UI/Search/Query';
+import { SearchQuery, ISearchQuery } from '../../UI/Search/Query';
 
-export interface IGroupSearchQuery
+export interface IGroupSearchQuery extends ISearchQuery
 {
   // property queries
   name?: string;
@@ -15,7 +16,7 @@ export interface IGroupSearchQuery
   // join queries
   workspaceID?: number;
   tags?: TagTuple[];
-  andOr?: 'and' | 'or',
+  andOr?: 'AND' | 'OR',
 
   // pagination
   limit?: number;
@@ -37,7 +38,7 @@ export default class GroupSearchQuery extends SearchQuery<IGroupSearchQuery, Gro
   // join queries
   public workspaceID?: number;
   public tags?: TagTuple[];
-  public andOr?: 'and' | 'or';
+  public andOr?: 'AND' | 'OR';
 
   constructor(query: IGroupSearchQuery | string, defaultFilesPerPage?: number)
   {
@@ -71,13 +72,14 @@ export default class GroupSearchQuery extends SearchQuery<IGroupSearchQuery, Gro
       return thing;
     };
 
-    this.name = qs.name ? qs.name as string : '';
+    this.name  = qs.name  ? qs.name  as string : '';
+    this.order = qs.order ? qs.order as QueryOrder : QueryOrder.ASC;
 
     // these need to be parsed from strings
     this.workspaceID = helper(qs.workspaceID, id => parseInt(id, 10));
     // we dont trust query-string to stringify this properly so we move it around as as a string with JSON.stringify
     this.tags = qs.tags && JSON.parse(qs.tags as string);
-    this.andOr = qs.andOr && qs.andOr === 'or' ? 'or' : 'and';
+    this.andOr = qs.andOr && qs.andOr === 'OR' ? 'OR' : 'AND';
 
     // these need to be parsed and have defaults
     this.page =  helper(qs.page, p => parseInt(p, 10)) || 0;

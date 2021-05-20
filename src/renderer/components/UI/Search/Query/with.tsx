@@ -4,7 +4,7 @@
 import React from 'react';
 // import log from 'electron-log';
 import useSearchQuery, { Options } from './use';
-import SearchQuery from './Query';
+import { SearchQuery } from './Query';
 
 export interface WithSearchQueryProps<Props, Results, QueryType extends SearchQuery<Props, Results>>
 {

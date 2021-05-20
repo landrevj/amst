@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 
-import SearchQuery from './Query';
+import { SearchQuery } from './Query';
 
 export interface Options
 {
@@ -27,7 +27,8 @@ export default function useSearchQuery<Props, Results, QueryType extends SearchQ
   const [page,    setPage]    = useState(0);
   const [maxPage, setMaxPage] = useState(0);
 
-  const query = useMemo(() => new QueryConstructor(location.search, options.defaultPerPage), [location.search, options.defaultPerPage, QueryConstructor]);
+  const query = useMemo(() => new QueryConstructor(location.search, options.defaultPerPage),
+  [QueryConstructor, location.search, options.defaultPerPage]);
 
   useEffect(() => {
     async function loadResults()

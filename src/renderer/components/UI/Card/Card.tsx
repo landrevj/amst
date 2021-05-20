@@ -4,6 +4,7 @@ import CardEmpty from './Empty';
 
 interface CardProps
 {
+  layout?: 'flex' | 'grid';
   flexDirection?: 'row' | 'col';
   empty?: boolean;
   transparent?: boolean;
@@ -12,7 +13,7 @@ interface CardProps
   children?: React.ReactNode;
 }
 
-export default function Card({ flexDirection = 'col', empty, transparent, translucent, className, children }: CardProps)
+export default function Card({ layout = 'flex', flexDirection = 'col', empty, transparent, translucent, className, children }: CardProps)
 {
   let bgStyle = 'bg-white';
   let emptyStyle: 'light' | 'dark' = 'dark';
@@ -31,7 +32,7 @@ export default function Card({ flexDirection = 'col', empty, transparent, transl
 
   return (
     <div className={`relative max-h-full overflow-auto p-4
-      flex ${flexDirection === 'col' ? 'flex-col' : 'flex-row'}
+      ${layout} ${flexDirection === 'col' ? 'flex-col' : 'flex-row'}
       ${bgStyle} rounded
       ${transparent || translucent ? 'scrollbar-light' : ''} ${className}`}>
 
@@ -42,6 +43,7 @@ export default function Card({ flexDirection = 'col', empty, transparent, transl
 }
 
 Card.defaultProps = {
+  layout: 'flex',
   flexDirection: 'col',
   empty: false,
   transparent: false,

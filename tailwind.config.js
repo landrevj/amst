@@ -44,6 +44,10 @@ module.exports = {
       height: {
         'screen-minus-titlebar': 'calc(100vh - 1.5rem)',
       },
+      maxHeight: {
+        'screen-minus-titlebar': 'calc(100vh - 1.5rem)',
+        'unset': 'unset',
+      },
       margin: {
         'screen-minus-titlebar': 'calc(100vh - 1.5rem)'
       },

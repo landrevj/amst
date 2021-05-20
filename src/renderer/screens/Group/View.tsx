@@ -4,6 +4,12 @@ import { RouteComponentProps } from 'react-router';
 import Hotkeys from 'react-hot-keys';
 import { HotkeysEvent } from 'hotkeys-js';
 import log from 'electron-log';
+import { QueryOrder } from '@mikro-orm/core';
+import { Link } from 'react-router-dom';
+
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCopy } from '@fortawesome/free-regular-svg-icons';
+import { faArrowCircleLeft, faChevronLeft, faChevronRight, faPlus } from '@fortawesome/free-solid-svg-icons';
 
 
 import Client from '../../../utils/websocket/SocketClient';
@@ -14,8 +20,12 @@ import withSearchQuery, { WithSearchQueryProps } from '../../components/UI/Searc
 import { PARENT_GROUP_SEARCH_QUERY } from '../../SessionStorageKeys';
 import GroupSearchQuery, { IGroupSearchQuery } from '../../components/Group/Search/Query';
 import TagList from '../../components/Tag/List';
-import { Card } from '../../components/UI/Card';
+import { Card, CardHeader } from '../../components/UI/Card';
 import TagForm from '../../components/Tag/Form';
+import FilePreview from '../../components/File/Preview/Preview';
+import FilePreviewList from '../../components/File/Preview/List';
+import FileSearchQuery from '../../components/File/Search/Query';
+import { mimeRegex } from '../../../utils';
 
 interface GroupViewRouteParams
 {
@@ -119,35 +129,110 @@ class FileView extends React.Component<GroupViewProps, GroupViewState>
     this.setState({
       group,
       tags: g.tags || [],
-      members: g.members,
+      members: g.members.sort((a, b) => a.position - b.position),
     });
   }
 
+
   render()
   {
-    const { loading, query } = this.props;
+    const { loading, query, parentQuery, nextPage, prevPage } = this.props;
     const { group, tags, members } = this.state;
     // if (!file && !loading) return (<span>no file</span>)
+    const fileQuery = new FileSearchQuery({ groupID: group?.id, order: QueryOrder.ASC });
+
+    let coverDiv;
+    if (members?.length)
+    {
+      const coverFile = members[0].file;
+      const { type } = mimeRegex(coverFile.mimeType || '');
+      const coverFileMime = type;
+      coverDiv = coverFile && coverFileMime === 'image' ?
+      <Card translucent className='flex-none'>
+        <FilePreview file={coverFile} showName={false} className='w-64 max-w-full max-h-full' imgClassName='max-h-full'/>
+      </Card>
+        : <></>;
+    }
 
 
     return (
       <>
       <Hotkeys keyName='left,right,a,d' onKeyDown={this.onKeyDown}/>
 
-      <div className='p-4 space-y-4'>
-        <Card>
-          <div className='space-y-4'>
-            <TagList tags={tags} searchTagTuples={query.tags} handleTagRemove={this.handleTagRemove} loading={loading}/>
-            {group && !loading ?
-            <div className='flex flex-row'>
-              <div className='mr-1 px-2 py-1 text-sm rounded-full bg-green-200 border-2 border-solid border-green-200'>new tag</div>
-              <TagForm channel='Group' groupID={group.id} onSubmit={this.handleTagFormSubmit}/>
-            </div> : <></>}
-          </div>
-        </Card>
+      <div className='p-4 space-y-4 h-screen-minus-titlebar overflow-auto scrollbar-light'>
 
-        <Card>
-          {members?.map(m =>  <div key={m.file.id}>{m.file.filePath}/{m.file.archivePath}</div>)}
+        <div className='flex flex-row gap-4 flex-none'>
+          {group && !loading ? coverDiv :
+          <Card translucent className='flex-none'>
+            <div className='w-64 h-36 animate-pulse bg-gray-100 rounded'/>
+          </Card>}
+
+          <Card className='flex-grow gap-4' flexDirection='col'>
+
+            <div className='flex-grow flex flex-col gap-4'>
+              {group && !loading ?
+              <CardHeader text={group?.name}>
+                <div className='flex-grow'/>
+                <div className='flex flex-row place-items-center text-base text-gray-500 space-x-1 pl-2'>
+                  <FontAwesomeIcon icon={faCopy}/>
+                  <span>{members?.length}</span>
+                </div>
+              </CardHeader>
+              :
+              <div className='flex flex-row animate-fade-in place-items-center'>
+                <div className='!bg-gray-400 text-base-loading w-36'/>
+                <div className='flex-grow'/>
+                <div className='!bg-gray-400 text-sm-loading w-14'/>
+              </div>}
+
+              <hr/>
+
+              <TagList tags={tags} searchTagTuples={query.tags} handleTagRemove={this.handleTagRemove} loading={loading}/>
+
+              {group && !loading ?
+              <div className='flex flex-row gap-1'>
+                <span className='flex place-items-center px-2.5 text-sm rounded-full text-white filter saturate-[.9] bg-gradient-to-r from-green-400 to-green-300'>
+                  <FontAwesomeIcon icon={faPlus}/>
+                </span>
+                <TagForm channel='Group' groupID={group.id} onSubmit={this.handleTagFormSubmit}/>
+              </div> : <></>}
+            </div>
+
+            <div className='flex flex-col gap-4'>
+              <hr/>
+              {group && !loading ?
+              <div className='flex flex-row gap-2'>
+                <span>#{group?.id}</span>
+                <div className='flex-grow'/>
+                <button type='button' className='h-6 bg-transparent' onClick={prevPage}>
+                  <FontAwesomeIcon className='mr-2 fill-current text-gray-600' icon={faChevronLeft}/>
+                  <span>prev</span>
+                </button>
+                <Link className='inline-block px-2 rounded-full text-white filter saturate-[.9] bg-gradient-to-r from-blue-400 to-blue-300'
+                  to={`/group?${parentQuery || ''}`}
+                >
+                  <FontAwesomeIcon className='mr-1 -ml-1 my-auto fill-current text-gray-100' icon={faArrowCircleLeft}/>
+                  <span>search</span>
+                </Link>
+                <button type='button' className='h-6 bg-transparent' onClick={nextPage}>
+                  <span>next</span>
+                  <FontAwesomeIcon className='ml-2 fill-current text-gray-600' icon={faChevronRight}/>
+                </button>
+              </div>
+              :
+              <div className='flex flex-row animate-fade-in place-items-center gap-2'>
+                <div className='!bg-gray-400 text-sm-loading w-14'/>
+                <div className='flex-grow'/>
+                <div className='!bg-gray-400 text-sm-loading w-14'/>
+                <div className='!bg-gray-400 text-sm-loading w-14'/>
+              </div>}
+            </div>
+
+          </Card>
+        </div>
+
+        <Card className='max-h-unset'>
+          <FilePreviewList loading={loading} files={members?.map(m => m.file) || []} query={fileQuery} QueryConstructor={FileSearchQuery}/>
         </Card>
       </div>
       </>

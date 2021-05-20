@@ -7,9 +7,12 @@ import { mimeRegex } from '../../../../utils';
 interface FilePreviewProps
 {
   file: FileStub;
+  showName?: boolean;
+  className?: string;
+  imgClassName?: string;
 }
 
-export default function FilePreview({ file }: FilePreviewProps)
+export default function FilePreview({ file, showName = false, className = 'w-48', imgClassName = 'max-h-72' }: FilePreviewProps)
 {
   const { type } = mimeRegex(file.mimeType || '');
   let content: JSX.Element;
@@ -23,11 +26,17 @@ export default function FilePreview({ file }: FilePreviewProps)
   }
 
   return (
-    <figure key={file.id} className='w-48 rounded overflow-hidden flex-auto'>
-      <div className='max-h-72 overflow-hidden'>
+    <figure key={file.id} className={`rounded overflow-hidden ${className}`}>
+      <div className={`overflow-hidden ${showName ? '' : 'rounded'} ${imgClassName}`}>
         {content}
       </div>
-      <figcaption className='px-2 py-1 text-sm bg-gray-200 truncate'>{file.name}</figcaption>
+      {showName ? <figcaption className='px-2 py-1 text-sm bg-gray-200 truncate'>{file.name}</figcaption> : <></>}
     </figure>
   );
 }
+
+FilePreview.defaultProps = {
+  showName: false,
+  className: 'w-48',
+  imgClassName: 'max-h-72',
+};

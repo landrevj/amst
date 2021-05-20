@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faFile, faHome, faLayerGroup, faSearch } from '@fortawesome/free-solid-svg-icons';
@@ -16,9 +16,13 @@ import GroupPreviewList from '../../components/Group/Preview/List';
 
 export default function GroupSearch()
 {
-  const [results, loading, count, page, maxPage, prevPage, nextPage, goToPage, query,, setParentQuery] = useSearchQuery<IGroupSearchQuery, GroupStub, GroupSearchQuery>(GroupSearchQuery, { parentQuerySessionKey: PARENT_GROUP_SEARCH_QUERY, defaultPerPage: 30 });
+  const [results, loading, count, page, maxPage, prevPage, nextPage, goToPage, query,, setParentQuery] =
+  useSearchQuery<IGroupSearchQuery, GroupStub, GroupSearchQuery>(GroupSearchQuery, {
+    parentQuerySessionKey: PARENT_GROUP_SEARCH_QUERY,
+    defaultPerPage: 30,
+  });
 
-  setParentQuery(query);
+  useEffect(() => setParentQuery(query), [query, setParentQuery]);
 
   const paginationWidth = 9;
 
@@ -27,7 +31,7 @@ export default function GroupSearch()
       <div className='flex-none w-72'>
 
         <div className='flex flex-row -mb-1 bg-white bg-opacity-10 rounded-t'>
-          <Link className='text-gray-500 bg-gray-300 px-2 py-1 text-sm rounded-t space-x-2' to={`/file?workspaceID=${query.workspaceID || ''}`} >
+          <Link className='text-gray-500 bg-gray-300 px-2 py-1 text-sm rounded-t space-x-2' to={`/file?workspaceID=${query.workspaceID || ''}&order=DESC`} >
             <FontAwesomeIcon icon={faFile}/>
           </Link>
           <div className='text-gray-600 bg-white px-2 py-1 text-sm rounded-t space-x-2'>

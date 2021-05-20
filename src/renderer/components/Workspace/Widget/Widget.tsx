@@ -1,6 +1,6 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBan, faCheck, faDatabase, faExclamationTriangle, faFolder, faPlus, faSearch, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
+import { faBan, faCheck, faDatabase, faExclamationTriangle, faFolder, faLayerGroup, faPlus, faSearch, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import { faCopy, faTrashAlt } from '@fortawesome/free-regular-svg-icons';
 
 import Client from '../../../../utils/websocket/SocketClient';
@@ -28,7 +28,7 @@ interface WorkspaceWidgetState
 {
   folders: FolderStub[];
   searchState: SpinnerState;
-  status: [number, number] | string;
+  status: [number, number, number] | string;
   fileCount?: number,
   fileExtensionData?: ExtensionPercentagesGraphData;
   deleteModalOpen: boolean;
@@ -121,7 +121,7 @@ export default class WorkspaceWidget extends React.Component<WorkspaceWidgetProp
     })
   }
 
-  async syncStatusListener(response: SocketResponse<[number, number]>)
+  async syncStatusListener(response: SocketResponse<[number, number, number]>)
   {
     const { status, data } = response;
 
@@ -150,7 +150,7 @@ export default class WorkspaceWidget extends React.Component<WorkspaceWidgetProp
 
     if (typeof status !== 'string')
     {
-      const [totalDiscovered, totalAdded] = status;
+      const [totalDiscovered, totalAdded, totalGrouped] = status;
       statusDiv = (<>
         <div className='flex flex-row place-items-center text-base text-gray-500 space-x-4'>
           <div>
@@ -160,6 +160,10 @@ export default class WorkspaceWidget extends React.Component<WorkspaceWidgetProp
           <div>
             <FontAwesomeIcon className='mr-1' icon={faPlus}/>
             <span>{totalAdded.toLocaleString()}</span>
+          </div>
+          <div>
+            <FontAwesomeIcon className='mr-1' icon={faLayerGroup}/>
+            <span>{totalGrouped.toLocaleString()}</span>
           </div>
         </div>
         {searchState === SpinnerState.WORKING ?
@@ -176,7 +180,7 @@ export default class WorkspaceWidget extends React.Component<WorkspaceWidgetProp
     return (
       <Card className='relative'>
 
-        <CardHeader text={workspace.name} linkTo={`/file?workspaceID=${workspace.id}`} className='relative'>
+        <CardHeader text={workspace.name} linkTo={`/file?workspaceID=${workspace.id}&order=DESC`} className='relative'>
           <div className='flex-grow'/>
           <WorkspaceFlagButtons workspace={workspace} className='mr-5'/>
           {statusDiv}

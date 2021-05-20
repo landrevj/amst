@@ -29,13 +29,13 @@ export default function FilePreviewList<QueryTypeProps, QueryTypeResults, QueryT
       const nq = new QueryConstructor(query.props);
       nq.limit = 1;
       nq.page = indexStart + i;
-      return <Link to={`/${query.route}/${file.id}?${nq.toString()}`} className='flex-auto flex' key={file.id}><FilePreview file={file}/></Link>;
+      return <Link to={`/${query.route}/${file.id}?${nq.toString()}`} className='flex flex-auto' key={file.id}><FilePreview className='flex-auto w-48' file={file} showName/></Link>;
     }
 
-    return <FilePreview file={file} key={file.id}/>;
+    return <FilePreview file={file} key={file.id} className='flex-auto w-48' imgClassName='max-h-72' showName/>;
   });
   // eslint-disable-next-line react/no-array-index-key
-  const hackSpacers = Array(30).fill('').map((_, i) => <div className='w-48 flex-auto' key={`hack_${i}`}/>);
+  const hackSpacers = Array(30).fill('').map((_, i) => <div className='w-48 flex-auto invisible' key={`hack_${i}`}/>);
   // bs flexbox spacers so the last row is left aligned
   // this fails if the window can fit more than 30 per row
 

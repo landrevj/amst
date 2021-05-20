@@ -5,7 +5,7 @@ import { FilterQuery, FindOptions } from '@mikro-orm/core';
 import fg from 'fast-glob';
 import StreamZip from 'node-stream-zip';
 import { lookup } from 'mime-types';
-import { difference, flattenDeep, throttle, values } from 'lodash';
+import { difference, flattenDeep, sum, throttle, values } from 'lodash';
 import log from 'electron-log';
 
 import { DB } from '../../db';
@@ -107,7 +107,7 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
 
   // /////////////////////////////////////////////////////////
   // /////////////////////////////////////////////////////////
-  async emitSyncUpdate(workspaceID: number, countDiscovered:number, countAdded: number, success?: boolean)
+  async emitSyncUpdate(workspaceID: number, countDiscovered:number, countAdded: number, countGrouped: number, success?: boolean)
   {
     let status = SocketRequestStatus.RUNNING;
     if      (success === true)  status = SocketRequestStatus.SUCCESS;
@@ -115,8 +115,8 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
 
     this.getSocket()?.emit(`Workspace_${workspaceID}_sync`, {
       status,
-      data: [countDiscovered, countAdded],
-    } as SocketResponse<[number, number]>);
+      data: [countDiscovered, countAdded, countGrouped],
+    } as SocketResponse<[number, number, number]>);
   }
 
   emitThrottledSyncUpdate = throttle(this.emitSyncUpdate, 100);
@@ -166,13 +166,13 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
     const searchArchives = workspace?.searchArchives;
     const groupArchiveContents = workspace?.groupArchiveContents;
 
-    const promises: Promise<[number, number]>[] = [];
+    const promises: Promise<[number, number, number]>[] = [];
 
     const folders = await em.find(Folder, { workspace: id });
     const searchPaths = folders.map(folder => folder.path);
     searchPaths.forEach(folder => {
 
-      const fn = async (): Promise<[number, number]> => {
+      const fn = async (): Promise<[number, number, number]> => {
 
         const pathStream = fg.stream('**/*', {
           cwd: folder,
@@ -190,6 +190,7 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
         let chunkLength = 0;
         let totalFilesDiscovered = 0;
         let totalFilesAdded = 0;
+        let totalFilesGrouped = 0;
         for await (const filePath of pathStream)
         {
           const fp = filePath as string;
@@ -203,7 +204,7 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
             totalFilesAdded += await WorkspaceChannel.syncPathChunk(id, pathChunk);
             chunkLength = 0;
           }
-          this.emitThrottledSyncUpdate(id, totalFilesDiscovered, totalFilesAdded);
+          this.emitThrottledSyncUpdate(id, totalFilesDiscovered, totalFilesAdded, 0);
 
           // if the file happens to be a zip file then parse the files within it as well
           if (searchArchives && ALLOWED_ZIP_EXTENSIONS.has(extname(fp).slice(1)))
@@ -227,7 +228,7 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
                 totalFilesAdded += await WorkspaceChannel.syncPathChunk(id, pathChunk);
                 chunkLength = 0;
               }
-              this.emitThrottledSyncUpdate(id, totalFilesDiscovered, totalFilesAdded);
+              this.emitThrottledSyncUpdate(id, totalFilesDiscovered, totalFilesAdded, 0);
             }
             await zip.close();
             // WorkspaceChannel.updateArchiveGroup(fp, entries);
@@ -238,20 +239,30 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
         if (chunkLength !== 0) // if we still have some files which need to get synced
         {
           totalFilesAdded += await WorkspaceChannel.syncPathChunk(id, pathChunk.slice(0, chunkLength));
-          this.emitThrottledSyncUpdate(id, totalFilesDiscovered, totalFilesAdded);
+          this.emitThrottledSyncUpdate(id, totalFilesDiscovered, totalFilesAdded, 0);
         }
 
-        if (groupArchiveContents) archivePaths.forEach(([filePath, entries]) => WorkspaceChannel.updateArchiveGroup(filePath, entries.map(e => e.name)));
+        if (groupArchiveContents)
+        {
+          // we dont want to overload the ORM with too many pending operations so we await each individually
+          for (let i = 0; i < archivePaths.length; i += 1)
+          {
+            const archive = archivePaths[i];
+            // eslint-disable-next-line no-await-in-loop
+            totalFilesGrouped += await WorkspaceChannel.updateArchiveGroup(archive[0], archive[1].map(e => e.name));
+            this.emitThrottledSyncUpdate(id, totalFilesDiscovered, totalFilesAdded, totalFilesGrouped);
+          }
+        }
 
-        return [totalFilesDiscovered, totalFilesAdded];
+        return [totalFilesDiscovered, totalFilesAdded, totalFilesGrouped];
       }
 
       promises.push(fn());
 
     });
 
-    const newFileCount = (await Promise.all(promises)).reduce((a,c) => [a[0]+c[0], a[1]+c[1]], [0, 0]);
-    this.emitThrottledSyncUpdate(id, newFileCount[0], newFileCount[1], true);
+    const newFileCount = (await Promise.all(promises)).reduce((a,c) => [a[0]+c[0], a[1]+c[1], a[2]+c[2]], [0, 0, 0]);
+    this.emitThrottledSyncUpdate(id, newFileCount[0], newFileCount[1], newFileCount[2], true);
   }
 
   static async syncPathChunk(workspaceID: number, pathChunk: [string, string][])
@@ -381,30 +392,23 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
 
   static async updateArchiveGroup(filePath: string, archiveFilePaths: string[])
   {
-    log.info(filePath, archiveFilePaths);
     const em = DB.getNewEM();
-    if (!em) return;
+    if (!em) return 0;
 
     const file = await em.findOne(File, { filePath }, ['managedGroups.members.file']);
-    log.info('file', file);
-    if (!file) return;
+    if (!file) return 0;
 
     const groups = file.managedGroups.getItems();
     if (groups.length === 0)
     {
-      log.info('creating group');
       const g = new Group(file.name, file);
       file.managedGroups.add(g);
       groups.push(g);
     }
 
-    log.info('groups', groups);
-
-    await Promise.all(groups.map(async group => {
+    const numberFilesGrouped = await Promise.all(groups.map(async group => {
       const memberFilePaths = group.members.getItems().map(member => member.file.archivePath);
       const missingFilePaths = difference(archiveFilePaths, memberFilePaths);
-      log.info('memberFiles', memberFilePaths);
-      log.info('missingFilePaths', missingFilePaths);
 
       const missingFiles = await WorkspaceChannel.chunkedCallback(missingFilePaths, CHUNK_SIZE, missingFileChunk => {
         const tem = DB.getNewEM();
@@ -414,14 +418,17 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
         tem.clear();
         return missing;
       });
-      log.info('missingFiles', missingFiles);
 
       if (missingFiles.length)
       {
         missingFiles.forEach(f => group.members.add(new GroupMember(group, f)));
         await em.persistAndFlush(group);
       }
+
+      return missingFiles.length;
     }));
+
+    return sum(numberFilesGrouped);
   }
 
   static async chunkedCallback<T, U>(arr: T[], chunkSize: number, callback: (chnk: T[]) => Promise<U[]>)

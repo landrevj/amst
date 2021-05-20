@@ -1,5 +1,7 @@
 import React from 'react';
 import { sample, random } from 'lodash';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBan } from '@fortawesome/free-solid-svg-icons';
 
 import { TagStub } from '../../../db/entities';
 import { compareStrings } from '../../../utils';
@@ -39,16 +41,16 @@ export default function TagList({ tags, searchTagTuples, handleTagRemove, loadin
 {
   if (loading)
   {
-    const widths = ['w-16', 'w-20', 'w-24', 'w-28', 'w-32'];
+    const widths = ['w-12', 'w-14', 'w-16', 'w-20', 'w-24', 'w-28'];
 
     return (
-      <div className='animate-fade-in'>
+      <div className='animate-fade-in flex flex-col gap-1'>
         {Array(3).fill('').map((_, i) =>
           // eslint-disable-next-line react/no-array-index-key
-          <div className='flex flex-row mb-2' key={i}>
-            <div className='flex-grow flex flex-row flex-wrap overflow-hidden gap-2 w-'>
-              <div className={`text-base-loading inline-block !bg-blue-200 ${sample(widths)}`}/>
-              {Array(random(1,10)).fill('').map((_e, j) =>
+          <div className='flex flex-row' key={i}>
+            <div className='flex-grow flex flex-row flex-wrap overflow-hidden gap-1'>
+              <div className={`text-base-loading inline-block filter saturate-[.9] bg-gradient-to-r from-blue-400 to-blue-300 ${sample(widths)}`}/>
+              {Array(random(1,5)).fill('').map((_e, j) =>
                 // eslint-disable-next-line react/no-array-index-key
                 <div className={`text-base-loading inline-block ${sample(widths)}`} key={j}/>
               )}
@@ -65,21 +67,25 @@ export default function TagList({ tags, searchTagTuples, handleTagRemove, loadin
   const noneCategory = noneCategoryIndex !== -1 ? categories.splice(noneCategoryIndex, 1)[0] : undefined;
   if (noneCategory) categories.push(noneCategory);
 
-  return (
-    <div>
+  return categories.length ? (
+    <div className='flex flex-col gap-1'>
       {categories.map(([category, catTags]) =>
-      <div className='flex flex-row' key={category}>
+      <div className='flex flex-row gap-1' key={category}>
         <div className='max-w-[50%]'>
-          <div className='m-0.5 max-w-full overflow-hidden overflow-ellipsis px-2 text-sm text-center rounded-full bg-blue-200 border-2 border-solid border-blue-200'>{category}</div>
+          <div className='max-w-full overflow-hidden overflow-ellipsis px-2 py-0.5 text-sm text-center rounded-full text-white filter saturate-[.9] bg-gradient-to-r from-blue-400 to-blue-300'>
+            {category === NONE_CATEGORY_TEXT ?
+              <span className='flex place-items-center h-5'><FontAwesomeIcon icon={faBan}/></span>
+            : category}
+          </div>
         </div>
-        <div className='flex-grow flex flex-row flex-wrap overflow-hidden'>
+        <div className='flex-grow flex flex-row flex-wrap overflow-hidden gap-1'>
           {catTags.map(tag =>
           <TagButton tag={tag} highlighted={!!searchTagTuples?.find(t => tagTupleEqualsStub(t, tag))} onRemove={handleTagRemove} hideCategory key={tag.id}/>
           )}
         </div>
       </div>)}
     </div>
-  );
+  ) : <></>;
 }
 
 TagList.defaultProps = {
