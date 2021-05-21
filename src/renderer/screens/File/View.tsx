@@ -4,7 +4,7 @@ import { RouteComponentProps } from 'react-router';
 import Hotkeys from 'react-hot-keys';
 import { HotkeysEvent } from 'hotkeys-js';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowCircleLeft, faChevronLeft, faChevronRight, faFile, faImage, faLayerGroup, faPlus, faTags } from '@fortawesome/free-solid-svg-icons';
+import { faArrowCircleUp, faChevronLeft, faChevronRight, faFile, faLayerGroup, faPlus, faTags } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import log from 'electron-log';
 
@@ -142,7 +142,6 @@ class FileView extends React.Component<FileViewProps, FileViewState>
   {
     const { loading, page, maxPage, prevPage, nextPage, query, parentPath } = this.props;
     const { file, tags, groups } = this.state;
-    // if (!file && !loading) return (<span>no file</span>)
 
     let content: JSX.Element | undefined;
     if (file && !loading)
@@ -165,13 +164,7 @@ class FileView extends React.Component<FileViewProps, FileViewState>
     }
     else
     {
-      content = (
-        <Card className='w-[65vw] h-[55vh] bg-gradient-to-tr from-indigo-800 via-blue-500 to-teal-500 filter saturate-[0.75] animate-fade-in'>
-          <div className='absolute w-full h-full text-white p-10 animate-pulse'>
-            <FontAwesomeIcon className='!w-full !h-full' icon={faImage}/>
-          </div>
-        </Card>
-      )
+      content = <div className='animate-fade-in spinner'/>;
     }
 
     return (
@@ -189,35 +182,35 @@ class FileView extends React.Component<FileViewProps, FileViewState>
 
           <Card className='relative w-full space-y-4'>
 
-            <div className='flex flex-row'>
-              <button type='button' className='h-6 bg-transparent' onClick={prevPage}>
+            {file && !loading ?
+            <div className='flex flex-row gap-2'>
+              <span>#{file?.id}</span>
+              <span className='text-gray-400'>{page + 1}/{maxPage + 1}</span>
+              <div className='flex-grow'/>
+              <button type='button' className='h-6 bg-transparent flex place-items-center' onClick={prevPage}>
                 <FontAwesomeIcon className='mr-2 fill-current text-gray-600' icon={faChevronLeft}/>
                 <span>prev</span>
               </button>
 
-              <div className='flex-grow text-center'>
-                {file && !loading ? <>
+              {parentPath ?
+              <Link to={parentPath} type='button' className='flex px-2 rounded-full text-white filter saturate-[.9] bg-gradient-to-r from-blue-400 to-blue-300'>
+                <FontAwesomeIcon className='mr-1 -ml-1 my-auto fill-current text-gray-100' icon={faArrowCircleUp}/>
+                <span>back</span>
+              </Link>
+              : <></>}
 
-                <span className='px-2 rounded-full bg-gray-300'>
-                  #{file.id} - {page + 1}/{maxPage + 1}
-                </span>
-                <br/>
-
-                {parentPath ?
-                <Link to={parentPath} type='button' className='inline-block px-2 rounded-full text-white filter saturate-[.9] bg-gradient-to-tr from-blue-400 to-blue-300'>
-                  <FontAwesomeIcon className='mr-1 -ml-1 my-auto fill-current text-gray-100' icon={faArrowCircleLeft}/>
-                  <span>back</span>
-                </Link>
-                : <></>}
-
-                </> : <div className='animate-fade-in'><span className='text-base-loading inline-block w-36'/></div>}
-              </div>
-
-              <button type='button' className='h-6 bg-transparent' onClick={nextPage}>
+              <button type='button' className='h-6 bg-transparent flex place-items-center' onClick={nextPage}>
                 <span>next</span>
                 <FontAwesomeIcon className='ml-2 fill-current text-gray-600' icon={faChevronRight}/>
               </button>
             </div>
+            :
+            <div className='flex flex-row animate-fade-in place-items-center gap-2'>
+              <div className='!bg-gray-400 text-sm-loading w-14'/>
+              <div className='flex-grow'/>
+              <div className='!bg-gray-400 text-sm-loading w-14'/>
+              <div className='!bg-gray-400 text-sm-loading w-14'/>
+            </div>}
 
             <div className='grid grid-cols-1 lg:grid-cols-2 3xl:grid-cols-3 gap-4'>
 

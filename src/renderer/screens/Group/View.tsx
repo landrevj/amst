@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCopy } from '@fortawesome/free-regular-svg-icons';
-import { faArrowCircleLeft, faChevronLeft, faChevronRight, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faArrowCircleUp, faChevronLeft, faChevronRight, faPlus } from '@fortawesome/free-solid-svg-icons';
 
 
 import Client from '../../../utils/websocket/SocketClient';
@@ -204,19 +204,19 @@ class FileView extends React.Component<GroupViewProps, GroupViewState>
                 <span>#{group?.id}</span>
                 <span className='text-gray-400'>{page + 1}/{maxPage + 1}</span>
                 <div className='flex-grow'/>
-                <button type='button' className='h-6 bg-transparent' onClick={prevPage}>
+                <button type='button' className='h-6 bg-transparent flex place-items-center' onClick={prevPage}>
                   <FontAwesomeIcon className='mr-2 fill-current text-gray-600' icon={faChevronLeft}/>
                   <span>prev</span>
                 </button>
 
                 {parentPath ?
-                <Link to={parentPath} type='button' className='inline-block px-2 rounded-full text-white filter saturate-[.9] bg-gradient-to-r from-blue-400 to-blue-300'>
-                  <FontAwesomeIcon className='mr-1 -ml-1 my-auto fill-current text-gray-100' icon={faArrowCircleLeft}/>
+                <Link to={parentPath} type='button' className='flex px-2 rounded-full text-white filter saturate-[.9] bg-gradient-to-r from-blue-400 to-blue-300'>
+                  <FontAwesomeIcon className='mr-1 -ml-1 my-auto fill-current text-gray-100' icon={faArrowCircleUp}/>
                   <span>back</span>
                 </Link>
                 : <></>}
 
-                <button type='button' className='h-6 bg-transparent' onClick={nextPage}>
+                <button type='button' className='h-6 bg-transparent flex place-items-center' onClick={nextPage}>
                   <span>next</span>
                   <FontAwesomeIcon className='ml-2 fill-current text-gray-600' icon={faChevronRight}/>
                 </button>
