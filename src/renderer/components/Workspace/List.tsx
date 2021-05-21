@@ -18,10 +18,7 @@ export function WorkspaceList({ workspaces, loading, onDelete }: WorkspaceListPr
       { !loading && workspaces ?
       workspaces.map((workspace) =>
         <WorkspaceWidget workspace={workspace} key={workspace.id} onDelete={onDelete}/>
-      ) : (<>
-        <WorkspaceWidgetSkeleton/>
-        <WorkspaceWidgetSkeleton/>
-      </>)}
+      ) : <WorkspaceWidgetSkeleton/>}
     </div>
   );
 }

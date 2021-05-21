@@ -211,7 +211,7 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
           {
             // rude
             // eslint-disable-next-line new-cap
-            const zip = new StreamZip.async({ file: fp });
+            const zip = new StreamZip.async({ file: fp, skipEntryNameValidation: true });
             const entries = values(await zip.entries()).filter(e => !e.isDirectory);
             for (const entry of entries)
             {

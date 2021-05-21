@@ -88,7 +88,7 @@ const createWindow = async () => {
   });
 
   workerWindow = new BrowserWindow({
-    show: (process.env.NODE_ENV === 'development'),
+    show: (process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true'),
     width: 250,
     height: 150,
     // minWidth: 850,
