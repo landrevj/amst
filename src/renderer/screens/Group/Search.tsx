@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faFile, faHome, faLayerGroup, faSearch } from '@fortawesome/free-solid-svg-icons';
@@ -10,19 +10,15 @@ import PaginationButtons from '../../components/UI/Paginator/Buttons';
 import { Card, CardHeader } from '../../components/UI/Card';
 import PaginationPageInput from '../../components/UI/Paginator/PageInput';
 import GroupSearchQuery, { IGroupSearchQuery } from '../../components/Group/Search/Query';
-import { PARENT_GROUP_SEARCH_QUERY } from '../../SessionStorageKeys';
 import { GroupStub } from '../../../db/entities';
 import GroupPreviewList from '../../components/Group/Preview/List';
 
 export default function GroupSearch()
 {
-  const { results, loading, count, page, maxPage, prevPage, nextPage, goToPage, query, setParentQuery } =
+  const { results, loading, count, page, maxPage, prevPage, nextPage, goToPage, query } =
   useSearchQuery<IGroupSearchQuery, GroupStub, GroupSearchQuery>(GroupSearchQuery, {
-    parentQuerySessionKey: PARENT_GROUP_SEARCH_QUERY,
     defaultPerPage: 30,
   });
-
-  useEffect(() => setParentQuery(query), [query, setParentQuery]);
 
   const paginationWidth = 9;
 

@@ -6,9 +6,8 @@ import { useHistory, useLocation } from 'react-router-dom';
 
 import { SearchQuery } from './Query';
 
-export interface Options
+export interface SearchQueryOptions
 {
-  parentQuerySessionKey: string;
   // how many files appear in one page of a search
   defaultPerPage?: number;
 }
@@ -24,19 +23,16 @@ export interface SearchQueryProps<Props, Results, QueryType extends SearchQuery<
   nextPage:       () => void;
   goToPage:       (p: number) => void;
   query:          QueryType;
-  parentQuery:    QueryType | undefined;
-  setParentQuery: (sq: QueryType) => void;
+  parentPath?:    string;
 };
 
 export default function useSearchQuery
 <Props, Results, QueryType extends SearchQuery<Props, Results>>
-(QueryConstructor: new (q: Props | string, d?: number) => QueryType, options: Readonly<Options>)
+(QueryConstructor: new (q: Props | string, o?: boolean, d?: number) => QueryType, options: Readonly<SearchQueryOptions>)
 : SearchQueryProps<Props, Results, QueryType>
 {
   const location = useLocation();
-
-  const sessionQueryString = window.sessionStorage.getItem(options.parentQuerySessionKey);
-  const [parentQuery] = useState<QueryType | undefined>(sessionQueryString ? new QueryConstructor(JSON.parse(sessionQueryString)) : undefined);
+  const history = useHistory();
 
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<Results[]>([]);
@@ -44,8 +40,15 @@ export default function useSearchQuery
   const [page,    setPage]    = useState(0);
   const [maxPage, setMaxPage] = useState(0);
 
-  const query = useMemo(() => new QueryConstructor(location.search, options.defaultPerPage),
+
+  const query = useMemo(() => new QueryConstructor(location.search, true, options.defaultPerPage),
   [QueryConstructor, location.search, options.defaultPerPage]);
+
+  useEffect(() => {
+    window.sessionStorage.setItem(`queryLocation_${query.instanceID}`, location.pathname.concat(location.search));
+  }, [location.pathname, location.search, query.instanceID]);
+
+  const [parentPath] = useState(window.sessionStorage.getItem(`queryLocation_${query.parentInstanceID}`) || undefined);
 
   useEffect(() => {
     async function loadResults()
@@ -64,29 +67,25 @@ export default function useSearchQuery
     loadResults();
   }, [query, options.defaultPerPage]);
 
-
-  const history = useHistory();
   const prevPage = () => {
     if (page <= 0) return;
 
-    const pqs = new QueryConstructor(query.props);
+    const pqs = new QueryConstructor(query.props, true);
     pqs.page = page - 1;
     history.push(`${location.pathname}?${pqs}`);
   };
   const nextPage = () => {
     if (page >= maxPage) return;
 
-    const nqs = new QueryConstructor(query.props);
+    const nqs = new QueryConstructor(query.props, true);
     nqs.page = page + 1;
     history.push(`${location.pathname}?${nqs}`);
   };
   const goToPage = (p: number) => {
-    const sqs = new QueryConstructor(query.props);
+    const sqs = new QueryConstructor(query.props, true);
     sqs.page = p;
     history.push(`${location.pathname}?${sqs}`);
   };
 
-  const setParentQuery = (sq: QueryType) => window.sessionStorage.setItem(options.parentQuerySessionKey, JSON.stringify(sq));
-
-  return { results, loading, count, page, maxPage, prevPage, nextPage, goToPage, query, parentQuery, setParentQuery };
+  return { results, loading, count, page, maxPage, prevPage, nextPage, goToPage, query, parentPath };
 }

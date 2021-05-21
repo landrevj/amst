@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faFile, faHome, faLayerGroup, faSearch } from '@fortawesome/free-solid-svg-icons';
@@ -11,18 +11,14 @@ import PaginationButtons from '../../components/UI/Paginator/Buttons';
 import { Card, CardHeader } from '../../components/UI/Card';
 import PaginationPageInput from '../../components/UI/Paginator/PageInput';
 import FileSearchQuery, { IFileSearchQuery } from '../../components/File/Search/Query';
-import { PARENT_FILE_SEARCH_QUERY } from '../../SessionStorageKeys';
 import { FileStub } from '../../../db/entities';
 
 export default function FileSearch()
 {
-  const { results, loading, count, page, maxPage, prevPage, nextPage, goToPage, query, setParentQuery } =
+  const { results, loading, count, page, maxPage, prevPage, nextPage, goToPage, query } =
   useSearchQuery<IFileSearchQuery, FileStub, FileSearchQuery>(FileSearchQuery, {
-    parentQuerySessionKey: PARENT_FILE_SEARCH_QUERY,
     defaultPerPage: 30
   });
-
-  useEffect(() => setParentQuery(query), [query, setParentQuery]);
 
   const paginationWidth = 9;
 

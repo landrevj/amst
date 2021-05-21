@@ -48,17 +48,30 @@ export default class FileSearchQuery extends SearchQuery<IFileSearchQuery, FileS
 
   // constructor(query: IFileSearchQuery);
   // constructor(query: string, defaultFilesPerPage?: number);
-  constructor(query: IFileSearchQuery | string, defaultFilesPerPage?: number)
+  constructor(query: IFileSearchQuery | string, overrideInstanceID = false, defaultFilesPerPage?: number)
   {
     super();
-    this.loadQuery(query, defaultFilesPerPage);
+    this.loadQuery(query, overrideInstanceID, defaultFilesPerPage);
   }
 
-  public loadQuery(search: IFileSearchQuery | string, defaultFilesPerPage?: number): FileSearchQuery
+  public loadQuery(search: IFileSearchQuery | string, overrideInstanceID = false, defaultFilesPerPage?: number): FileSearchQuery
   {
     if (typeof search !== 'string')
     {
-      Object.assign(this, search);
+      if (!overrideInstanceID)
+      {
+        const thisID = this.instanceID;
+        const s = { ... search };
+        delete s.instanceID;
+        Object.assign(this, s);
+        this.instanceID = thisID;
+      }
+      else
+      {
+        Object.assign(this, search);
+      }
+
+      this.parentInstanceID = search.parentInstanceID;
       return this;
     }
 
@@ -98,6 +111,9 @@ export default class FileSearchQuery extends SearchQuery<IFileSearchQuery, FileS
     // these need to be parsed and have defaults
     this.page =  helper(qs.page, p => parseInt(p, 10)) || 0;
     this.limit = helper(qs.limit, l => parseInt(l, 10)) || defaultFilesPerPage || FileSearchQuery.DEFAULT_FILES_PER_PAGE;
+
+    this.instanceID = overrideInstanceID && qs.instanceID ? qs.instanceID as string : this.instanceID;
+    this.parentInstanceID = qs.parentInstanceID ? qs.parentInstanceID as string : '';
 
     return this;
   }

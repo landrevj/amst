@@ -11,7 +11,7 @@ interface FilePreviewListProps<QueryTypeProps, QueryTypeResults, QueryType>
   loading?: boolean;
   files: FileStub[];
   query?: SearchQuery<QueryTypeProps, QueryTypeResults>;
-  QueryConstructor?: new (q: QueryTypeProps | string, d?: number) => QueryType;
+  QueryConstructor?: new (q: QueryTypeProps | string, o?: boolean, d?: number) => QueryType;
 }
 
 const heights = ['h-24', 'h-28', 'h-32', 'h-36', 'h-40', 'h-44', 'h-48', 'h-52', 'h-56', 'h-60'];
@@ -26,9 +26,12 @@ export default function FilePreviewList<QueryTypeProps, QueryTypeResults, QueryT
   const filePreviews = files.map((file, i) => {
     if (query && QueryConstructor)
     {
+      // console.log('h', query);
       const nq = new QueryConstructor(query.props);
       nq.limit = 1;
       nq.page = indexStart + i;
+      nq.parentInstanceID = query.instanceID;
+      // console.log('nq', nq);
       return <Link to={`/${query.route}/${file.id}?${nq.toString()}`} className='flex flex-auto' key={file.id}><FilePreview className='flex-auto w-48' file={file} showName/></Link>;
     }
 

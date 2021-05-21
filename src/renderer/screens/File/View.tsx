@@ -1,11 +1,11 @@
 /* eslint-disable jsx-a11y/media-has-caption */
 import React from 'react';
 import { RouteComponentProps } from 'react-router';
-import { Link } from 'react-router-dom';
 import Hotkeys from 'react-hot-keys';
 import { HotkeysEvent } from 'hotkeys-js';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowCircleLeft, faChevronLeft, faChevronRight, faFile, faImage, faLayerGroup, faPlus, faTags } from '@fortawesome/free-solid-svg-icons';
+import { Link } from 'react-router-dom';
 import log from 'electron-log';
 
 
@@ -20,7 +20,6 @@ import { withSearchQuery, SearchQueryProps } from '../../components/UI/Search/Qu
 import { Card, CardSection } from '../../components/UI/Card';
 import FilePropertyTable from '../../components/File/PropertyTable';
 import FileSearchQuery, { IFileSearchQuery } from '../../components/File/Search/Query';
-import { PARENT_FILE_SEARCH_QUERY } from '../../SessionStorageKeys';
 
 interface FileViewRouteParams
 {
@@ -141,10 +140,9 @@ class FileView extends React.Component<FileViewProps, FileViewState>
 
   render()
   {
-    const { loading, page, maxPage, prevPage, nextPage, query, parentQuery, history } = this.props;
+    const { loading, page, maxPage, prevPage, nextPage, query, parentPath } = this.props;
     const { file, tags, groups } = this.state;
     // if (!file && !loading) return (<span>no file</span>)
-    console.log(history)
 
     let content: JSX.Element | undefined;
     if (file && !loading)
@@ -199,18 +197,20 @@ class FileView extends React.Component<FileViewProps, FileViewState>
 
               <div className='flex-grow text-center'>
                 {file && !loading ? <>
+
                 <span className='px-2 rounded-full bg-gray-300'>
-                  #{file.id}
+                  #{file.id} - {page + 1}/{maxPage + 1}
                 </span>
                 <br/>
-                <Link className='inline-block px-2 rounded-full text-white filter saturate-[.9] bg-gradient-to-tr from-blue-400 to-blue-300' to={`/file?${parentQuery || ''}`}>
+
+                {parentPath ?
+                <Link to={parentPath} type='button' className='inline-block px-2 rounded-full text-white filter saturate-[.9] bg-gradient-to-tr from-blue-400 to-blue-300'>
                   <FontAwesomeIcon className='mr-1 -ml-1 my-auto fill-current text-gray-100' icon={faArrowCircleLeft}/>
-                  <span>search</span>
-                  <span> | ({page + 1}/{maxPage + 1})</span>
+                  <span>back</span>
                 </Link>
-                </>
-                :
-                <div className='animate-fade-in'><span className='text-base-loading inline-block w-36'/></div>}
+                : <></>}
+
+                </> : <div className='animate-fade-in'><span className='text-base-loading inline-block w-36'/></div>}
               </div>
 
               <button type='button' className='h-6 bg-transparent' onClick={nextPage}>
@@ -254,4 +254,4 @@ class FileView extends React.Component<FileViewProps, FileViewState>
   }
 }
 
-export default withSearchQuery<IFileSearchQuery, FileStub, FileSearchQuery>(FileSearchQuery, { parentQuerySessionKey: PARENT_FILE_SEARCH_QUERY, defaultPerPage: 1 })(FileView);
+export default withSearchQuery<IFileSearchQuery, FileStub, FileSearchQuery>(FileSearchQuery, { defaultPerPage: 1 })(FileView);

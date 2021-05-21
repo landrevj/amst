@@ -17,10 +17,6 @@ export interface IGroupSearchQuery extends ISearchQuery
   workspaceID?: number;
   tags?: TagTuple[];
   andOr?: 'AND' | 'OR',
-
-  // pagination
-  limit?: number;
-  page?: number;
 }
 
 // when we stringify it we want to be able to load the old query in one go,
@@ -40,17 +36,30 @@ export default class GroupSearchQuery extends SearchQuery<IGroupSearchQuery, Gro
   public tags?: TagTuple[];
   public andOr?: 'AND' | 'OR';
 
-  constructor(query: IGroupSearchQuery | string, defaultFilesPerPage?: number)
+  constructor(query: IGroupSearchQuery | string, overrideInstanceID = false, defaultFilesPerPage?: number)
   {
     super();
-    this.loadQuery(query, defaultFilesPerPage);
+    this.loadQuery(query, overrideInstanceID, defaultFilesPerPage);
   }
 
-  public loadQuery(search: IGroupSearchQuery | string, defaultFilesPerPage?: number): GroupSearchQuery
+  public loadQuery(search: IGroupSearchQuery | string, overrideInstanceID = false, defaultFilesPerPage?: number): GroupSearchQuery
   {
     if (typeof search !== 'string')
     {
-      Object.assign(this, search);
+      if (!overrideInstanceID)
+      {
+        const thisID = this.instanceID;
+        const s = { ... search };
+        delete s.instanceID;
+        Object.assign(this, s);
+        this.instanceID = thisID;
+      }
+      else
+      {
+        Object.assign(this, search);
+      }
+
+      this.parentInstanceID = search.parentInstanceID;
       return this;
     }
 
@@ -84,6 +93,9 @@ export default class GroupSearchQuery extends SearchQuery<IGroupSearchQuery, Gro
     // these need to be parsed and have defaults
     this.page =  helper(qs.page, p => parseInt(p, 10)) || 0;
     this.limit = helper(qs.limit, l => parseInt(l, 10)) || defaultFilesPerPage || GroupSearchQuery.DEFAULT_GROUPS_PER_PAGE;
+
+    this.instanceID = overrideInstanceID && qs.instanceID ? qs.instanceID as string : this.instanceID;
+    this.parentInstanceID = qs.parentInstanceID ? qs.parentInstanceID as string : '';
 
     return this;
   }

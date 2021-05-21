@@ -17,7 +17,6 @@ import { GroupMemberStub, GroupStub, TagStub } from '../../../db/entities';
 
 import { SocketRequestStatus } from '../../../utils/websocket';
 import { withSearchQuery, SearchQueryProps } from '../../components/UI/Search/Query';
-import { PARENT_GROUP_SEARCH_QUERY } from '../../SessionStorageKeys';
 import GroupSearchQuery, { IGroupSearchQuery } from '../../components/Group/Search/Query';
 import TagList from '../../components/Tag/List';
 import { Card, CardHeader } from '../../components/UI/Card';
@@ -136,10 +135,10 @@ class FileView extends React.Component<GroupViewProps, GroupViewState>
 
   render()
   {
-    const { loading, query, parentQuery, nextPage, prevPage } = this.props;
+    const { loading, query, page, maxPage, nextPage, prevPage, parentPath } = this.props;
     const { group, tags, members } = this.state;
     // if (!file && !loading) return (<span>no file</span>)
-    const fileQuery = new FileSearchQuery({ groupID: group?.id, order: QueryOrder.ASC });
+    const fileQuery = new FileSearchQuery({ groupID: group?.id, order: QueryOrder.ASC, instanceID: query.instanceID, parentInstanceID: query.instanceID }, true);
 
     let coverDiv;
     if (members?.length)
@@ -203,17 +202,20 @@ class FileView extends React.Component<GroupViewProps, GroupViewState>
               {group && !loading ?
               <div className='flex flex-row gap-2'>
                 <span>#{group?.id}</span>
+                <span className='text-gray-400'>{page + 1}/{maxPage + 1}</span>
                 <div className='flex-grow'/>
                 <button type='button' className='h-6 bg-transparent' onClick={prevPage}>
                   <FontAwesomeIcon className='mr-2 fill-current text-gray-600' icon={faChevronLeft}/>
                   <span>prev</span>
                 </button>
-                <Link className='inline-block px-2 rounded-full text-white filter saturate-[.9] bg-gradient-to-r from-blue-400 to-blue-300'
-                  to={`/group?${parentQuery || ''}`}
-                >
+
+                {parentPath ?
+                <Link to={parentPath} type='button' className='inline-block px-2 rounded-full text-white filter saturate-[.9] bg-gradient-to-r from-blue-400 to-blue-300'>
                   <FontAwesomeIcon className='mr-1 -ml-1 my-auto fill-current text-gray-100' icon={faArrowCircleLeft}/>
-                  <span>search</span>
+                  <span>back</span>
                 </Link>
+                : <></>}
+
                 <button type='button' className='h-6 bg-transparent' onClick={nextPage}>
                   <span>next</span>
                   <FontAwesomeIcon className='ml-2 fill-current text-gray-600' icon={faChevronRight}/>
@@ -240,4 +242,4 @@ class FileView extends React.Component<GroupViewProps, GroupViewState>
   }
 }
 
-export default withSearchQuery<IGroupSearchQuery, GroupStub, GroupSearchQuery>(GroupSearchQuery, { parentQuerySessionKey: PARENT_GROUP_SEARCH_QUERY, defaultPerPage: 1 })(FileView);
+export default withSearchQuery<IGroupSearchQuery, GroupStub, GroupSearchQuery>(GroupSearchQuery, { defaultPerPage: 1 })(FileView);
