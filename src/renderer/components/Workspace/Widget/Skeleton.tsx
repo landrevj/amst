@@ -1,8 +1,8 @@
+import React from 'react';
 import { faCircle, faDatabase, faFolder } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React from 'react';
-import FolderList from '../../Folder/List';
 
+import FolderList from '../../Folder/List';
 import { Card, CardFooter, CardSection } from '../../UI/Card';
 import ExtensionPercentagesGraph from '../../UI/Graphs/ExtensionPercentages';
 

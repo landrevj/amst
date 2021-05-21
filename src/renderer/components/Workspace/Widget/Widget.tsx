@@ -10,7 +10,7 @@ import FolderList from '../../Folder/List';
 import { SocketResponse, SocketRequestStatus } from '../../../../utils/websocket';
 import { Card, CardFooter, CardHeader, CardModal, CardSection } from '../../UI/Card';
 import ExtensionPercentagesGraph, { ExtensionPercentagesGraphData } from '../../UI/Graphs/ExtensionPercentages';
-import { WorkspaceFlagButtons } from '../index';
+import WorkspaceFlagButtons from '../FlagButtons';
 
 interface WorkspaceWidgetProps
 {
