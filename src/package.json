@@ -17,7 +17,8 @@
   "dependencies": {
     "@mikro-orm/core": "^4.5.1",
     "@mikro-orm/migrations": "^4.5.1",
-    "@mikro-orm/sqlite": "^4.5.1",
+    "@mikro-orm/sqlite": "^4.5.5",
+    "image-thumbnail": "^1.0.13",
     "reflect-metadata": "^0.1.13",
     "socket.io": "^4.0.0"
   },
