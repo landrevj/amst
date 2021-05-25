@@ -2,8 +2,8 @@ import log from 'electron-log';
 import QueryString from 'query-string';
 import { QueryOrder } from '@mikro-orm/core';
 
-import Client from '../../../../utils/websocket/SocketClient';
-import { SocketRequestStatus } from '../../../../utils/websocket';
+import Client from '../../../../shared/websocket/SocketClient';
+import { SocketRequestStatus } from '../../../../shared/websocket';
 import { FileStub } from '../../../../db/entities';
 import { TagTuple } from '../../Tag';
 import { SearchQuery, ISearchQuery } from '../../UI/Search/Query';

@@ -4,11 +4,11 @@ import { faCheck, faFileArchive, faFilter, faLayerGroup } from '@fortawesome/fre
 import { faTrashAlt } from '@fortawesome/free-regular-svg-icons';
 // import log from 'electron-log';
 
-import Client from '../../../utils/websocket/SocketClient';
+import Client from '../../../shared/websocket/SocketClient';
 import { WorkspaceStub, FolderStub } from '../../../db/entities';
 import { MultiplePathPicker } from '../UI/Inputs/MultiplePathPicker/MultiplePathPicker';
 
-import { SocketRequestStatus } from '../../../utils/websocket';
+import { SocketRequestStatus } from '../../../shared/websocket';
 import { isNumberArray } from '../../../utils';
 import { CardSection, CardFooter } from '../UI/Card';
 import Switch from '../UI/Inputs/Switch';

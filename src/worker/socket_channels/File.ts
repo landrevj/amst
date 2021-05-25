@@ -6,7 +6,7 @@ import md5File from 'md5-file';
 import { DB } from '../../db';
 import { EntityChannel } from './Entity';
 import { File, Tag } from '../../db/entities';
-import { SocketRequest } from '../../utils/websocket';
+import { SocketRequest } from '../../shared/websocket';
 import { IFileSearchQuery } from '../../renderer/components/File/Search/Query';
 
 export class FileChannel extends EntityChannel<File>

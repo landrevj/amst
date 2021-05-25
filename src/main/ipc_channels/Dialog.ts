@@ -1,10 +1,10 @@
 import { dialog, IpcMainEvent } from 'electron';
-import { IpcChannelInterface, IpcRequest } from "../../utils/ipc/IpcChannel";
+import { IpcChannelInterface, IpcRequest } from "../../shared/ipc/IpcChannel";
 
 export type DialogPropertiesOptions =
   Array<'openFile' | 'openDirectory' | 'multiSelections' | 'showHiddenFiles' | 'createDirectory' | 'promptToCreate' | 'noResolveAliases' | 'treatPackageAsDirectory' | 'dontAddToRecent'>;
 
-export class DialogChannel implements IpcChannelInterface
+export default class DialogChannel implements IpcChannelInterface
 {
   // eslint-disable-next-line class-methods-use-this
   getName(): string

@@ -5,7 +5,7 @@ import { FilterQuery, FindOptions, QBFilterQuery, QueryOrder } from '@mikro-orm/
 import { DB } from '../../db';
 import { EntityChannel } from './Entity';
 import { File, Group, Tag } from '../../db/entities';
-import { SocketRequest } from '../../utils/websocket';
+import { SocketRequest } from '../../shared/websocket';
 import { IGroupSearchQuery } from '../../renderer/components/Group/Search/Query';
 
 export class GroupChannel extends EntityChannel<Group>

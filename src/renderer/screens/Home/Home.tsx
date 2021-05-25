@@ -3,13 +3,14 @@ import { RouteComponentProps } from 'react-router';
 import { faEdit } from '@fortawesome/free-solid-svg-icons';
 import log from 'electron-log';
 
-import Client from '../../../utils/websocket/SocketClient';
+import Client from '../../../shared/websocket/SocketClient';
 import { WorkspaceStub } from '../../../db/entities';
 import { WorkspaceForm, WorkspaceList } from '../../components/Workspace';
 
-import { SocketRequestStatus } from '../../../utils/websocket';
+import { SocketRequestStatus } from '../../../shared/websocket';
 import '../../App.global.css';
 import { Card, CardHeader } from '../../components/UI/Card';
+import { TitlebarContext } from '../../components/Titlebar/Titlebar';
 
 interface HomeState
 {
@@ -17,9 +18,10 @@ interface HomeState
   loading: boolean;
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export class Home extends React.Component<RouteComponentProps, HomeState>
+export default class Home extends React.Component<RouteComponentProps, HomeState>
 {
+  static contextType = TitlebarContext;
+  context!: React.ContextType<typeof TitlebarContext>;
 
   constructor(props: RouteComponentProps)
   {
@@ -52,6 +54,15 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
         loading: false,
       })
     }
+
+    const { setSubtitle } = this.context;
+    setSubtitle('home');
+  }
+
+  componentWillUnmount()
+  {
+    const { setSubtitle } = this.context;
+    setSubtitle('');
   }
 
   handleSubmitWorkspaceForm(newWorkspace: WorkspaceStub)
@@ -75,10 +86,10 @@ export class Home extends React.Component<RouteComponentProps, HomeState>
     this.setState({ workspaces });
   }
 
-
   render()
   {
     const { workspaces, loading } = this.state;
+
     return (
       <div className='p-4 h-full'>
         <div className='h-full flex flex-row justify-center space-x-4'>

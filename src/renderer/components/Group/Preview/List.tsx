@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 
 import { FileStub, GroupStub } from '../../../../db/entities';
-import { SocketRequestStatus } from '../../../../utils/websocket';
-import Client from '../../../../utils/websocket/SocketClient';
+import { SocketRequestStatus } from '../../../../shared/websocket';
+import Client from '../../../../shared/websocket/SocketClient';
 import FilePreviewList from '../../File/Preview/List';
 import GroupSearchQuery from '../Search/Query';
 

@@ -1,9 +1,9 @@
 import { app, IpcMainEvent } from 'electron';
-import { IpcChannelInterface, IpcRequest } from "../../utils/ipc/IpcChannel";
+import { IpcChannelInterface, IpcRequest } from "../../shared/ipc/IpcChannel";
 
 export type AppPathOptions = "module" | "cache" | "home" | "appData" | "userData" | "temp" | "exe" | "desktop" | "documents" | "downloads" | "music" | "pictures" | "videos" | "recent" | "logs" | "crashDumps";
 
-export class AppPathChannel implements IpcChannelInterface
+export default class AppPathChannel implements IpcChannelInterface
 {
   // eslint-disable-next-line class-methods-use-this
   getName(): string

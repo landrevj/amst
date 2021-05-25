@@ -3,7 +3,7 @@ import log from 'electron-log';
 import { Socket } from 'socket.io';
 
 import { CRUD } from '../../db';
-import { SocketChannelInterface, SocketRequest, SocketRequestStatus, SocketResponse } from '../../utils/websocket';
+import { SocketChannelInterface, SocketRequest, SocketRequestStatus, SocketResponse } from '../../shared/websocket';
 
 export abstract class EntityChannel<EntityType> extends CRUD<EntityType> implements SocketChannelInterface
 {

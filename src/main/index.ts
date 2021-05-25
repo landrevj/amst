@@ -6,9 +6,8 @@ import { join } from 'path';
 
 import { THUMBNAIL_DIR, THUMBNAIL_DIR_WORKING } from '../shared/paths';
 
-import { IpcChannelInterface, registerIpcChannels } from '../utils/ipc';
-import { AppPathChannel, DialogChannel } from './ipc_channels';
-import { RendererWindowChannel } from './ipc_channels/RendererWindow';
+import { IpcChannelInterface, registerIpcChannels } from '../shared/ipc';
+import { AppPathChannel, DialogChannel, WindowActionChannel, WindowTitleChannel } from './ipc_channels';
 
 // eslint-disable-next-line import/prefer-default-export
 export async function main()
@@ -22,7 +21,8 @@ export async function main()
   const ipcChannels: IpcChannelInterface[] = [
     new AppPathChannel(),
     new DialogChannel(),
-    new RendererWindowChannel(),
+    new WindowActionChannel(),
+    new WindowTitleChannel(),
   ];
   registerIpcChannels(ipcChannels);
 }

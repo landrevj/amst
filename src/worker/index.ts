@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import log from 'electron-log';
 
 import DB from '../db/DB';
-import Server from '../utils/websocket/SocketServer';
+import Server from '../shared/websocket/SocketServer';
 import { FileChannel, FolderChannel, GroupChannel, TagChannel, WorkspaceChannel } from './socket_channels';
 
 // eslint-disable-next-line import/prefer-default-export

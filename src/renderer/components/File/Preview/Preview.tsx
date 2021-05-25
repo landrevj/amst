@@ -1,6 +1,6 @@
 import React from 'react';
 
-import Client from '../../../../utils/websocket/SocketClient';
+import Client from '../../../../shared/websocket/SocketClient';
 import { FileStub } from '../../../../db/entities';
 import { mimeRegex } from '../../../../utils';
 

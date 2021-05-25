@@ -12,10 +12,10 @@ import { faCopy } from '@fortawesome/free-regular-svg-icons';
 import { faArrowCircleUp, faChevronLeft, faChevronRight, faPlus } from '@fortawesome/free-solid-svg-icons';
 
 
-import Client from '../../../utils/websocket/SocketClient';
+import Client from '../../../shared/websocket/SocketClient';
 import { GroupMemberStub, GroupStub, TagStub } from '../../../db/entities';
 
-import { SocketRequestStatus } from '../../../utils/websocket';
+import { SocketRequestStatus } from '../../../shared/websocket';
 import { withSearchQuery, SearchQueryProps } from '../../components/UI/Search/Query';
 import GroupSearchQuery, { IGroupSearchQuery } from '../../components/Group/Search/Query';
 import TagList from '../../components/Tag/List';
@@ -25,6 +25,7 @@ import FilePreview from '../../components/File/Preview/Preview';
 import FilePreviewList from '../../components/File/Preview/List';
 import FileSearchQuery from '../../components/File/Search/Query';
 import { mimeRegex } from '../../../utils';
+import { TitlebarContext } from '../../components/Titlebar/Titlebar';
 
 interface GroupViewRouteParams
 {
@@ -42,6 +43,9 @@ interface GroupViewState
 
 class FileView extends React.Component<GroupViewProps, GroupViewState>
 {
+  static contextType = TitlebarContext;
+  context!: React.ContextType<typeof TitlebarContext>;
+
   constructor(props: GroupViewProps)
   {
     super(props);
@@ -130,6 +134,13 @@ class FileView extends React.Component<GroupViewProps, GroupViewState>
       tags: g.tags || [],
       members: g.members.sort((a, b) => a.position - b.position),
     });
+
+    const { page, maxPage } = this.props;
+    const { setSubtitle } = this.context;
+
+    const p = (page + 1).toLocaleString();
+    const mp = (maxPage + 1).toLocaleString();
+    setSubtitle(`group - ${p}/${mp} - ${group.name}`);
   }
 
 

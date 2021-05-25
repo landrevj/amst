@@ -1,9 +1,9 @@
 import { BrowserWindow, IpcMainEvent } from 'electron';
-import { IpcChannelInterface, IpcRequest } from "../../utils/ipc/IpcChannel";
+import { IpcChannelInterface, IpcRequest } from "../../shared/ipc/IpcChannel";
 
-export type RendererWindowOptions = 'minimize' | 'maximize' | 'close';
+export type WindowActionOptions = 'minimize' | 'maximize' | 'close';
 
-export class RendererWindowChannel implements IpcChannelInterface
+export default class WindowActionChannel implements IpcChannelInterface
 {
   // eslint-disable-next-line class-methods-use-this
   getName(): string
@@ -17,9 +17,9 @@ export class RendererWindowChannel implements IpcChannelInterface
 
     if (request.params)
     {
-      const arg = request.params[0] as RendererWindowOptions;
+      const arg = request.params[0] as WindowActionOptions;
 
-      const window = BrowserWindow.getFocusedWindow();
+      const window = BrowserWindow.fromWebContents(event.sender);
 
       switch(arg)
       {

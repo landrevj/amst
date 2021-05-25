@@ -6,7 +6,7 @@ import { render } from 'react-dom';
 import TimeAgo from 'javascript-time-ago';
 import en from 'javascript-time-ago/locale/en';
 
-import Client from '../utils/websocket/SocketClient';
+import Client from '../shared/websocket/SocketClient';
 import App from './App';
 
 TimeAgo.addDefaultLocale(en);

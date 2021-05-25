@@ -8,8 +8,8 @@ import log from 'electron-log';
 
 import { DB } from '../../../db';
 import { File } from "../../../db/entities";
-import { fileIDToThumbnailPath, mimeRegex } from "../../utils";
-import { THUMBNAIL_DIR, THUMBNAIL_DIR_WORKING } from "../../../shared/paths";
+import { fileIDToThumbnailPath, mimeRegex } from "../../../utils/utils";
+import { THUMBNAIL_DIR, THUMBNAIL_DIR_WORKING } from "../../paths";
 
 async function handleFileSend(req: IncomingMessage, res: ServerResponse, file: File)
 {

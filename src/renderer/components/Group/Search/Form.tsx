@@ -7,14 +7,14 @@ import { faTrashAlt } from '@fortawesome/free-regular-svg-icons';
 import { FilterQuery } from '@mikro-orm/core';
 
 import { GroupStub, Workspace, WorkspaceStub } from '../../../../db/entities';
-import Client from '../../../../utils/websocket/SocketClient';
+import Client from '../../../../shared/websocket/SocketClient';
 
 import { TagTuple } from '../../Tag';
 import TagButton from '../../Tag/Button';
 import TagInput from '../../Tag/Input';
 import { updateState } from '../../../../utils';
 import GroupSearchQuery, { IGroupSearchQuery } from './Query';
-import { SocketRequestStatus } from '../../../../utils/websocket';
+import { SocketRequestStatus } from '../../../../shared/websocket';
 import { CardFooter, CardSection } from '../../UI/Card';
 
 type OptionType = { value: string, label: string };

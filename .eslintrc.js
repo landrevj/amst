@@ -5,6 +5,7 @@ module.exports = {
     'import/no-extraneous-dependencies': 'off',
     'prettier/prettier': 'off',
     '@typescript-eslint/lines-between-class-members': ["error", "always", { "exceptAfterSingleLine": true }],
+    'react/static-property-placement': ['error', 'static public field'],
   },
   parserOptions: {
     ecmaVersion: 2020,

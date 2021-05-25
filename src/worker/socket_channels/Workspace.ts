@@ -11,7 +11,7 @@ import log from 'electron-log';
 import { DB } from '../../db';
 import { Workspace, File, Folder, Group, GroupMember } from '../../db/entities';
 import { chunk } from '../../utils';
-import { SocketRequest, SocketRequestStatus, SocketResponse } from '../../utils/websocket';
+import { SocketRequest, SocketRequestStatus, SocketResponse } from '../../shared/websocket';
 import { EntityChannel } from './Entity';
 import { ExtensionPercentagesGraphData } from '../../renderer/components/UI/Graphs/ExtensionPercentages';
 

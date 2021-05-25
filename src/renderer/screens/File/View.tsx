@@ -9,10 +9,10 @@ import { Link } from 'react-router-dom';
 import log from 'electron-log';
 
 
-import Client from '../../../utils/websocket/SocketClient';
+import Client from '../../../shared/websocket/SocketClient';
 import { FileStub, GroupStub, TagStub } from '../../../db/entities';
 
-import { SocketRequestStatus } from '../../../utils/websocket';
+import { SocketRequestStatus } from '../../../shared/websocket';
 import TagForm from '../../components/Tag/Form';
 import { mimeRegex } from '../../../utils';
 import TagList from '../../components/Tag/List';
@@ -20,6 +20,7 @@ import { withSearchQuery, SearchQueryProps } from '../../components/UI/Search/Qu
 import { Card, CardSection } from '../../components/UI/Card';
 import FilePropertyTable from '../../components/File/PropertyTable';
 import FileSearchQuery, { IFileSearchQuery } from '../../components/File/Search/Query';
+import { TitlebarContext } from '../../components/Titlebar/Titlebar';
 
 interface FileViewRouteParams
 {
@@ -37,6 +38,9 @@ interface FileViewState
 
 class FileView extends React.Component<FileViewProps, FileViewState>
 {
+  static contextType = TitlebarContext;
+  context!: React.ContextType<typeof TitlebarContext>;
+
   constructor(props: FileViewProps)
   {
     super(props);
@@ -136,6 +140,13 @@ class FileView extends React.Component<FileViewProps, FileViewState>
       tags: f.tags || [],
       groups: g,
     });
+
+    const { page, maxPage } = this.props;
+    const { setSubtitle } = this.context;
+
+    const p = (page + 1).toLocaleString();
+    const mp = (maxPage + 1).toLocaleString();
+    setSubtitle(`file - ${p}/${mp} - ${file.name}`);
   }
 
   render()

@@ -3,7 +3,7 @@ import { MikroORM, Options } from "@mikro-orm/core";
 import { EntityManager, SqliteDriver } from '@mikro-orm/sqlite';
 import { join } from 'path';
 import config from '../mikro-orm.config';
-import { IpcService } from '../utils/ipc';
+import { IpcService } from '../shared/ipc';
 
 class Database
 {

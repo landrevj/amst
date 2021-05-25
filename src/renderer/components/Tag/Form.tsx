@@ -1,8 +1,8 @@
 import React from 'react';
 import { TagTuple } from './index';
 import { TagStub } from '../../../db/entities';
-import { SocketRequestStatus } from '../../../utils/websocket';
-import Client from '../../../utils/websocket/SocketClient';
+import { SocketRequestStatus } from '../../../shared/websocket';
+import Client from '../../../shared/websocket/SocketClient';
 import TagInput from './Input';
 
 interface TagFormProps

@@ -3,11 +3,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBan, faCheck, faDatabase, faExclamationTriangle, faFolder, faLayerGroup, faPlus, faSearch, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import { faCopy, faTrashAlt } from '@fortawesome/free-regular-svg-icons';
 
-import Client from '../../../../utils/websocket/SocketClient';
+import Client from '../../../../shared/websocket/SocketClient';
 import { FolderStub, WorkspaceStub } from '../../../../db/entities';
 import { isNumberArray } from '../../../../utils';
 import FolderList from '../../Folder/List';
-import { SocketResponse, SocketRequestStatus } from '../../../../utils/websocket';
+import { SocketResponse, SocketRequestStatus } from '../../../../shared/websocket';
 import { Card, CardFooter, CardHeader, CardModal, CardSection } from '../../UI/Card';
 import ExtensionPercentagesGraph, { ExtensionPercentagesGraphData } from '../../UI/Graphs/ExtensionPercentages';
 import WorkspaceFlagButtons from '../FlagButtons';

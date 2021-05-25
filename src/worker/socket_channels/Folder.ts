@@ -4,7 +4,7 @@ import { FilterQuery, FindOptions } from '@mikro-orm/core';
 
 import { EntityChannel } from './Entity';
 import { Folder } from '../../db/entities';
-import { SocketRequest } from '../../utils/websocket';
+import { SocketRequest } from '../../shared/websocket';
 
 export class FolderChannel extends EntityChannel<Folder>
 {

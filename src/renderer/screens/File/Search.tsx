@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useContext, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faFile, faHome, faLayerGroup, faSearch } from '@fortawesome/free-solid-svg-icons';
+import pluralize from 'pluralize';
 // import log from 'electron-log';
 
 import useSearchQuery from '../../components/UI/Search/Query/use';
@@ -12,6 +13,7 @@ import { Card, CardHeader } from '../../components/UI/Card';
 import PaginationPageInput from '../../components/UI/Paginator/PageInput';
 import FileSearchQuery, { IFileSearchQuery } from '../../components/File/Search/Query';
 import { FileStub } from '../../../db/entities';
+import { TitlebarContext } from '../../components/Titlebar/Titlebar';
 
 export default function FileSearch()
 {
@@ -19,6 +21,18 @@ export default function FileSearch()
   useSearchQuery<IFileSearchQuery, FileStub, FileSearchQuery>(FileSearchQuery, {
     defaultPerPage: 30
   });
+
+  const { setSubtitle } = useContext(TitlebarContext);
+  useEffect(() => {
+    const c = count.toLocaleString();
+    const p = (page + 1).toLocaleString();
+    const mp = (maxPage + 1).toLocaleString();
+
+    setSubtitle(`file search - ${loading ? 'loading...' :
+      `${c} ${pluralize('result', count)} - page ${p}/${mp}`}`);
+
+    return () => setSubtitle('');
+  }, [loading, count, setSubtitle, page, maxPage]);
 
   const paginationWidth = 9;
 

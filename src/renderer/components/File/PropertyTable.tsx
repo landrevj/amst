@@ -3,8 +3,8 @@ import TimeAgo from 'javascript-time-ago';
 import log from 'electron-log';
 
 import { FileStub } from '../../../db/entities';
-import { SocketRequestStatus } from '../../../utils/websocket';
-import Client from '../../../utils/websocket/SocketClient';
+import { SocketRequestStatus } from '../../../shared/websocket';
+import Client from '../../../shared/websocket/SocketClient';
 
 interface FilePropertyTableProps
 {

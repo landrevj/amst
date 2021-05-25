@@ -1,7 +1,7 @@
 import React from 'react';
 import { HashRouter as Router, Switch, Route } from 'react-router-dom';
 
-import { Home } from './screens/Home/Home';
+import Home from './screens/Home/Home';
 import { FileSearch, FileView } from './screens/File';
 import { GroupSearch, GroupView } from './screens/Group';
 import Layout from './screens/Layout';
