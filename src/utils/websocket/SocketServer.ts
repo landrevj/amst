@@ -1,53 +1,13 @@
-import { createServer, IncomingMessage, ServerResponse } from "http";
+import { createServer } from "http";
 import { Server as SocketIOServer, Socket } from 'socket.io';
-import send from 'send';
-import StreamZip from "node-stream-zip";
+
 // import log from 'electron-log';
 
-import { DB } from '../../db';
 import { SocketRequest, SocketChannelInterface } from './index';
-import { File } from "../../db/entities";
+import fileRequestListener from "./FileServer";
+import { IpcService } from "../ipc";
 
 const DEFAULT_SOCKET_IO_PORT = 3000;
-
-async function fileRequestListener(req: IncomingMessage, res: ServerResponse)
-{
-  if (!req.url)
-  {
-    res.writeHead(500);
-    res.end("Missing Request URL");
-    return;
-  }
-  const re = /^\/files\/(\d+)$/;
-  const match = req.url.match(re);
-  if (match)
-  {
-    const fileID = parseInt(match[1], 10);
-
-    const em = DB.getNewEM();
-    const file = await em?.findOne(File, fileID);
-    if (file)
-    {
-      // log.verbose(`SocketServer.ts: Sending file with id ${fileID}`);
-      if (file.archivePath !== '')
-      {
-        // eslint-disable-next-line new-cap
-        const zip = new StreamZip.async({ file: file.filePath });
-        const stm = await zip.stream(file.archivePath);
-        stm.pipe(res);
-        stm.on('end', () => zip.close());
-        return;
-      }
-
-      send(req, encodeURIComponent(file.filePath), {}).pipe(res);
-      return;
-    }
-  }
-
-  res.writeHead(404);
-  res.end("Not Found");
-}
-
 
 class SocketServer
 {
@@ -58,9 +18,12 @@ class SocketServer
 
   private constructor() { /* */ }
 
-  public init(channels: SocketChannelInterface[], port?: number)
+  public async init(channels: SocketChannelInterface[], port?: number)
   {
-    const httpServer = createServer(fileRequestListener);
+    const ipc          = new IpcService();
+    const userDataPath = await ipc.send<string>('app-path', { params: ['userData'] });
+
+    const httpServer = createServer((req, res) => fileRequestListener(req, res, userDataPath));
     this.io = new SocketIOServer(httpServer, {});
 
     this.io.on('connection', (socket) => {

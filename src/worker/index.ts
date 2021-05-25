@@ -19,7 +19,7 @@ export async function main()
   if (!migration) throw new Error('worker/index.tsx: Failed to run migrations!');
   log.debug('worker/index.ts: Migrations were successful.');
 
-  Server.init([
+  await Server.init([
     new TagChannel(),
     new FileChannel(),
     new GroupChannel(),

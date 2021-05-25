@@ -77,15 +77,19 @@ export default class ClickToEditInput extends React.Component<ClickToEditInputPr
 
   render()
   {
-    const { inputClassName, buttonClassName, type, useContentWidth } = this.props;
+    const { inputClassName, buttonClassName, type, useContentWidth, value: propsValue } = this.props;
     const { value, editing } = this.state;
     if (!editing) return <button type='button' className={`bg-transparent focus:ring-0 ${buttonClassName}`} onClick={() => this.setState({ editing: true })}>{value}</button>;
 
     return (
       <form className='contents' onSubmit={this.handleFormSubmit}>
         {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
-        <input autoFocus className={`inline-block p-0 border-0 focus:ring-0 bg-transparent ${inputClassName}`} style={useContentWidth ? { width: `${value.length}ch` } : {}}
-               value={value} type={type} onChange={this.handleInputChange}/>
+        <input autoFocus className={`inline-block p-0 border-0 focus:ring-0 bg-transparent ${inputClassName}`}
+          style={useContentWidth ? { width: `${value.length}ch` } : {}}
+          value={value} type={type}
+          onChange={this.handleInputChange}
+          onBlur={() => this.setState({ value: propsValue, editing: false })}
+          onFocus={e => e.target.select()}/>
       </form>
     );
   }

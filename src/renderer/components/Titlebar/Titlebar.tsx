@@ -15,16 +15,20 @@ function handleWindowAction(action: 'minimize' | 'maximize' | 'close')
 interface TitlebarProps
 {
   title?: string;
+  subtitle?: string;
   className?: string;
 }
 
-export default function Titlebar({ title, className }: TitlebarProps)
+export default function Titlebar({ title, subtitle, className }: TitlebarProps)
 {
   return (
     <div className={`titlebar w-screen flex flex-row place-items-center text-xs bg-gray-100 bg-opacity-10 text-white ${className}`}>
-      <div className='px-2'>
+      <span className='px-2'>
         {title}
-      </div>
+      </span>
+      <span className='px-2 opacity-60'>
+        {subtitle}
+      </span>
       <div className='flex-grow'/>
       <div className='flex-none h-full no-drag flex flex-row w-32'>
         <button type='button' onClick={() => handleWindowAction('minimize')} className='flex-grow h-full hover:bg-white hover:bg-opacity-20 focus:ring-0'>
@@ -45,5 +49,6 @@ export default function Titlebar({ title, className }: TitlebarProps)
 
 Titlebar.defaultProps = {
   title: 'amst',
+  subtitle: '',
   className: '',
 }
