@@ -38,6 +38,9 @@ export default class Home extends React.Component<RouteComponentProps, HomeState
 
   async componentDidMount()
   {
+    const { setSubtitle } = this.context;
+    await setSubtitle('home');
+
     const response = await Client.send<WorkspaceStub[]>('Workspace', { action: 'read', params: [{}, { populate: ['folders'] }] });
     const workspaces = response.data;
     if (response.status === SocketRequestStatus.SUCCESS && workspaces)
@@ -52,17 +55,8 @@ export default class Home extends React.Component<RouteComponentProps, HomeState
       log.error(`Home.tsx: Failed to load Workspaces.`);
       this.setState({
         loading: false,
-      })
+      });
     }
-
-    const { setSubtitle } = this.context;
-    setSubtitle('home');
-  }
-
-  componentWillUnmount()
-  {
-    const { setSubtitle } = this.context;
-    setSubtitle('');
   }
 
   handleSubmitWorkspaceForm(newWorkspace: WorkspaceStub)

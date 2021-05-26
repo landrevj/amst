@@ -16,11 +16,12 @@ export default function Layout({ children }: LayoutProps)
 
   const setTitlebarTitle = useCallback(async (s: string) => {
     setTitlebarTitleState(s);
-    await ipc.send<string>('window-title', { params: [s] })
   }, []);
   const setTitlebarSubtitle = useCallback(async (s: string) => {
     setTitlebarSubtitleState(s);
-    await ipc.send<string>('window-title', { params: [s] })
+    console.warn('herhehre', s);
+
+    await ipc.send<string>('window-title', { params: [s === '' ? 'amst' : s] });
   }, []);
 
   return (

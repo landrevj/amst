@@ -21,9 +21,9 @@ export default class WindowTitleChannel implements IpcChannelInterface
       if (window)
       {
         window.setTitle(arg);
-        event.sender.send('success');
+        event.sender.send(request.responseChannel, 'success');
       }
-      else event.sender.send('failure');
+      else event.sender.send(request.responseChannel, 'failure');
     }
   }
 }

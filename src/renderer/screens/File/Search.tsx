@@ -31,7 +31,6 @@ export default function FileSearch()
     setSubtitle(`file search - ${loading ? 'loading...' :
       `${c} ${pluralize('result', count)} - page ${p}/${mp}`}`);
 
-    return () => setSubtitle('');
   }, [loading, count, setSubtitle, page, maxPage]);
 
   const paginationWidth = 9;

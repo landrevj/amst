@@ -31,7 +31,6 @@ export default function GroupSearch()
     setSubtitle(`group search - ${loading ? 'loading...' :
       `${c} ${pluralize('result', count)} - page ${p}/${mp}`}`);
 
-    return () => setSubtitle('');
   }, [loading, count, setSubtitle, page, maxPage]);
 
   const paginationWidth = 9;

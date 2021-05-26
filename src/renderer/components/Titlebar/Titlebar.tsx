@@ -23,15 +23,15 @@ export interface ITitlebarContext
 {
   title: string;
   subtitle: string;
-  setTitle: (t: string) => void,
-  setSubtitle: (s: string) => void,
+  setTitle: (t: string) => Promise<void>,
+  setSubtitle: (s: string) => Promise<void>,
 }
 
 export const TitlebarContext = React.createContext<ITitlebarContext>({
   title: 'amst',
   subtitle: '',
-  setTitle: (_t: string) => undefined,
-  setSubtitle: (_s: string) => undefined,
+  setTitle: async (_t: string) => {},
+  setSubtitle: async (_s: string) => {},
 });
 
 export default function Titlebar({ title, subtitle, className }: TitlebarProps)

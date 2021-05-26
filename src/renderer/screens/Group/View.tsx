@@ -140,7 +140,7 @@ class FileView extends React.Component<GroupViewProps, GroupViewState>
 
     const p = (page + 1).toLocaleString();
     const mp = (maxPage + 1).toLocaleString();
-    setSubtitle(`group - ${p}/${mp} - ${group.name}`);
+    await setSubtitle(`group - ${p}/${mp} - ${group.name}`);
   }
 
 

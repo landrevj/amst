@@ -146,7 +146,7 @@ class FileView extends React.Component<FileViewProps, FileViewState>
 
     const p = (page + 1).toLocaleString();
     const mp = (maxPage + 1).toLocaleString();
-    setSubtitle(`file - ${p}/${mp} - ${file.name}`);
+    await setSubtitle(`file - ${p}/${mp} - ${file.name}`);
   }
 
   render()
