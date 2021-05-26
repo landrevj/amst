@@ -20,6 +20,7 @@ export default class WindowActionChannel implements IpcChannelInterface
       const arg = request.params[0] as WindowActionOptions;
 
       const window = BrowserWindow.fromWebContents(event.sender);
+      const isMax = window?.isMaximized();
 
       switch(arg)
       {
@@ -28,8 +29,16 @@ export default class WindowActionChannel implements IpcChannelInterface
           event.sender.send(request.responseChannel, 'minimized');
           break;
         case 'maximize':
-          window?.maximize();
-          event.sender.send(request.responseChannel, 'maximized');
+          if (isMax)
+          {
+            window?.unmaximize();
+            event.sender.send(request.responseChannel, 'unmaximized');
+          }
+          else
+          {
+            window?.maximize();
+            event.sender.send(request.responseChannel, 'maximized');
+          }
           break;
         case 'close':
           window?.close();

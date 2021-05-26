@@ -87,6 +87,14 @@ const createWindow = async () => {
     },
   });
 
+  rendererWindow.on('maximize', () => {
+    rendererWindow?.webContents.send('window-action', 'maximized');
+  });
+
+  rendererWindow.on('unmaximize', () => {
+    rendererWindow?.webContents.send('window-action', 'unmaximized');
+  });
+
   workerWindow = new BrowserWindow({
     show: (process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true'),
     width: 250,

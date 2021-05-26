@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { ipcRenderer, IpcRendererEvent } from 'electron';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faWindowMaximize } from '@fortawesome/free-regular-svg-icons';
+import { faWindowMaximize, faWindowRestore } from '@fortawesome/free-regular-svg-icons';
 import { faTimes, faWindowMinimize } from '@fortawesome/free-solid-svg-icons';
 
 import { IpcService } from '../../../shared/ipc';
@@ -10,13 +11,6 @@ function handleWindowAction(action: 'minimize' | 'maximize' | 'close')
 {
   const ipc = new IpcService();
   ipc.send('renderer-window', { params: [action] });
-}
-
-interface TitlebarProps
-{
-  title?: string;
-  subtitle?: string;
-  className?: string;
 }
 
 export interface ITitlebarContext
@@ -34,8 +28,37 @@ export const TitlebarContext = React.createContext<ITitlebarContext>({
   setSubtitle: async (_s: string) => {},
 });
 
+interface TitlebarProps
+{
+  title?: string;
+  subtitle?: string;
+  className?: string;
+}
+
 export default function Titlebar({ title, subtitle, className }: TitlebarProps)
 {
+  const [isMaximized, setIsMaximized] = useState(false);
+
+  useEffect(() => {
+    const listener = (_: IpcRendererEvent, m: string) => {
+      switch(m)
+      {
+        case 'maximized':
+          setIsMaximized(true);
+          break;
+        case 'unmaximized':
+          setIsMaximized(false);
+          break;
+
+        default:
+          break;
+      }
+    };
+    ipcRenderer.on('window-action', listener);
+
+    return () => { ipcRenderer.removeListener('window-action', listener) };
+  }, []);
+
   return (
     <div className={`titlebar fixed w-screen h-6 flex flex-row place-items-center text-xs bg-gray-100 bg-opacity-10 text-white ${className}`}>
       <span className='px-2'>
@@ -47,7 +70,7 @@ export default function Titlebar({ title, subtitle, className }: TitlebarProps)
           <FontAwesomeIcon icon={faWindowMinimize}/>
         </button>
         <button type='button' onClick={() => handleWindowAction('maximize')} className='flex-grow h-full hover:bg-white hover:bg-opacity-20 focus:ring-0'>
-          <FontAwesomeIcon icon={faWindowMaximize}/>
+          <FontAwesomeIcon icon={isMaximized ? faWindowRestore : faWindowMaximize}/>
         </button>
         <button type='button' onClick={() => handleWindowAction('close')} className='flex-grow h-full hover:bg-red-500 hover:bg-opacity-70 focus:ring-0 text-base'>
           <div className='flex flex-row justify-center'>

@@ -19,8 +19,6 @@ export default function Layout({ children }: LayoutProps)
   }, []);
   const setTitlebarSubtitle = useCallback(async (s: string) => {
     setTitlebarSubtitleState(s);
-    console.warn('herhehre', s);
-
     await ipc.send<string>('window-title', { params: [s === '' ? 'amst' : s] });
   }, []);
 
