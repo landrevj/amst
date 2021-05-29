@@ -16,7 +16,7 @@ async function handleFileSend(req: IncomingMessage, res: ServerResponse, file: F
   if (file.archivePath !== '')
   {
     // eslint-disable-next-line new-cap
-    const zip = new StreamZip.async({ file: file.filePath });
+    const zip = new StreamZip.async({ file: file.filePath, skipEntryNameValidation: true });
     const stm = await zip.stream(file.archivePath);
     stm.pipe(res);
     stm.on('end', () => zip.close());
@@ -35,7 +35,7 @@ async function handleFileThumbnailSend(req: IncomingMessage, res: ServerResponse
   if (file.archivePath !== '')
   {
     // eslint-disable-next-line new-cap
-    const zip = new StreamZip.async({ file: file.filePath });
+    const zip = new StreamZip.async({ file: file.filePath, skipEntryNameValidation: true });
     filePath = join(join(userDataPath, THUMBNAIL_DIR_WORKING), file.id.toString().concat(file.extension === '' ? '' : `.${file.extension}`));
     await zip.extract(file.archivePath, filePath);
     await zip.close();
