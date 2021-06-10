@@ -14,16 +14,16 @@ export interface SearchQueryOptions
 
 export interface SearchQueryProps<Props, Results, QueryType extends SearchQuery<Props, Results>>
 {
-  results:        Results[];
-  loading:        boolean;
-  count:          number;
-  page:           number;
-  maxPage:        number;
-  prevPage:       () => void;
-  nextPage:       () => void;
-  goToPage:       (p: number) => void;
-  query:          QueryType;
-  parentPath?:    string;
+  results:     Results[];
+  loading:     boolean;
+  count:       number;
+  page:        number;
+  maxPage:     number;
+  prevPage:    () => void;
+  nextPage:    () => void;
+  goToPage:    (p: number) => void;
+  query:       QueryType;
+  parentPath?: string;
 };
 
 export default function useSearchQuery

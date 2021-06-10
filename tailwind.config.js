@@ -49,7 +49,10 @@ module.exports = {
         'unset': 'unset',
       },
       margin: {
-        'screen-minus-titlebar': 'calc(100vh - 1.5rem)'
+        'screen-minus-titlebar': 'calc(100vh - 1.5rem)',
+      },
+      gridTemplateColumns: {
+        'fill-48': 'repeat(auto-fill, minmax(12rem, 1fr))',
       },
     }
   },

@@ -42,7 +42,15 @@ export default class CRUD<EntityType>
     return entities;
   }
 
-  // update()
+  // async update(id: Primary<EntityType> | Primary<EntityType>[], data: any, options?: AssignOptions | boolean)
+  // {
+  //   const em = DB.getNewEM();
+
+  //   const ref = em?.getReference<EntityType>(this.Entity, id);
+  //   wrap(ref).assign(data, options);
+
+
+  // }
 
   async destroy(where: FilterQuery<EntityType>)
   {

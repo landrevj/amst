@@ -4,7 +4,7 @@ import { FilterQuery, FindOptions, QBFilterQuery, QueryOrder } from '@mikro-orm/
 
 import { DB } from '../../db';
 import { EntityChannel } from './Entity';
-import { File, Group, Tag } from '../../db/entities';
+import { File, Group, GroupMember, Tag } from '../../db/entities';
 import { SocketRequest } from '../../shared/websocket';
 import { IGroupSearchQuery } from '../../renderer/components/Group/Search/Query';
 
@@ -160,6 +160,33 @@ export class GroupChannel extends EntityChannel<Group>
 
   // /////////////////////////////////////////////////////////
   // /////////////////////////////////////////////////////////
+  async updateMemberPositions(request: SocketRequest<[number, [number, number][]]>)
+  {
+    this.handleAction(request, async ([groupId, memberPositions]) => {
+      const em = DB.getNewEM();
+      const group = await em?.findOne(Group, groupId);
+      if (!group)
+      {
+        this.emitFailure(request);
+        return false;
+      }
+
+      const members = (await group.members.init({ where: { file: memberPositions.map(mp => mp[0]) } }))?.getItems();
+      const memberDict: { [fileId: number]: GroupMember } = {};
+      members.forEach(m => { memberDict[m.file.id] = m });
+
+      memberPositions.forEach(([fileId, newPosition]) => {
+        const member = memberDict[fileId];
+        member.position = newPosition;
+      });
+
+      await em?.persistAndFlush(members);
+
+      return true;
+    });
+  }
+  // /////////////////////////////////////////////////////////
+  // /////////////////////////////////////////////////////////
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   handle(request: SocketRequest<any>)
@@ -188,6 +215,9 @@ export class GroupChannel extends EntityChannel<Group>
         break;
       case 'getPreviewFiles':
         this.getPreviewFiles(request);
+        break;
+      case 'updateMemberPositions':
+        this.updateMemberPositions(request);
         break;
 
       default:

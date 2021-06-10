@@ -9,11 +9,11 @@ import { Link } from 'react-router-dom';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCopy } from '@fortawesome/free-regular-svg-icons';
-import { faArrowCircleUp, faChevronLeft, faChevronRight, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faArrowCircleUp, faChevronLeft, faChevronRight, faExpandArrowsAlt, faPlus } from '@fortawesome/free-solid-svg-icons';
 
 
 import Client from '../../../shared/websocket/SocketClient';
-import { GroupMemberStub, GroupStub, TagStub } from '../../../db/entities';
+import { FileStub, GroupMemberStub, GroupStub, TagStub } from '../../../db/entities';
 
 import { SocketRequestStatus } from '../../../shared/websocket';
 import { withSearchQuery, SearchQueryProps } from '../../components/UI/Search/Query';
@@ -39,6 +39,7 @@ interface GroupViewState
   group?: GroupStub;
   tags: TagStub[];
   members?: GroupMemberStub[];
+  sorting: boolean;
 }
 
 class FileView extends React.Component<GroupViewProps, GroupViewState>
@@ -57,10 +58,13 @@ class FileView extends React.Component<GroupViewProps, GroupViewState>
       group,
       tags: [],
       members: [],
+      sorting: false,
     };
 
     this.handleTagFormSubmit = this.handleTagFormSubmit.bind(this);
     this.handleTagRemove = this.handleTagRemove.bind(this);
+    this.handleSetSorting = this.handleSetSorting.bind(this);
+    this.handleSort = this.handleSort.bind(this);
 
     this.onKeyDown = this.onKeyDown.bind(this);
   }
@@ -94,6 +98,39 @@ class FileView extends React.Component<GroupViewProps, GroupViewState>
     }
   }
 
+  handleSetSorting(sorting: boolean)
+  {
+    this.setState({ sorting });
+  }
+
+  async handleSort(sortedFiles: FileStub[])
+  {
+    const { group, members: originalMembers } = this.state;
+    if (!group) return;
+
+    const memberDict: { [fileId: number]: GroupMemberStub } = {};
+    // want to be able to grab members by their associated file's id
+    // this will save us from having to iterate over the member array multiple times
+    originalMembers?.forEach(m => { memberDict[m.file.id] = m });
+
+    const changedPos: [number, number][] = [];
+    const sortedMembers = sortedFiles.map((f, i)=> {
+      const member = memberDict[f.id];
+      if (member.position !== i) changedPos.push([f.id, i]);
+
+      return { ...member, position: i } as GroupMemberStub;
+    });
+
+    // set the state right away so the drop animation plays properly
+    this.setState({ members: sortedMembers });
+
+    const response = await Client.send('Group', { action: 'updateMemberPositions', params: [group.id, changedPos] });
+    const success = response.status === SocketRequestStatus.SUCCESS;
+
+    // if the backend fails to update then undo the changes
+    if (!success) this.setState({ members: originalMembers });
+  }
+
   onKeyDown(_shortcut: string, _e: KeyboardEvent, handler: HotkeysEvent)
   {
     const { prevPage, nextPage } = this.props;
@@ -101,11 +138,13 @@ class FileView extends React.Component<GroupViewProps, GroupViewState>
     {
       case 'left':
       case 'a':
+        this.handleSetSorting(false);
         prevPage();
         break;
 
       case 'right':
       case 'd':
+        this.handleSetSorting(false);
         nextPage();
         break;
 
@@ -147,7 +186,7 @@ class FileView extends React.Component<GroupViewProps, GroupViewState>
   render()
   {
     const { loading, query, page, maxPage, nextPage, prevPage, parentPath } = this.props;
-    const { group, tags, members } = this.state;
+    const { group, tags, members, sorting } = this.state;
     // if (!file && !loading) return (<span>no file</span>)
     const fileQuery = new FileSearchQuery({ groupID: group?.id, order: QueryOrder.ASC, instanceID: query.instanceID, parentInstanceID: query.instanceID }, true);
 
@@ -167,7 +206,7 @@ class FileView extends React.Component<GroupViewProps, GroupViewState>
 
     return (
       <>
-      <Hotkeys keyName='left,right,a,d' onKeyDown={this.onKeyDown}/>
+      <Hotkeys keyName='left,right,a,d' onKeyDown={this.onKeyDown} disabled={sorting}/>
 
       <div className='p-4 space-y-4 h-screen-minus-titlebar overflow-auto scrollbar-light'>
 
@@ -245,7 +284,17 @@ class FileView extends React.Component<GroupViewProps, GroupViewState>
         </div>
 
         <Card className='max-h-unset'>
-          <FilePreviewList loading={loading} files={members?.map(m => m.file) || []} query={fileQuery} QueryConstructor={FileSearchQuery}/>
+
+          <CardHeader className='py-1 mb-4 border-b-2 border-gray-100' inset>
+            <div className='text-gray-400'>
+              <button type='button' className={`hover:text-blue-400 ${sorting ? 'text-blue-400' : ''}`} onClick={() => this.handleSetSorting(!sorting)}>
+                <FontAwesomeIcon className='align-middle' icon={faExpandArrowsAlt}/>
+              </button>
+            </div>
+            <div className='flex-grow'/>
+          </CardHeader>
+
+          <FilePreviewList loading={loading} sorting={sorting} onSort={this.handleSort} files={members?.map(m => m.file) || []} query={fileQuery} QueryConstructor={FileSearchQuery}/>
         </Card>
       </div>
       </>

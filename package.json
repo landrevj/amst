@@ -14,7 +14,7 @@
     "start": "node -r @babel/register ./.erb/scripts/CheckPortInUse.js && cross-env yarn start:renderer",
     "start:main": "cross-env NODE_ENV=development electron -r ./.erb/scripts/BabelRegister ./src/main.dev.ts",
     "start:renderer": "cross-env NODE_ENV=development webpack serve --config ./.erb/configs/webpack.config.renderer.dev.babel.js",
-    "test": "cross-env NODE_ENV=test jest",
+    "test": "cross-env NODE_ENV=development JEST=true jest",
     "start:release:win": "./release/win-unpacked/amst.exe"
   },
   "lint-staged": {
@@ -263,6 +263,9 @@
     "yarn-deduplicate": "^3.1.0"
   },
   "dependencies": {
+    "@dnd-kit/core": "^3.0.4",
+    "@dnd-kit/modifiers": "^2.1.0",
+    "@dnd-kit/sortable": "^3.1.0",
     "@fontsource/roboto": "^4.2.2",
     "@fortawesome/fontawesome-svg-core": "^1.2.35",
     "@fortawesome/free-regular-svg-icons": "^5.15.3",
@@ -275,6 +278,7 @@
     "hash-it": "^5.0.0",
     "history": "^5.0.0",
     "javascript-time-ago": "^2.3.4",
+    "jimp": "^0.16.1",
     "lodash": "^4.17.21",
     "md5-file": "^5.0.0",
     "mime-types": "^2.1.29",

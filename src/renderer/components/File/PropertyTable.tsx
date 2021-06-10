@@ -92,10 +92,11 @@ export default class FilePropertyTable extends React.Component<FilePropertyTable
             <th className='text-right align-top font-bold pr-2'>path</th>
             <td className='break-all'>{file.filePath}</td>
           </tr>
+          {file.archivePath !== '' ?
           <tr>
             <th className='text-right align-top font-bold pr-2'>archive path</th>
             <td className='break-all'>{file.archivePath}</td>
-          </tr>
+          </tr> : null}
         </tbody>
       </table>
     );

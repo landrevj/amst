@@ -12,7 +12,7 @@ interface FilePreviewProps
   imgClassName?: string;
 }
 
-export default function FilePreview({ file, showName = false, className = 'w-48', imgClassName = 'max-h-72' }: FilePreviewProps)
+export default function FilePreview({ file, showName = false, className, imgClassName = 'max-h-72' }: FilePreviewProps)
 {
   const { type } = mimeRegex(file.mimeType || '');
   let content: JSX.Element;
@@ -26,7 +26,7 @@ export default function FilePreview({ file, showName = false, className = 'w-48'
   }
 
   return (
-    <figure key={file.id} className={`rounded overflow-hidden ${className}`}>
+    <figure key={file.id} className={`rounded overflow-hidden ${className}`} >
       <div className={`overflow-hidden ${showName ? '' : 'rounded'} ${imgClassName}`}>
         {content}
       </div>
@@ -37,6 +37,6 @@ export default function FilePreview({ file, showName = false, className = 'w-48'
 
 FilePreview.defaultProps = {
   showName: false,
-  className: 'w-48',
+  className: '',
   imgClassName: 'max-h-72',
 };

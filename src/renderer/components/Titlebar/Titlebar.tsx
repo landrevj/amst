@@ -54,9 +54,11 @@ export default function Titlebar({ title, subtitle, className }: TitlebarProps)
           break;
       }
     };
-    ipcRenderer.on('window-action', listener);
 
-    return () => { ipcRenderer.removeListener('window-action', listener) };
+    // jest complains about ipcRenderer being undefined here so use ?. for accessing things
+    ipcRenderer?.on('window-action', listener);
+
+    return () => { ipcRenderer?.removeListener('window-action', listener) };
   }, []);
 
   return (

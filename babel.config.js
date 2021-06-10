@@ -60,7 +60,7 @@ module.exports = (api) => {
     ...(development ? developmentPlugins : productionPlugins),
   ]
 
-  if (process.env.NODE_ENV === "test") {
+  if (process.env.JEST === "true") {
     plugins.push("require-context-hook")
   }
 

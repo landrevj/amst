@@ -2,8 +2,8 @@ import { join } from "path";
 import { IncomingMessage, ServerResponse } from "http";
 import send from 'send';
 import StreamZip from "node-stream-zip";
-import { unlink } from 'fs';
-import sharp from 'sharp';
+import { access, unlink } from 'fs/promises';
+import Jimp from 'jimp/es';
 import log from 'electron-log';
 
 import { DB } from '../../../db';
@@ -26,39 +26,82 @@ async function handleFileSend(req: IncomingMessage, res: ServerResponse, file: F
   send(req, encodeURIComponent(file.filePath), {}).pipe(res);
 }
 
+async function getThumbnailPathOrCreate(file: File, userDataPath: string)
+{
+  const { type, subtype } = mimeRegex(file.mimeType || '');
+  if (type !== 'image') return '';
+
+  const thumbPath = join(
+    join(userDataPath, THUMBNAIL_DIR),
+    fileIDToThumbnailPath(file.id).concat(file.extension === '' ? '' : `.${file.extension}`)
+  );
+
+  try // if the thumbnail already exists we can just return the path
+  {
+    await access(thumbPath);
+    return thumbPath;
+  }
+  catch (e) // if there is an error checking the file
+  {
+    if (e.code !== 'ENOENT') // if the error was something unexpected just log and return
+    {
+      log.error(e.code);
+      return '';
+    }
+
+    // otherwise create the thumbnail and continue
+
+    let filePath: string;
+    if (file.archivePath !== '')
+    {
+      // eslint-disable-next-line new-cap
+      const zip = new StreamZip.async({ file: file.filePath, skipEntryNameValidation: true });
+      filePath = join(join(userDataPath, THUMBNAIL_DIR_WORKING), file.id.toString().concat(file.extension === '' ? '' : `.${file.extension}`));
+      await zip.extract(file.archivePath, filePath);
+      await zip.close();
+    }
+    else filePath = file.filePath;
+
+    // console.log(filePath);
+    try {
+      const processedFile = await Jimp.read(filePath);
+      await processedFile
+        .resize(300, Jimp.AUTO)
+        .quality(60)
+        .writeAsync(thumbPath);
+      // console.log(type, subtype);
+    }
+    catch (error)
+    {
+      log.error(error);
+      return '';
+    }
+
+    if (file.archivePath !== '')
+    {
+      try
+      {
+        await unlink(filePath);
+        log.verbose(`unlinked extracted archive file after thumbnailing at ${filePath}`);
+      }
+      catch (error)
+      {
+        log.error(error);
+      }
+    }
+
+    return thumbPath;
+  }
+}
+
 async function handleFileThumbnailSend(req: IncomingMessage, res: ServerResponse, file: File, userDataPath: string)
 {
-  const { type } = mimeRegex(file.mimeType || '');
-  if (type !== 'image') return;
+  // console.log('erere');
+  const fp = await getThumbnailPathOrCreate(file, userDataPath);
+  // console.log(fp);
 
-  let filePath: string;
-  if (file.archivePath !== '')
-  {
-    // eslint-disable-next-line new-cap
-    const zip = new StreamZip.async({ file: file.filePath, skipEntryNameValidation: true });
-    filePath = join(join(userDataPath, THUMBNAIL_DIR_WORKING), file.id.toString().concat(file.extension === '' ? '' : `.${file.extension}`));
-    await zip.extract(file.archivePath, filePath);
-    await zip.close();
-  }
-  else filePath = file.filePath;
-
-  // console.log(filePath);
-  const thumbPath = join(join(userDataPath, THUMBNAIL_DIR), fileIDToThumbnailPath(file.id).concat(file.extension === '' ? '' : `.${file.extension}`));
-  // sharp(filePath)
-  //   .resize(300)
-  //   .on('info', info => {
-  //     log.info(`resized height ${info.height}`);
-  //   });
-  // console.log(thumbPath);
-
-  if (file.archivePath !== '')
-  {
-    unlink(filePath, (err) => {
-      if (err) log.error(err);
-      log.verbose(`unlinked extracted archive file after thumbnailing at ${filePath}`);
-    });
-  }
-
+  if (fp !== '') send(req, encodeURIComponent(fp), {}).pipe(res);
+  else handleFileSend(req, res, file);
 }
 
 export default async function fileRequestListener(req: IncomingMessage, res: ServerResponse, userDataPath: string)

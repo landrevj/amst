@@ -1,11 +1,10 @@
-import { Entity, Property, ManyToOne, PrimaryKeyType, Unique } from '@mikro-orm/core'
+import { Entity, Property, ManyToOne, PrimaryKeyType } from '@mikro-orm/core'
 
 // eslint-disable-next-line import/no-cycle
 import { Group, GroupStub, File, FileStub } from './index';
 
 
 @Entity()
-@Unique({ properties: ['group', 'position'] })
 export class GroupMember
 {
   @ManyToOne(() => Group, { primary: true })

@@ -29,14 +29,14 @@
  *        See https://github.com/webpack-contrib/sass-loader#imports
  */
 
+html {
+  font-family: Roboto, sans-serif;
+  @apply text-base text-gray-700;
+}
+
 button,
 a {
   @apply focus:outline-none focus:ring-4 ring-blue-200 ring-opacity-50;
-}
-
-body {
-  font-family: Roboto, sans-serif;
-  @apply text-base text-gray-700;
 }
 
 body::before {
@@ -176,4 +176,20 @@ input:checked ~ .toggle-dot {
 }
 input:checked ~ .toggle-bg {
   @apply bg-blue-400;
+}
+
+/************************************************************/
+/************************************************************/
+.insert-sortable-before:before,
+.insert-sortable-after:after {
+  content: '';
+  @apply absolute inset-y-0;
+  @apply rounded-full border-2 border-solid border-blue-500;
+}
+
+.insert-sortable-before:before {
+  @apply -left-1.5;
+}
+.insert-sortable-after:after {
+  @apply -right-1.5;
 }
