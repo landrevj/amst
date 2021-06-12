@@ -10,6 +10,7 @@ import { SearchQuery, ISearchQuery } from '../../UI/Search/Query';
 
 export interface IFileSearchQuery extends ISearchQuery
 {
+  id?: number;
   // property queries
   name?: string;
   extension?: string;
@@ -32,6 +33,8 @@ export default class FileSearchQuery extends SearchQuery<IFileSearchQuery, FileS
 {
   static DEFAULT_FILES_PER_PAGE = 20;
   public readonly route = 'file';
+
+  public id?: number;
 
   // property queries
   public name?: string;
@@ -92,6 +95,8 @@ export default class FileSearchQuery extends SearchQuery<IFileSearchQuery, FileS
 
       return thing;
     };
+
+    this.id = helper(qs.id, id => parseInt(id, 10));
 
     // these are always strings so just cast them
     this.name      = qs.name      ? qs.name      as string : '';

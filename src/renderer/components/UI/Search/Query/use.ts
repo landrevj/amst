@@ -40,7 +40,6 @@ export default function useSearchQuery
   const [page,    setPage]    = useState(0);
   const [maxPage, setMaxPage] = useState(0);
 
-
   const query = useMemo(() => new QueryConstructor(location.search, true, options.defaultPerPage),
   [QueryConstructor, location.search, options.defaultPerPage]);
 

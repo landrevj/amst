@@ -10,6 +10,7 @@ import { SearchQuery, ISearchQuery } from '../../UI/Search/Query';
 
 export interface IGroupSearchQuery extends ISearchQuery
 {
+  id?: number;
   // property queries
   name?: string;
 
@@ -27,6 +28,8 @@ export default class GroupSearchQuery extends SearchQuery<IGroupSearchQuery, Gro
 {
   static DEFAULT_GROUPS_PER_PAGE = 20;
   public readonly route = 'group';
+
+  public id?: number;
 
   // property queries
   public name?: string;
@@ -80,6 +83,8 @@ export default class GroupSearchQuery extends SearchQuery<IGroupSearchQuery, Gro
 
       return thing;
     };
+
+    this.id = helper(qs.id, id => parseInt(id, 10));
 
     this.name  = qs.name  ? qs.name  as string : '';
     this.order = qs.order ? qs.order as QueryOrder : QueryOrder.ASC;

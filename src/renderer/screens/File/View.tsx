@@ -21,6 +21,8 @@ import { Card, CardSection } from '../../components/UI/Card';
 import FilePropertyTable from '../../components/File/PropertyTable';
 import FileSearchQuery, { IFileSearchQuery } from '../../components/File/Search/Query';
 import { TitlebarContext } from '../../components/Titlebar/Titlebar';
+import GroupSearchQuery from '../../components/Group/Search/Query';
+import QueryNav from '../../components/UI/Query/Nav';
 
 interface FileViewRouteParams
 {
@@ -193,35 +195,7 @@ class FileView extends React.Component<FileViewProps, FileViewState>
 
           <Card className='relative w-full space-y-4'>
 
-            {file && !loading ?
-            <div className='flex flex-row gap-2'>
-              <span>#{file?.id}</span>
-              <span className='text-gray-400'>{page + 1}/{maxPage + 1}</span>
-              <div className='flex-grow'/>
-              <button type='button' className='h-6 bg-transparent flex place-items-center' onClick={prevPage}>
-                <FontAwesomeIcon className='mr-2 fill-current text-gray-600' icon={faChevronLeft}/>
-                <span>prev</span>
-              </button>
-
-              {parentPath ?
-              <Link to={parentPath} type='button' className='flex px-2 rounded-full text-white filter saturate-[.9] bg-gradient-to-r from-blue-400 to-blue-300'>
-                <FontAwesomeIcon className='mr-1 -ml-1 my-auto fill-current text-gray-100' icon={faArrowCircleUp}/>
-                <span>back</span>
-              </Link>
-              : <></>}
-
-              <button type='button' className='h-6 bg-transparent flex place-items-center' onClick={nextPage}>
-                <span>next</span>
-                <FontAwesomeIcon className='ml-2 fill-current text-gray-600' icon={faChevronRight}/>
-              </button>
-            </div>
-            :
-            <div className='flex flex-row animate-fade-in place-items-center gap-2'>
-              <div className='!bg-gray-400 text-sm-loading w-14'/>
-              <div className='flex-grow'/>
-              <div className='!bg-gray-400 text-sm-loading w-14'/>
-              <div className='!bg-gray-400 text-sm-loading w-14'/>
-            </div>}
+            <QueryNav loading={loading} id={file?.id} page={page} maxPage={maxPage} prevPage={prevPage} nextPage={nextPage} backPath={parentPath}/>
 
             <div className='grid grid-cols-1 lg:grid-cols-2 3xl:grid-cols-3 gap-4'>
 
@@ -239,8 +213,13 @@ class FileView extends React.Component<FileViewProps, FileViewState>
               </CardSection>
 
               <CardSection className='bg-gray-100' headerIcon={faLayerGroup}>
-                {/* eslint-disable-next-line react/no-array-index-key */}
-                {groups.map((g, i) => <p key={i}>{g.name}</p>)}
+                {groups.map((g, i) => {
+                  const gq = new GroupSearchQuery({ id: g.id });
+                  gq.limit = 1;
+                  gq.parentInstanceID = query.instanceID;
+                  // eslint-disable-next-line react/no-array-index-key
+                  return  <Link key={i} to={`/${gq.route}/${g.id}?${gq.toString()}`}>{g.name}</Link>
+                })}
               </CardSection>
 
               <CardSection className='bg-gray-100' headerIcon={faFile}>

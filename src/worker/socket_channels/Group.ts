@@ -80,11 +80,18 @@ export class GroupChannel extends EntityChannel<Group>
       const qbBoth = [qb, qbCount];
 
       const {
+        id,
         name,
         workspaceID, tags, andOr,
         page, limit, order
       } = q;
 
+      if (id)
+      {
+        qbBoth.forEach(e => {
+          e.where({ id });
+        });
+      }
       if (workspaceID)
       {
         qbBoth.forEach(e => {

@@ -81,11 +81,18 @@ export class FileChannel extends EntityChannel<File>
       const qbBoth = [qb, qbCount];
 
       const {
+        id,
         name, extension, fullPath, mimeType, md5,
         workspaceID, groupID, tags, andOr,
         page, limit, order
       } = q;
 
+      if (id)
+      {
+        qbBoth.forEach(e => {
+          e.where({ id });
+        });
+      }
       if (workspaceID)
       {
         qbBoth.forEach(e => {

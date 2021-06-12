@@ -206,35 +206,43 @@ export class WorkspaceChannel extends EntityChannel<Workspace>
           }
           this.emitThrottledSyncUpdate(id, totalFilesDiscovered, totalFilesAdded, 0);
 
+          // //////////////////////////////////////// handle zips
           // if the file happens to be a zip file then parse the files within it as well
           if (searchArchives && ALLOWED_ZIP_EXTENSIONS.has(extname(fp).slice(1)))
           {
-            // rude
-            // eslint-disable-next-line new-cap
-            const zip = new StreamZip.async({ file: fp, skipEntryNameValidation: true });
-            const entries = values(await zip.entries()).filter(e => !e.isDirectory);
-            for (const entry of entries)
+            try
             {
-              const afp = entry.name;
-              pathChunk[chunkLength][0] = fp;
-              pathChunk[chunkLength][1] = afp;
-              chunkLength += 1;
-              totalFilesDiscovered += 1;
-
-              // if we hit the chunk size we still send the chunk off to be persisted
-              if (chunkLength === PATH_DISCOVERY_CHUNK_SIZE)
+              // rude
+              // eslint-disable-next-line new-cap
+              const zip = new StreamZip.async({ file: fp, skipEntryNameValidation: true });
+              const entries = values(await zip.entries()).filter(e => !e.isDirectory);
+              for (const entry of entries)
               {
-                // eslint-disable-next-line no-await-in-loop
-                totalFilesAdded += await WorkspaceChannel.syncPathChunk(id, pathChunk);
-                chunkLength = 0;
-              }
-              this.emitThrottledSyncUpdate(id, totalFilesDiscovered, totalFilesAdded, 0);
-            }
-            await zip.close();
-            // WorkspaceChannel.updateArchiveGroup(fp, entries);
-            archivePaths.push([fp, entries]);
-          }
+                const afp = entry.name;
+                pathChunk[chunkLength][0] = fp;
+                pathChunk[chunkLength][1] = afp;
+                chunkLength += 1;
+                totalFilesDiscovered += 1;
 
+                // if we hit the chunk size we still send the chunk off to be persisted
+                if (chunkLength === PATH_DISCOVERY_CHUNK_SIZE)
+                {
+                  // eslint-disable-next-line no-await-in-loop
+                  totalFilesAdded += await WorkspaceChannel.syncPathChunk(id, pathChunk);
+                  chunkLength = 0;
+                }
+                this.emitThrottledSyncUpdate(id, totalFilesDiscovered, totalFilesAdded, 0);
+              }
+              await zip.close();
+              // WorkspaceChannel.updateArchiveGroup(fp, entries);
+              archivePaths.push([fp, entries]);
+            }
+            catch (e)
+            {
+              log.error(fp, e);
+            }
+          }
+          // \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ \handle zips
         }
         if (chunkLength !== 0) // if we still have some files which need to get synced
         {

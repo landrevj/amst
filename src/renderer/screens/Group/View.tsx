@@ -26,6 +26,7 @@ import FilePreviewList from '../../components/File/Preview/List';
 import FileSearchQuery from '../../components/File/Search/Query';
 import { mimeRegex } from '../../../utils';
 import { TitlebarContext } from '../../components/Titlebar/Titlebar';
+import QueryNav from '../../components/UI/Query/Nav';
 
 interface GroupViewRouteParams
 {
@@ -249,35 +250,7 @@ class FileView extends React.Component<GroupViewProps, GroupViewState>
 
             <div className='flex flex-col gap-4'>
               <hr/>
-              {group && !loading ?
-              <div className='flex flex-row gap-2'>
-                <span>#{group?.id}</span>
-                <span className='text-gray-400'>{page + 1}/{maxPage + 1}</span>
-                <div className='flex-grow'/>
-                <button type='button' className='h-6 bg-transparent flex place-items-center' onClick={prevPage}>
-                  <FontAwesomeIcon className='mr-2 fill-current text-gray-600' icon={faChevronLeft}/>
-                  <span>prev</span>
-                </button>
-
-                {parentPath ?
-                <Link to={parentPath} type='button' className='flex px-2 rounded-full text-white filter saturate-[.9] bg-gradient-to-r from-blue-400 to-blue-300'>
-                  <FontAwesomeIcon className='mr-1 -ml-1 my-auto fill-current text-gray-100' icon={faArrowCircleUp}/>
-                  <span>back</span>
-                </Link>
-                : <></>}
-
-                <button type='button' className='h-6 bg-transparent flex place-items-center' onClick={nextPage}>
-                  <span>next</span>
-                  <FontAwesomeIcon className='ml-2 fill-current text-gray-600' icon={faChevronRight}/>
-                </button>
-              </div>
-              :
-              <div className='flex flex-row animate-fade-in place-items-center gap-2'>
-                <div className='!bg-gray-400 text-sm-loading w-14'/>
-                <div className='flex-grow'/>
-                <div className='!bg-gray-400 text-sm-loading w-14'/>
-                <div className='!bg-gray-400 text-sm-loading w-14'/>
-              </div>}
+              <QueryNav loading={loading} id={group?.id} page={page} maxPage={maxPage} prevPage={prevPage} nextPage={nextPage} backPath={parentPath}/>
             </div>
 
           </Card>
