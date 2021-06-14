@@ -11,9 +11,10 @@ interface CardProps
   translucent?: boolean | 'dashed';
   className?: string;
   children?: React.ReactNode;
+  overflow?: 'auto' | 'visible';
 }
 
-export default function Card({ layout = 'flex', flexDirection = 'col', empty, transparent, translucent, className, children }: CardProps)
+export default function Card({ layout = 'flex', flexDirection = 'col', overflow = 'auto', empty, transparent, translucent, className, children }: CardProps)
 {
   let bgStyle = 'bg-white';
   let emptyStyle: 'light' | 'dark' = 'dark';
@@ -31,7 +32,8 @@ export default function Card({ layout = 'flex', flexDirection = 'col', empty, tr
   }
 
   return (
-    <div className={`relative max-h-full overflow-auto p-4
+    <div className={`relative max-h-full p-4
+      ${overflow === 'auto' ? 'overflow-auto': 'overflow-visible'}
       ${layout} ${flexDirection === 'col' ? 'flex-col' : 'flex-row'}
       ${bgStyle} rounded
       ${transparent || translucent ? 'scrollbar-light' : ''} ${className}`}>
@@ -45,6 +47,7 @@ export default function Card({ layout = 'flex', flexDirection = 'col', empty, tr
 Card.defaultProps = {
   layout: 'flex',
   flexDirection: 'col',
+  overflow: 'auto',
   empty: false,
   transparent: false,
   translucent: false,

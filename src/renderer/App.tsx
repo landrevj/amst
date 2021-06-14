@@ -5,6 +5,7 @@ import Home from './screens/Home/Home';
 import { FileSearch, FileView } from './screens/File';
 import { GroupSearch, GroupView } from './screens/Group';
 import Layout from './screens/Layout';
+import './App.global.css';
 
 export default function App()
 {

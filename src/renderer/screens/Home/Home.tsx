@@ -8,7 +8,6 @@ import { WorkspaceStub } from '../../../db/entities';
 import { WorkspaceForm, WorkspaceList } from '../../components/Workspace';
 
 import { SocketRequestStatus } from '../../../shared/websocket';
-import '../../App.global.css';
 import { Card, CardHeader } from '../../components/UI/Card';
 import { TitlebarContext } from '../../components/Titlebar/Titlebar';
 

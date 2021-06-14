@@ -189,7 +189,7 @@ class FileView extends React.Component<FileViewProps, FileViewState>
         {content ?
         <div className='sticky top-0 flex justify-center place-items-center w-full h-screen-minus-titlebar'>
           {content}
-        </div> : <></>}
+        </div> : null}
 
         <div className={`w-full p-4 ${content ? 'pt-0' : ''}`}>
 
@@ -208,7 +208,7 @@ class FileView extends React.Component<FileViewProps, FileViewState>
                       <FontAwesomeIcon icon={faPlus}/>
                     </span>
                     <TagForm channel='File' fileID={file.id} onSubmit={this.handleTagFormSubmit}/>
-                  </div> : <></>}
+                  </div> : null}
                 </div>
               </CardSection>
 

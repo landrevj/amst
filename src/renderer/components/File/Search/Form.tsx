@@ -218,7 +218,7 @@ class FileSearchForm extends React.Component<FileSearchFormProps, FileSearchForm
         </CardSection>
 
         <CardSection fullWidth className='p-4 bg-gray-100 space-y-4'>
-          <TagInput className='inline-block w-full px-2 py-1 text-sm rounded-full border-2 border-solid border-gray-300 placeholder-gray-400' onSubmit={this.handleTagInputSubmit} allowReservedCategoryPrefixes/>
+          <TagInput onSubmit={this.handleTagInputSubmit} allowReservedCategoryPrefixes/>
 
           <div className='p-2 flex flex-row flex-wrap gap-1 justify-center bg-white rounded-lg border-solid border-gray-200 border-2'>
           {tags?.length ?

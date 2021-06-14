@@ -200,7 +200,7 @@ class FileView extends React.Component<GroupViewProps, GroupViewState>
       <Card translucent className='flex-none'>
         <FilePreview file={coverFile} showName={false} className='w-64 max-w-full max-h-full' imgClassName='max-h-full'/>
       </Card>
-        : <></>;
+        : null;
     }
 
 
@@ -216,7 +216,7 @@ class FileView extends React.Component<GroupViewProps, GroupViewState>
             <div className='w-64 h-36 animate-pulse bg-gray-100 rounded'/>
           </Card>}
 
-          <Card className='flex-grow gap-4' flexDirection='col'>
+          <Card className='flex-grow gap-4' flexDirection='col' overflow='visible'>
 
             <div className='flex-grow flex flex-col gap-4'>
               {group && !loading ?
@@ -244,7 +244,7 @@ class FileView extends React.Component<GroupViewProps, GroupViewState>
                   <FontAwesomeIcon icon={faPlus}/>
                 </span>
                 <TagForm channel='Group' groupID={group.id} onSubmit={this.handleTagFormSubmit}/>
-              </div> : <></>}
+              </div> : null}
             </div>
 
             <div className='flex flex-col gap-4'>

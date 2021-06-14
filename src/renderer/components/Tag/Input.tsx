@@ -1,5 +1,14 @@
 import React from 'react';
-import { TagTuple } from './index';
+import AsyncCreatableSelect from 'react-select/async-creatable';
+import { FilterQuery, FindOptions } from '@mikro-orm/core';
+
+import Client from '../../../shared/websocket/SocketClient';
+import { SocketRequestStatus } from '../../../shared/websocket';
+import { Tag, TagStub } from '../../../db/entities';
+import { TagTuple, tagRegex } from './index';
+
+
+type OptionType = { category: string, tag: string, value: string, label: string };
 
 interface TagInputProps
 {
@@ -8,83 +17,90 @@ interface TagInputProps
   onSubmit: (tag: TagTuple) => void;
 }
 
-interface TagInputState
-{
-  input: string;
-  category: string;
-  tag: string;
-}
-
-export default class TagInput extends React.Component<TagInputProps, TagInputState>
+export default class TagInput extends React.Component<TagInputProps>
 {
   constructor(props: TagInputProps)
   {
     super(props);
 
-    this.state = {
-      input: '',
-      tag: '',
-      category: '',
-    };
-
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleCreateTag = this.handleCreateTag.bind(this);
+    this.handleLoadTagSelect = this.handleLoadTagSelect.bind(this);
+    this.handleTagSelectChange = this.handleTagSelectChange.bind(this);
   }
 
-  handleChange({ target: { value } }: React.ChangeEvent<HTMLInputElement>)
+  async handleLoadTagSelect(input: string)
   {
     const { allowReservedCategoryPrefixes } = this.props;
-    // potentially two groups separated by ':', e.g. /^category:tag$/ or /^tag:$/ or /^tag$/
-    // the first is the tag if only the first group was filled in
-    // if we got values in both the first is the category and the second is the tag
-    const re = /^(?![*!])([^:]+):?([^:]+)?$/;
-    const reWithRes = /^([^:]+):?([^:]+)?$/;
-    const match = value.match(allowReservedCategoryPrefixes ? reWithRes : re); // match one can be either the tag or category, match two is always the tag if its there
-    if (value === '')
-    {
-      this.setState({ input: '', category: '', tag: '' });
-    }
-    else if (match)
-    {
-      // if there was something in the tag group use that, otherwise use what was in the category group instead
-      const tag = match[2] || match[1];
-      // if there was something in the tag group we can use the value from the category group as our category value
-      // otherwise we didn't get both a category and a tag, so we just use the empty string for our category.
-      const category = match[2] ? match[1] : '';
+    const [tag, category] = tagRegex(input, allowReservedCategoryPrefixes);
 
-      this.setState({
-        input: value,
-        category,
-        tag,
-      });
+    const query: FilterQuery<Tag> = { name: { $like: `%%${tag}%%` }, category: { $like: `%%${category}%%` } };
+    const options: FindOptions<Tag> = { limit: 5 };
+    const response = await Client.send<TagStub[]>('Tag', { action: 'read', params: [input.length ? query : {}, options] });
+    const success = response.status === SocketRequestStatus.SUCCESS;
+
+    if (!success || !response.data) return [{ category: '', tag:'', label: 'DB query failed!', value: '' }] as OptionType[];
+
+    const uniqueResults = new Set<string>();
+    const results: OptionType[] = [];
+    for (let i = 0; i < response.data.length; i += 1)
+    {
+      const t = response.data[i];
+      const catTagString = `${t.category !== '' ? `${t.category}:` : ''}${t.name}`;
+
+      if (!uniqueResults.has(catTagString))
+      {
+        uniqueResults.add(catTagString);
+
+        results.push({
+          category: t.category,
+          tag: t.name,
+          label: catTagString,
+          value: t.id.toString()
+        });
+      }
     }
+
+    return results;
   }
 
-  async handleSubmit(event: React.FormEvent<HTMLFormElement>)
+  handleCreateTag(input: string)
   {
-    event.preventDefault();
+    const { allowReservedCategoryPrefixes, onSubmit } = this.props;
+
+    onSubmit(tagRegex(input, allowReservedCategoryPrefixes));
+  }
+
+  handleTagSelectChange(option: OptionType | null)
+  {
+    if (!option) return;
+
+    const { category, tag } = option;
 
     const { onSubmit } = this.props;
-    const { category, tag } = this.state;
-
-    if (tag === '') return;
-
     onSubmit([tag.trim(), category.trim()]);
-    this.setState({
-      input: '',
-      tag: '',
-      category: '',
-    })
   }
 
   render()
   {
     const { className } = this.props;
-    const { input } = this.state;
     return (
-      <form className='contents' onSubmit={this.handleSubmit}>
-        <input className={className} type='text' value={input} placeholder='category:tag' onChange={this.handleChange}/>
-      </form>
+      <AsyncCreatableSelect<OptionType, false>
+        cacheOptions
+        defaultOptions
+
+        // this forces it to be managed which we want since we never want the
+        // select to actually hold a value, just help the user to pick one
+        value={null}
+        // onInputChange
+        loadOptions={this.handleLoadTagSelect}
+        onChange={this.handleTagSelectChange}
+        placeholder='category:tag'
+        className={`react-select_container ${className}`}
+        classNamePrefix='react-select'
+
+        onCreateOption={this.handleCreateTag}
+        formatCreateLabel={(str: string) => str} // remove the formatting
+      />
     );
   }
 }
