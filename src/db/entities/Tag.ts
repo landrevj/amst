@@ -6,7 +6,8 @@ import { File, FileStub, Group, GroupStub } from './index';
 import { BaseEntity, BaseEntityStub } from './BaseEntity';
 
 @Entity()
-@Unique({ properties: ['name', 'category', 'file', 'group'] })
+@Unique({ properties: ['name', 'category', 'file'] })
+@Unique({ properties: ['name', 'category', 'group'] })
 export class Tag extends BaseEntity
 {
 

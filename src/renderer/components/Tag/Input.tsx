@@ -85,8 +85,8 @@ export default class TagInput extends React.Component<TagInputProps>
     const { className } = this.props;
     return (
       <AsyncCreatableSelect<OptionType, false>
-        cacheOptions
-        defaultOptions
+        // cacheOptions
+        // defaultOptions
 
         // this forces it to be managed which we want since we never want the
         // select to actually hold a value, just help the user to pick one
@@ -97,6 +97,7 @@ export default class TagInput extends React.Component<TagInputProps>
         placeholder='category:tag'
         className={`react-select_container ${className}`}
         classNamePrefix='react-select'
+        noOptionsMessage={() => 'type to search...'}
 
         onCreateOption={this.handleCreateTag}
         formatCreateLabel={(str: string) => str} // remove the formatting
