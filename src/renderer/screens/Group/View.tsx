@@ -5,11 +5,10 @@ import Hotkeys from 'react-hot-keys';
 import { HotkeysEvent } from 'hotkeys-js';
 import log from 'electron-log';
 import { QueryOrder } from '@mikro-orm/core';
-import { Link } from 'react-router-dom';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCopy } from '@fortawesome/free-regular-svg-icons';
-import { faArrowCircleUp, faChevronLeft, faChevronRight, faExpandArrowsAlt, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faExpandArrowsAlt, faPlus } from '@fortawesome/free-solid-svg-icons';
 
 
 import Client from '../../../shared/websocket/SocketClient';

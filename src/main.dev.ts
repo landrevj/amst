@@ -87,12 +87,18 @@ const createWindow = async () => {
     },
   });
 
+  // listen to some window events so we can adjust the window titlebar we create in the renderer
   rendererWindow.on('maximize', () => {
-    rendererWindow?.webContents.send('window-action', 'maximized');
+    rendererWindow?.webContents.send('window-event', 'maximized');
   });
-
   rendererWindow.on('unmaximize', () => {
-    rendererWindow?.webContents.send('window-action', 'unmaximized');
+    rendererWindow?.webContents.send('window-event', 'unmaximized');
+  });
+  rendererWindow.on('focus', () => {
+    rendererWindow?.webContents.send('window-event', 'focus');
+  });
+  rendererWindow.on('blur' , () => {
+    rendererWindow?.webContents.send('window-event', 'blur');
   });
 
   workerWindow = new BrowserWindow({

@@ -28,7 +28,7 @@ async function handleFileSend(req: IncomingMessage, res: ServerResponse, file: F
 
 async function getThumbnailPathOrCreate(file: File, userDataPath: string)
 {
-  const { type, subtype } = mimeRegex(file.mimeType || '');
+  const { type } = mimeRegex(file.mimeType || '');
   if (type !== 'image') return '';
 
   const thumbPath = join(

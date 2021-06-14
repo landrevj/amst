@@ -4,7 +4,7 @@ import { RouteComponentProps } from 'react-router';
 import Hotkeys from 'react-hot-keys';
 import { HotkeysEvent } from 'hotkeys-js';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowCircleUp, faChevronLeft, faChevronRight, faFile, faLayerGroup, faPlus, faTags } from '@fortawesome/free-solid-svg-icons';
+import { faFile, faLayerGroup, faPlus, faTags } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import log from 'electron-log';
 
