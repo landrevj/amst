@@ -33,7 +33,14 @@ export default class TagInput extends React.Component<TagInputProps>
     const { allowReservedCategoryPrefixes } = this.props;
     const [tag, category] = tagRegex(input, allowReservedCategoryPrefixes);
 
-    const query: FilterQuery<Tag> = { name: { $like: `%%${tag}%%` }, category: { $like: `%%${category}%%` } };
+    // we use an $or and the tag value when a category hasn't been matched from the user's input
+    // so that things will show up when typing in a category
+    // eg: if something is tagged with 'from:archive' and they have only typed in 'from' we want
+    //     anything with either from as part of the tag OR as part of the category to show up in the results
+    let query: FilterQuery<Tag>;
+    if (category === '') query = { $or: [ { name: { $like: `%%${tag}%%` } }, { category: { $like: `%%${tag}%%` } } ] };
+    else                 query = { name: { $like: `%%${tag}%%` }, category: { $like: `%%${category}%%` } };
+
     const options: FindOptions<Tag> = { limit: 5 };
     const response = await Client.send<TagStub[]>('Tag', { action: 'read', params: [input.length ? query : {}, options] });
     const success = response.status === SocketRequestStatus.SUCCESS;

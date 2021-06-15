@@ -1,6 +1,6 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBan, faCheck, faDatabase, faExclamationTriangle, faFolder, faLayerGroup, faPlus, faSearch, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
+import { faBan, faDatabase, faExclamationTriangle, faFolder, faLayerGroup, faPlus, faSearch, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import { faCopy, faTrashAlt } from '@fortawesome/free-regular-svg-icons';
 
 import Client from '../../../../shared/websocket/SocketClient';
@@ -213,7 +213,7 @@ export default class WorkspaceWidget extends React.Component<WorkspaceWidgetProp
           isOpen={deleteModalOpen}
           onRequestClose={this.handleCloseDeleteModal}
         >
-          <CardHeader className='text-red-500' icon={faExclamationTriangle} text={`delete ${workspace.name}`}/>
+          <CardHeader icon={faExclamationTriangle} text={`delete ${workspace.name}`}/>
 
           <CardSection fullWidth>
             <p>This will only remove the workspace.</p>
@@ -223,11 +223,11 @@ export default class WorkspaceWidget extends React.Component<WorkspaceWidgetProp
           </CardSection>
 
           <CardFooter buttons>
-            <button type="button" className='hover:text-red-400' onClick={this.handleCloseDeleteModal}>
+            <button type="button" className='hover:text-yellow-400' onClick={this.handleCloseDeleteModal}>
               <FontAwesomeIcon icon={faBan}/>
             </button>
-            <button type="button" className='hover:text-green-400' onClick={() => onDelete && onDelete(workspace.id) }>
-              <FontAwesomeIcon icon={faCheck}/>
+            <button type="button" className='hover:text-red-400' onClick={() => onDelete && onDelete(workspace.id) }>
+              <FontAwesomeIcon icon={faTrashAlt}/>
             </button>
           </CardFooter>
 

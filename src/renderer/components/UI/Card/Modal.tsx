@@ -1,3 +1,5 @@
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useEffect } from 'react';
 import ReactModal from 'react-modal';
 
@@ -36,6 +38,7 @@ export default function CardModal({ empty, transparent, translucent, className, 
         translucent={translucent}
         className={`pointer-events-auto ${className}`}
       >
+        <FontAwesomeIcon className='absolute top-2 right-2 fill-current text-gray-400 hover:text-red-400' icon={faTimes} onClick={onRequestClose}/>
         {children}
       </Card>
 
