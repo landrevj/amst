@@ -63,14 +63,17 @@ input[type='number']::-webkit-outer-spin-button {
   margin: 0;
 }
 
-.titlebar {
+.titlebar-dragable {
   z-index: 999999;
+  position: absolute;
+
+  --no-drag-margin: 4px;
+  margin: var(--no-drag-margin) 0 0 var(--no-drag-margin);
+  width: calc(100% - var(--no-drag-margin));
+  height: calc(100% - var(--no-drag-margin));
+
   -webkit-user-select: none;
   -webkit-app-region: drag;
-}
-
-.titlebar .no-drag {
-  -webkit-app-region: no-drag;
 }
 
 /************************************************************/

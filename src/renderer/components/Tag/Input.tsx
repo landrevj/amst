@@ -106,6 +106,8 @@ export default class TagInput extends React.Component<TagInputProps>
         classNamePrefix='react-select'
         noOptionsMessage={() => 'type to search...'}
 
+        // allowCreateWhileLoading
+
         onCreateOption={this.handleCreateTag}
         formatCreateLabel={(str: string) => str} // remove the formatting
       />
