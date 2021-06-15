@@ -25,7 +25,7 @@ import FilePreviewList from '../../components/File/Preview/List';
 import FileSearchQuery from '../../components/File/Search/Query';
 import { mimeRegex } from '../../../utils';
 import { TitlebarContext } from '../../components/Titlebar/Titlebar';
-import QueryNav from '../../components/UI/Query/Nav';
+import QueryNav from '../../components/UI/Search/Query/Nav';
 
 interface GroupViewRouteParams
 {
@@ -185,7 +185,7 @@ class FileView extends React.Component<GroupViewProps, GroupViewState>
 
   render()
   {
-    const { loading, query, page, maxPage, nextPage, prevPage, parentPath } = this.props;
+    const { loading, query, page, maxPage, nextPage, prevPage, goToPage, parentPath } = this.props;
     const { group, tags, members, sorting } = this.state;
     // if (!file && !loading) return (<span>no file</span>)
     const fileQuery = new FileSearchQuery({ groupID: group?.id, order: QueryOrder.ASC, instanceID: query.instanceID, parentInstanceID: query.instanceID }, true);
@@ -249,7 +249,13 @@ class FileView extends React.Component<GroupViewProps, GroupViewState>
 
             <div className='flex flex-col gap-4'>
               <hr/>
-              <QueryNav loading={loading} id={group?.id} page={page} maxPage={maxPage} prevPage={prevPage} nextPage={nextPage} backPath={parentPath}/>
+              <QueryNav
+                loading={loading}
+                id={group?.id}
+                page={page} maxPage={maxPage}
+                prevPage={prevPage} nextPage={nextPage} goToPage={goToPage}
+                backPath={parentPath}
+              />
             </div>
 
           </Card>

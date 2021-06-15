@@ -65,7 +65,7 @@ export default function FileSearch()
             </div>
           </Link>
           <PaginationButtons className='flex-grow -my-2 mx-2' width={paginationWidth} page={page} maxPage={maxPage} prevPage={prevPage} nextPage={nextPage} goToPage={goToPage}/>
-          <PaginationPageInput className='flex-none my-auto' currentPage={page} maxPage={maxPage} goToPage={goToPage}/>
+          <PaginationPageInput className='flex-none my-auto space-x-1' currentPage={page} maxPage={maxPage} goToPage={goToPage}/>
         </Card>
 
         <Card empty={!loading && results.length === 0} className='flex-grow'>

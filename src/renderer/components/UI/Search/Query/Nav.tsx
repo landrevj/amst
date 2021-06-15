@@ -3,6 +3,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+import PaginationPageInput from '../../Paginator/PageInput';
+
 interface QueryNavProps
 {
   id?: number;
@@ -10,12 +12,13 @@ interface QueryNavProps
   maxPage?: number;
   prevPage?: () => void;
   nextPage?: () => void;
+  goToPage?: (p: number) => void;
   backPath?: string;
 
   loading?: boolean;
 }
 
-export default function QueryNav({ id, page, maxPage, prevPage, nextPage, backPath, loading }: QueryNavProps)
+export default function QueryNav({ id, page, maxPage, prevPage, nextPage, goToPage, backPath, loading }: QueryNavProps)
 {
 
   return loading ? (
@@ -26,9 +29,11 @@ export default function QueryNav({ id, page, maxPage, prevPage, nextPage, backPa
       <div className='!bg-gray-400 text-sm-loading w-14'/>
     </div>
   ) : (
-    <div className='flex flex-row gap-2'>
+    <nav className='flex flex-row gap-2'>
       {id && <span>#{id}</span>}
-      {(typeof page === 'number' && typeof maxPage === 'number' && maxPage > 0) && <span className='text-gray-400'>{page + 1}/{maxPage + 1}</span>}
+      {(goToPage && typeof page === 'number' && typeof maxPage === 'number' && maxPage > 0) &&
+        <PaginationPageInput className='text-gray-400' currentPage={page} maxPage={maxPage} goToPage={goToPage}/>
+      }
 
       <div className='flex-grow'/>
 
@@ -49,7 +54,7 @@ export default function QueryNav({ id, page, maxPage, prevPage, nextPage, backPa
         <span>next</span>
         <FontAwesomeIcon className='ml-2 fill-current text-gray-600' icon={faChevronRight}/>
       </button>}
-    </div>
+    </nav>
   );
 }
 
@@ -59,6 +64,7 @@ QueryNav.defaultProps = {
   maxPage: undefined,
   prevPage: undefined,
   nextPage: undefined,
+  goToPage: undefined,
   backPath: undefined,
   loading: undefined,
 };

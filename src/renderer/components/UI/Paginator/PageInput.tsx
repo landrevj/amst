@@ -12,7 +12,7 @@ interface PaginationPageInputProps
 export default function PaginationPageInput({ currentPage, maxPage, goToPage, className }: PaginationPageInputProps)
 {
   return (
-    <div className={`space-x-1 ${className}`}>
+    <div className={className}>
       <ClickToEditInput
         inputClassName='text-right'
         buttonClassName='text-gray-400 hover:text-blue-400'

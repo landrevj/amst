@@ -22,7 +22,7 @@ import FilePropertyTable from '../../components/File/PropertyTable';
 import FileSearchQuery, { IFileSearchQuery } from '../../components/File/Search/Query';
 import { TitlebarContext } from '../../components/Titlebar/Titlebar';
 import GroupSearchQuery from '../../components/Group/Search/Query';
-import QueryNav from '../../components/UI/Query/Nav';
+import QueryNav from '../../components/UI/Search/Query/Nav';
 
 interface FileViewRouteParams
 {
@@ -153,7 +153,7 @@ class FileView extends React.Component<FileViewProps, FileViewState>
 
   render()
   {
-    const { loading, page, maxPage, prevPage, nextPage, query, parentPath } = this.props;
+    const { loading, page, maxPage, prevPage, nextPage, goToPage, query, parentPath } = this.props;
     const { file, tags, groups } = this.state;
 
     let content: JSX.Element | undefined;
@@ -195,7 +195,13 @@ class FileView extends React.Component<FileViewProps, FileViewState>
 
           <Card className='relative w-full space-y-4'>
 
-            <QueryNav loading={loading} id={file?.id} page={page} maxPage={maxPage} prevPage={prevPage} nextPage={nextPage} backPath={parentPath}/>
+            <QueryNav
+              loading={loading}
+              id={file?.id}
+              page={page} maxPage={maxPage}
+              prevPage={prevPage} nextPage={nextPage} goToPage={goToPage}
+              backPath={parentPath}
+            />
 
             <div className='grid grid-cols-1 lg:grid-cols-2 3xl:grid-cols-3 gap-4'>
 
