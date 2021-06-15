@@ -76,7 +76,7 @@ export default function Titlebar({ mode = 'default', title, subtitle, className 
     <div className={`z-[99999] fixed w-screen h-6 flex flex-row text-xs bg-gray-100 bg-opacity-10 text-white ${className}`}>
 
       <div className='relative flex-grow flex flex-row place-items-center'>
-        <div className='titlebar'/>
+        <div className='titlebar-dragable'/>
         <span className='px-2'>
           {title}
         </span>
